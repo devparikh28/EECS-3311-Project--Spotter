@@ -90,7 +90,21 @@ The application is entirely Java. Python appears only in `tools/kuma/`, because 
 
 Live Hevy and Whoop APIs are deliberately out of scope. Both require account authentication that would consume implementation time without demonstrating any additional design, so the system reads their CSV exports instead. The `DataSource` interface is the extension point: adding `HevyApiAdapter` later would change nothing above it.
 
-## 1.8 Document Map
+## 1.8 Beyond the Course: Deliberate Extension Points
+
+Spotter is built to outlive the course, so several boundaries exist specifically to let it grow without being rewritten. None of the work below is in scope for Stages 2 and 3; it is recorded here because the design accommodates it on purpose rather than by accident.
+
+**Adherence and automatic progression.** The system currently plans a block and imports what was logged, but does not compare the two. A service that reads prescribed sessions against logged ones would close the coaching loop: loads advance when the lifter hits the prescribed work at or below the target RPE, and back off when reps are missed repeatedly. Every input it needs already exists (`TrainingBlock` for what was prescribed, `WorkoutSession` for what happened, `StrengthAnalytics` for the trend), so this is a new domain service and one agent, not a change to the architecture. This is the highest value extension and the one that turns a plan generator into a coach.
+
+**Live data sources.** CSV export is deliberate for now, because account authentication would consume implementation time without demonstrating additional design. `DataSource` is the seam: a `HevyApiAdapter` or `WhoopApiAdapter` implements the same interface and `DataSourceFactory` returns it, with nothing above the interface changing.
+
+**Other front ends.** `CoachController` has no knowledge of what is calling it, which is why the same methods serve both the JavaFX dashboard and the CLI. A REST layer over the same controller would let a web or mobile client reuse every layer beneath it, which matters because the realistic place to read a training plan is a phone in a gym. The discipline that keeps this possible is simple and is worth stating: no business logic in the panels.
+
+**Safety limits for users other than the author.** `PlanValidator` currently checks that loads sit in the range the progression strategy allows. Before the system is used by anyone else, it should also cap week over week increases and refuse any load beyond a sane multiple of demonstrated strength, so that a poor model response cannot produce a dangerous prescription. This is a deterministic rule in a class that already exists.
+
+**Multiple lifters.** The current design assumes one lifter per installation, which keeps the repositories simple. Adding a lifter identifier to the repository queries would be the first step toward a coach managing several athletes; the domain model already treats `LifterProfile` as the root that other entities hang from.
+
+## 1.9 Document Map
 
 | Section | Contents |
 |---|---|
