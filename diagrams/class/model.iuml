@@ -92,6 +92,8 @@ package "application" $app {
     + calculateAttempts() : List<MeetAttempts>
     + logIntake(e : FoodEntry) : MacroTotals
     + suggestMeal() : AgentResult<MealSuggestion>
+    + reviewAdherence(weekNumber : int) : AdherenceReport
+    + progressPlan(weekNumber : int) : AgentResult<TrainingBlock>
     + chat(message : String) : AgentResult<String>
     + applyEdit(cmd : PlanEditCommand) : void
     + undoLastEdit() : void
@@ -150,6 +152,11 @@ package "application" $app {
     - newLoadKg : double
     - previousLoadKg : double
   }
+  class ApplyProgressionCommand $app {
+    - block : TrainingBlock
+    - revisedWeeks : List<Week>
+    - previousWeeks : List<Week>
+  }
   class ApplyAdjustmentCommand $app {
     - block : TrainingBlock
     - adjusted : Session
@@ -161,6 +168,7 @@ package "application" $app {
     + adjustment : AdjustmentAgent
     + attemptRationale : AttemptRationaleAgent
     + meal : MealSuggestionAgent
+    + progression : ProgressionAgent
     + chat : ChatAgent
   }
 }
@@ -342,6 +350,38 @@ package "domain" $dom {
     + getRemaining(date : LocalDate) : MacroTotals
     + weeklyAdherence(weekStart : LocalDate) : double
   }
+  class PlanAdherence $dom {
+    - repTolerance : int = 0
+    - rpeTolerance : double = 0.5
+    + compare(b : TrainingBlock, logged : List<WorkoutSession>, from : LocalDate, to : LocalDate) : AdherenceReport
+    - matchSession(s : Session, logged : List<WorkoutSession>) : WorkoutSession [0..1]
+    - verdictFor(p : ExercisePrescription, actual : List<SetEntry>) : AdherenceVerdict
+  }
+  class AdherenceReport $dom {
+    + weekNumber : int
+    + completionRate : double
+    + entries : List<AdherenceEntry>
+    + summary() : String
+    + hasShortfall() : boolean
+  }
+  class AdherenceEntry $dom {
+    + exercise : Exercise
+    + prescribedSets : int
+    + completedSets : int
+    + prescribedReps : int
+    + completedReps : int
+    + targetRpe : double
+    + actualRpe : double [0..1]
+    + loadKg : double
+    + verdict : AdherenceVerdict
+  }
+  enum AdherenceVerdict $dom {
+    COMPLETED_BELOW_TARGET_RPE
+    COMPLETED_AT_TARGET
+    COMPLETED_ABOVE_TARGET_RPE
+    MISSED_REPS
+    MISSED_SESSION
+  }
   class RecoveryRuleEngine $dom {
     - minRecoveryScore : int = 33
     - minSleepHours : double = 6.0
@@ -407,6 +447,9 @@ package "agent" $agent {
   class AdjustmentAgent $agent
   class AttemptRationaleAgent $agent
   class MealSuggestionAgent $agent
+  class ProgressionAgent $agent {
+    - strategy : ProgressionStrategy
+  }
   class ChatAgent $agent {
     - memory : MemoryManager
   }
@@ -490,6 +533,7 @@ package "agent" $agent {
     + validateSubstitution(e : Exercise, allowed : List<Exercise>) : ValidationReport
     + validateMeal(m : MealSuggestion, d : DietaryConstraints, remaining : MacroTotals) : ValidationReport
     + validateRationale(text : String, a : MeetAttempts) : ValidationReport
+    + validateProgression(revised : TrainingBlock, original : TrainingBlock, r : AdherenceReport) : ValidationReport
   }
   class ValidationReport $agent {
     + valid : boolean
@@ -528,6 +572,7 @@ package "agent" $agent {
   class FoodDBTool $agent
   class PlanLookupTool $agent
   class RecoveryLookupTool $agent
+  class AdherenceTool $agent
 
   class MemoryManager $agent {
     - history : ConversationHistory
@@ -650,10 +695,12 @@ PlanEditHistory "1" o-- "*" PlanEditCommand
 PlanEditCommand <|.. SwapExerciseCommand
 PlanEditCommand <|.. ChangeLoadCommand
 PlanEditCommand <|.. ApplyAdjustmentCommand
+PlanEditCommand <|.. ApplyProgressionCommand
 SwapExerciseCommand --> TrainingBlock : receiver
 ChangeLoadCommand --> TrainingBlock : receiver
 ApplyAdjustmentCommand --> TrainingBlock : receiver
-AgentRegistry o-- "6" CoachAgent
+ApplyProgressionCommand --> TrainingBlock : receiver
+AgentRegistry o-- "7" CoachAgent
 CoachController --> CsvImportService
 CoachController --> StrengthAnalytics
 CoachController --> AttemptCalculator
@@ -688,6 +735,13 @@ AttemptCalculator ..> TestDayPlan : creates
 ProgressionStrategyFactory ..> ProgressionStrategy : creates
 LifterProfile --> TrainingGoal
 RecoveryRuleEngine ..> RecoveryFlag : creates
+PlanAdherence ..> AdherenceReport : creates
+AdherenceReport "1" *-- "1..*" AdherenceEntry
+AdherenceEntry --> AdherenceVerdict
+AdherenceEntry "*" --> "1" Exercise
+PlanAdherence ..> TrainingBlock
+PlanAdherence ..> WorkoutSession
+ProgressionAgent --> "1" ProgressionStrategy
 ProgressionStrategy <|.. RPEProgression
 ProgressionStrategy <|.. LinearProgression
 ProgressionStrategy <|.. PercentageProgression
@@ -698,6 +752,7 @@ CoachAgent <|-- SubstitutionAgent
 CoachAgent <|-- AdjustmentAgent
 CoachAgent <|-- AttemptRationaleAgent
 CoachAgent <|-- MealSuggestionAgent
+CoachAgent <|-- ProgressionAgent
 CoachAgent <|-- ChatAgent
 CoachAgent "*" o-- "1" LLMClient
 CoachAgent "1" *-- "1" ToolManager
@@ -731,12 +786,15 @@ Tool <|.. ExerciseDBTool
 Tool <|.. FoodDBTool
 Tool <|.. PlanLookupTool
 Tool <|.. RecoveryLookupTool
+Tool <|.. AdherenceTool
 AnalyticsTool --> StrengthAnalytics
 AnalyticsTool --> WorkoutRepository
 ExerciseDBTool --> ExerciseCatalog
 FoodDBTool --> FoodCatalog
 PlanLookupTool --> BlockRepository
 RecoveryLookupTool --> RecoveryRepository
+AdherenceTool --> PlanAdherence
+AdherenceTool --> WorkoutRepository
 MemoryManager *-- "1" ConversationHistory
 ConversationHistory "1" *-- "0..*" Message
 MemoryManager --> MemoryRepository

@@ -451,6 +451,50 @@ nui.>lifter : entry not saved
 off=ctrl; off=nui
 """
 
+SD10 = """title=SD10 Review Adherence and Progress the Plan (F12 / UC16)
+obj=Lifter~lifter ACTOR
+obj=PlanPanel~ui
+obj=CoachController~ctrl
+obj=PlanAdherence~adh
+obj=ProgressionAgent~agent
+obj=AdherenceTool~tool
+obj=ClaudeClient~llm
+obj=PlanValidator~val
+obj=PlanEditHistory~hist
+obj=TrainingBlock~block
+
+lifter->>>ui : onReviewWeekClicked(week); on=ui
+ui->>>ctrl : reviewAdherence(week); on=ctrl
+ctrl->>>adh : compare(block, logged, from, to); on=adh
+adh->>>adh : matchSession and verdictFor each prescription
+adh.>ctrl : AdherenceReport(completionRate, entries); off=adh
+ctrl.>ui : report
+ui.>lifter : prescribed against actual, per exercise
+combinedFragment=alt~f1 lifter block
+lifter:[shortfall, or asks to progress]
+lifter->>>ui : onProgressPlanClicked()
+ui->>>ctrl : progressPlan(week)
+ctrl->>>agent : run(AgentRequest(block, report)); on=agent
+agent->>>tool : execute(week)
+tool.>agent : adherence summary
+ref=agent llm :UC14 agent loop, see SD03
+agent->>>val : validateProgression(revised, original, report)
+val.>agent : loads advance only where the verdict allows
+agent.>ctrl : AgentResult(revised weeks, rationale); off=agent
+ctrl.>ui : proposed changes with reasons
+lifter->>>ui : accept()
+ui->>>ctrl : applyEdit(ApplyProgressionCommand)
+ctrl->>>hist : execute(cmd)
+hist->>>block : replaceWeeks(revised)
+ctrl.>ui : plan updated
+ui.>lifter : remaining weeks revised, Undo available
+..=f1
+lifter:[no shortfall, no request]
+ctrl.>ui : report only
+--=f1
+off=ctrl; off=ui
+"""
+
 DIAGRAMS = [
     ("SD01-import-csv", SD01),
     ("SD02-analytics", SD02),
@@ -461,6 +505,7 @@ DIAGRAMS = [
     ("SD07-meal-suggestion", SD07),
     ("SD08-coach-chat", SD08),
     ("SD09-profile-and-macros", SD09),
+    ("SD10-adherence-progression", SD10),
 ]
 
 

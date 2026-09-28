@@ -169,9 +169,9 @@ gather context &gt; build prompt &gt;
 call model &gt; run tools &gt; parse &gt;
 validate &gt; retry once
 --
-Six agents: BlockGeneration,
-Substitution, Adjustment,
-AttemptRationale, MealSuggestion, Chat</panel_attributes>
+Seven agents: BlockGeneration,
+Substitution, Adjustment, AttemptRationale,
+MealSuggestion, Progression, Chat</panel_attributes>
     <additional_attributes />
   </element>
   <element>
@@ -185,9 +185,8 @@ AttemptRationale, MealSuggestion, Chat</panel_attributes>
     <panel_attributes>*Tools*
 --
 what the agent may look up:
-AnalyticsTool, ExerciseDBTool,
-FoodDBTool, PlanLookupTool,
-RecoveryLookupTool</panel_attributes>
+AnalyticsTool, ExerciseDBTool, FoodDBTool,
+PlanLookupTool, RecoveryLookupTool, AdherenceTool</panel_attributes>
     <additional_attributes />
   </element>
   <element>
@@ -272,7 +271,8 @@ ScriptedLLMClient for tests</panel_attributes>
     </coordinates>
     <panel_attributes>*StrengthAnalytics* + RPEChart
 --
-estimated 1RM, tonnage, trends</panel_attributes>
+estimated 1RM, tonnage, trends
+*PlanAdherence*: prescribed vs logged</panel_attributes>
     <additional_attributes />
   </element>
   <element>

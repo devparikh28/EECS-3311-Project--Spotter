@@ -109,7 +109,7 @@ while (test_input := run.get_input()) is not None:
 
 ## Roadmap Beyond the Course
 
-The course deliverable is the eleven features above. The design keeps four extensions open on purpose, documented in section 1.8 of the report: comparing prescribed against logged sessions to drive automatic progression, live Hevy and Whoop sync behind the existing `DataSource` interface, a REST layer over `CoachController` for a web or mobile client, and stricter safety limits in `PlanValidator` before anyone other than the author uses it.
+The course deliverable is the twelve features in the report. The design keeps four extensions open on purpose, documented in section 1.8 of the report: live Hevy and Whoop sync behind the existing `DataSource` interface, a REST layer over `CoachController` for a web or mobile client, and stricter safety limits in `PlanValidator` before anyone other than the author uses it.
 
 ## Architecture
 

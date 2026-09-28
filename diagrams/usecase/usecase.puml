@@ -32,6 +32,7 @@ rectangle "Spotter (GUI and CLI)" {
   usecase "UC11 Track Macros" as UC11
   usecase "UC12 Get Meal Suggestion" as UC12
   usecase "UC13 Chat with Coach" as UC13
+  usecase "UC16 Review Adherence and Progress Plan" as UC16
   usecase "UC14 Run Agent Task" as UC14
   usecase "UC15 Resolve Unknown Exercise" as UC15
 }
@@ -49,6 +50,7 @@ Lifter -- UC10
 Lifter -- UC11
 Lifter -- UC12
 Lifter -- UC13
+Lifter -- UC16
 
 Hevy -- UC02 : CSV export
 Whoop -- UC04 : CSV export
@@ -60,5 +62,6 @@ UC09 ..> UC14 : <<include>>
 UC10 ..> UC14 : <<include>>
 UC12 ..> UC14 : <<include>>
 UC13 ..> UC14 : <<include>>
+UC16 ..> UC14 : <<include>>
 UC02 <.. UC15 : <<extend>>\n[unrecognised name]
 @enduml

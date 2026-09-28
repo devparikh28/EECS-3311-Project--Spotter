@@ -1,6 +1,6 @@
 # 7. Sequence Diagrams
 
-Nine sequence diagrams cover every important behaviour in the system. Each one uses the classes and method names defined in the class diagram, shows the initiating actor, the boundary object, the controller, domain objects, agent components, and external services, and includes the alternative and error flows described in the matching use case.
+Ten sequence diagrams cover every important behaviour in the system. Each one uses the classes and method names defined in the class diagram, shows the initiating actor, the boundary object, the controller, domain objects, agent components, and external services, and includes the alternative and error flows described in the matching use case.
 
 | Diagram | Covers | Use Case(s) | Source |
 |---|---|---|---|
@@ -13,6 +13,7 @@ Nine sequence diagrams cover every important behaviour in the system. Each one u
 | SD07 Get Meal Suggestion | F10 | UC12 | `SD07-meal-suggestion.puml` |
 | SD08 Chat with Coach | F11 | UC13 | `SD08-coach-chat.puml` |
 | SD09 Save Profile and Log Intake | F01, F09 | UC01, UC11 | `SD09-profile-and-macros.puml` |
+| SD10 Review Adherence and Progress the Plan | F12 | UC16, UC07 | `SD10-adherence-progression.puml` |
 
 SD03 is the reference diagram for the agent loop. Because all six AI features share that loop (the Template Method in `CoachAgent.run()`), the other agent diagrams use a UML `ref` fragment pointing back to SD03 rather than repeating the same twelve messages, and show only the parts that differ: which tools are called, what is validated, and what happens to the result.
 
@@ -81,6 +82,14 @@ Shows memory and multi step tool use together. `MemoryManager.recall()` supplies
 Two short deterministic interactions in one diagram. Profile saving shows validation before persistence and the `PROFILE_UPDATED` event that refreshes dependent panels. Intake logging shows the unknown food path (the lifter supplies macros per 100 g, which adds the item to `FoodCatalog`), range validation on the gram amount, and the adherence calculation that excludes days with no entries rather than counting them as zero.
 
 ---
+
+## SD10 — Review Adherence and Progress the Plan
+
+![SD10](../../diagrams/sequence/SD10-adherence-progression.png)
+
+Split into a deterministic half and an agent half, which is the point of the feature. `PlanAdherence.compare()` matches each prescription to the logged sets and assigns a verdict, and that comparison is useful on its own: the lifter sees prescribed against actual per exercise whether or not the agent runs. Only when there is a shortfall, or the lifter asks, does `ProgressionAgent` propose revised remaining weeks, reading the comparison through `AdherenceTool` rather than re deriving it.
+
+`PlanValidator.validateProgression()` is stricter than the other validators because this is the path that changes future training: loads may advance only where the verdict permits it, week over week increases are capped, and competition lifts cannot be dropped. An accepted revision is applied as an `ApplyProgressionCommand`, so a progression the lifter dislikes is one Undo away, exactly like a manual edit.
 
 ## 7.1 Consistency with the Class Diagram
 
