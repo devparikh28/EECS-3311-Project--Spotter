@@ -29,3 +29,8 @@ trace.jsonl
 # UMLet conversion scratch
 diagrams/uxf/*.png
 !diagrams/uxf/png/*.png
+
+# R console history, dropped by R or RStudio
+.Rhistory
+.RData
+.Rproj.user/
