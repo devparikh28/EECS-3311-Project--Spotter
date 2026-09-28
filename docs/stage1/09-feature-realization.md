@@ -12,13 +12,14 @@ Each feature is described by its use case, its sequence diagram, the classes inv
 
 - `ProfilePanel` — collects bodyweight, training goal, optional meet date and weight class, training days, equipment and dietary flags.
 - `CoachController` — validates and coordinates the save.
-- `LifterProfile` — the root entity every other feature reads; owns `DietaryConstraints` and carries a `TrainingGoal`, a `SplitPreference` and an optional `meetDate`.
+- `LifterProfile` — the root entity every other feature reads; owns `DietaryConstraints` and its `Limitation` records, and carries a `TrainingGoal`, an `ExperienceLevel`, a `SplitPreference`, a display unit and an optional `meetDate`.
+- `StartingStrength` — gives a lifter with no history somewhere to begin, from stated maxes or a calibration week.
 - `ProfileRepository` — persists it in SQLite.
 - `EventBus` — announces the change so other panels refresh.
 
 **Methods:** `ProfilePanel.onSaveClicked()`, `CoachController.saveProfile()`, `LifterProfile.hasMeetDate()`, `LifterProfile.weeksUntilMeet()`, `ProfileRepository.save()`, `EventBus.publish()`
 
-**Execution.** The lifter fills the form and saves. `onSaveClicked()` builds a `LifterProfile` and passes it to `saveProfile()`, which checks the required fields, rejects a meet date in the past, and asks for one only when the goal is meet preparation. On success the profile is persisted and a `PROFILE_UPDATED` event is published, which the nutrition and plan panels observe. Because `meetDate` is optional, `weeksUntilMeet()` returns an `Optional<Integer>`, and every consumer, notably block generation and attempt planning, is written to handle its absence rather than assuming a date exists.
+**Execution.** The profile is where the system learns who it is advising before it advises anything. Experience level selects the progression through `ProgressionStrategyFactory.forGoal(goal, experience)`, since a novice can add load session to session and an advanced lifter cannot; limitations are passed into planning and substitution so an excluded movement is never prescribed rather than corrected afterwards; and a lifter with no training history is routed to `StartingStrength`, which either converts a stated max into an estimate or prescribes a calibration week. The lifter fills the form and saves. `onSaveClicked()` builds a `LifterProfile` and passes it to `saveProfile()`, which checks the required fields, rejects a meet date in the past, and asks for one only when the goal is meet preparation. On success the profile is persisted and a `PROFILE_UPDATED` event is published, which the nutrition and plan panels observe. Because `meetDate` is optional, `weeksUntilMeet()` returns an `Optional<Integer>`, and every consumer, notably block generation and attempt planning, is written to handle its absence rather than assuming a date exists.
 
 ---
 
@@ -115,14 +116,15 @@ Each feature is described by its use case, its sequence diagram, the classes inv
 
 - `PlanPanel` — the warning icon and Suggest Substitute action.
 - `CoachController` — coordinates.
-- `ExerciseDBTool` and `ExerciseCatalog` — filter candidates by movement pattern, muscle groups and available equipment.
+- `ExerciseDBTool` and `ExerciseCatalog` — filter candidates by movement pattern, muscle groups and available equipment, and exclude whatever the reason rules out through `candidatesExcluding()`.
+- `SubstitutionReason` and `Limitation` — why the swap is wanted, and what must be avoided.
 - `SubstitutionAgent` — chooses among the candidates and explains the choice.
 - `PlanValidator` — confirms the choice came from the candidate list.
 - `PlanEditHistory`, `SwapExerciseCommand`, `TrainingBlock` — apply the accepted change reversibly.
 
 **Methods:** `PlanPanel.onSubstituteClicked()`, `CoachController.suggestSubstitute()`, `ExerciseCatalog.candidates()`, `CoachAgent.run()`, `PlanValidator.validateSubstitution()`, `CoachController.applyEdit()`, `PlanEditHistory.execute()`, `SwapExerciseCommand.execute()` and `undo()`
 
-**Execution.** Deterministic filtering happens first, so the model chooses from a list it did not invent, and the validator rejects anything outside that list. When the lifter accepts, the change is applied as a `SwapExerciseCommand` through `PlanEditHistory`, exactly like a manual edit, which is why an agent suggestion can be undone with the same Undo action. If no candidate exists the lifter is told to swap manually rather than being given a fabricated alternative.
+**Execution.** Deterministic filtering happens first, so the model chooses from a list it did not invent, and the validator rejects anything outside that list or anything that violates a recorded limitation. The reason shapes the filter: equipment unavailable excludes what the gym lacks, pain or discomfort also excludes the painful movement pattern, and a limitation excludes everything that limitation covers. Pain is handled conservatively and without diagnosis: the alternative comes with a note that persistent pain warrants a professional opinion rather than indefinite working around. When the lifter accepts, the change is applied as a `SwapExerciseCommand` through `PlanEditHistory`, exactly like a manual edit, which is why an agent suggestion can be undone with the same Undo action. If no candidate exists the lifter is told to swap manually rather than being given a fabricated alternative.
 
 ---
 
