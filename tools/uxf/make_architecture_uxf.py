@@ -40,9 +40,9 @@ BOXES = [
      "*PlanEditHistory*\n<<Command>>\n--\nundo stack for every plan\nchange, manual or agent"),
 
     ("Agent", "agent", 60, 130,
-     "*CoachAgent*\n<<Template Method>>\n--\ngather context > build prompt >\ncall model > run tools > parse >\nvalidate > retry once\n--\nSix agents: BlockGeneration,\nSubstitution, Adjustment,\nAttemptRationale, MealSuggestion, Chat"),
+     "*CoachAgent*\n<<Template Method>>\n--\ngather context > build prompt >\ncall model > run tools > parse >\nvalidate > retry once\n--\nSeven agents: BlockGeneration,\nSubstitution, Adjustment, AttemptRationale,\nMealSuggestion, Progression, Chat"),
     ("Tools", "agent", 220, 90,
-     "*Tools*\n--\nwhat the agent may look up:\nAnalyticsTool, ExerciseDBTool,\nFoodDBTool, PlanLookupTool,\nRecoveryLookupTool"),
+     "*Tools*\n--\nwhat the agent may look up:\nAnalyticsTool, ExerciseDBTool, FoodDBTool,\nPlanLookupTool, RecoveryLookupTool, AdherenceTool"),
     ("Prompt", "agent", 340, 60,
      "*PromptBuilder*\n<<Builder>>\n--\ninstructions, context, JSON schema"),
     ("Parse", "agent", 420, 70,
@@ -55,7 +55,7 @@ BOXES = [
      "*LLMClient*\n<<Strategy>>\n--\nClaudeClient via LangChain4j\nScriptedLLMClient for tests"),
 
     ("An", "domain", 60, 60,
-     "*StrengthAnalytics* + RPEChart\n--\nestimated 1RM, tonnage, trends"),
+     "*StrengthAnalytics* + RPEChart\n--\nestimated 1RM, tonnage, trends\n*PlanAdherence*: prescribed vs logged"),
     ("Calc", "domain", 140, 70,
      "*AttemptCalculator*\n--\nmeet attempts or test day plan,\nplate rounding"),
     ("Mac", "domain", 240, 60,

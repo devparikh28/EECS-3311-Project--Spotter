@@ -1,0 +1,92 @@
+@startuml SD10-adherence-progression
+!include _style.iuml
+title SD10 — Review Adherence and Progress the Plan (F12 / UC16)
+
+actor Lifter
+boundary "PlanPanel\n<<GUI>>" as UI
+control "CoachController\n<<Facade>>" as Ctrl
+participant "PlanAdherence" as Adh
+database "BlockRepository" as BRepo
+database "WorkoutRepository" as WRepo
+participant "ProgressionAgent" as Agent
+participant "AdherenceTool" as Tool
+participant "ClaudeClient" as LLM
+participant "PlanValidator" as Val
+participant "PlanEditHistory" as History
+participant "ApplyProgressionCommand\n<<Command>>" as Cmd
+entity "TrainingBlock" as Block
+participant "EventBus" as Bus
+
+== Deterministic comparison ==
+Lifter -> UI : onReviewWeekClicked(weekNumber)
+UI -> Ctrl : reviewAdherence(weekNumber)
+activate Ctrl
+Ctrl -> BRepo : findActive()
+BRepo --> Ctrl : TrainingBlock
+Ctrl -> WRepo : findByLift(all, weekStart)
+WRepo --> Ctrl : List<WorkoutSession>
+Ctrl -> Adh : compare(block, logged, from, to)
+activate Adh
+loop for each ExercisePrescription in the week
+  Adh -> Adh : matchSession(session, logged)
+  Adh -> Adh : verdictFor(prescription, actualSets)
+  note right
+    prescribed 3 reps at RPE 8,
+    logged 2 reps at RPE 7
+    -> MISSED_REPS, below target RPE
+  end note
+end
+Adh --> Ctrl : AdherenceReport(completionRate, entries)
+deactivate Adh
+Ctrl --> UI : AdherenceReport
+UI --> Lifter : prescribed against actual, per exercise
+
+== Agent revises the remaining weeks ==
+alt report.hasShortfall() or lifter asks to progress
+  Lifter -> UI : onProgressPlanClicked()
+  UI -> Ctrl : progressPlan(weekNumber)
+  Ctrl -> Agent : run(AgentRequest(block, report))
+  activate Agent
+  Agent -> Tool : execute(weekNumber)
+  Tool -> Adh : compare(...)
+  Tool --> Agent : ToolResult(adherence summary)
+  ref over Agent, LLM : UC14 agent loop\n(see SD03)
+  Agent -> Val : validateProgression(revised, original, report)
+  activate Val
+  note right of Val
+    loads may only advance where the verdict
+    allows it; week over week increases are
+    capped; competition lifts are kept
+  end note
+  Val --> Agent : ValidationReport
+  deactivate Val
+
+  alt valid
+    Agent --> Ctrl : AgentResult(revised weeks, rationale)
+    deactivate Agent
+    Ctrl --> UI : proposed changes with reasons
+    UI --> Lifter : review the revision
+    alt Lifter accepts
+      Lifter -> UI : accept()
+      UI -> Ctrl : applyEdit(ApplyProgressionCommand)
+      Ctrl -> History : execute(cmd)
+      History -> Cmd : execute()
+      Cmd -> Block : replaceWeeks(revised)
+      Cmd -> Cmd : store previous weeks for undo
+      Ctrl -> BRepo : save(block)
+      Ctrl -> Bus : publish(PLAN_UPDATED)
+      Bus -> UI : onEvent(e)
+      UI --> Lifter : remaining weeks updated, Undo available
+    else Lifter rejects
+      UI --> Lifter : block unchanged
+    end
+  else validation fails twice, or agent unavailable
+    Agent --> Ctrl : AgentResult(success = false)
+    Ctrl --> UI : report shown without a revision
+    UI --> Lifter : adherence figures still available
+  end
+else no shortfall and no request
+  Ctrl --> UI : report only
+end
+deactivate Ctrl
+@enduml

@@ -15,12 +15,13 @@ Every feature traces to a use case that describes the interaction, the classes t
 | F09 | Macro targets and adherence tracking | Deterministic | UC01, UC11 | `NutritionPanel`, `CoachController`, `FoodCatalog`, `FoodItem`, `FoodEntry`, `MacroTracker`, `MacroTarget`, `DailyIntake`, `MacroTotals`, `IntakeRepository`, `EventBus` | `onLogIntakeClicked()`, `logIntake()`, `byName()`, `add()`, `recordIntake()`, `getRemaining()`, `weeklyAdherence()`, `publish()` | SD09 | Facade, Observer, Repository |
 | F10 | Vegetarian meal suggestion | AI | UC12, UC14 | `NutritionPanel`, `CoachController`, `MacroTracker`, `MealSuggestionAgent`, `ToolManager`, `FoodDBTool`, `FoodCatalog`, `DietaryConstraints`, `ClaudeClient`, `ResponseParser`, `PlanValidator`, `MealSuggestion` | `onSuggestMealClicked()`, `suggestMeal()`, `getRemaining()`, `run()`, `search()`, `permits()`, `toMeal()`, `validateMeal()` | SD07 | Template Method, Factory Method, Facade |
 | F11 | Coaching chat with memory | AI | UC13, UC14 | `ChatPanel`, `CoachController`, `ChatAgent`, `MemoryManager`, `ConversationHistory`, `ToolManager`, `AnalyticsTool`, `PlanLookupTool`, `RecoveryLookupTool`, `ClaudeClient` | `onSendClicked()`, `chat()`, `run()`, `recall()`, `remember()`, `summarizeOlderTurns()`, `execute()`, `complete()` | SD08 | Template Method, Strategy, Factory Method, Facade |
+| F12 | Plan adherence and progression | Hybrid | UC16, UC07, UC14 | `PlanPanel`, `CoachController`, `PlanAdherence`, `AdherenceReport`, `AdherenceEntry`, `AdherenceVerdict`, `AdherenceTool`, `ProgressionAgent`, `PlanValidator`, `PlanEditHistory`, `ApplyProgressionCommand`, `BlockRepository`, `WorkoutRepository` | `onReviewWeekClicked()`, `reviewAdherence()`, `compare()`, `verdictFor()`, `hasShortfall()`, `progressPlan()`, `run()`, `validateProgression()`, `applyEdit()` | SD10 | Template Method, Command, Strategy, Facade, Observer |
 
 ## 8.1 Coverage Checks
 
 **Every feature has a use case and a sequence diagram.** F01 to F11 each appear in at least one use case description in section 6 and at least one diagram in section 7.
 
-**Every use case belongs to a feature.** UC01 to UC13 map to features directly; UC14 (Run Agent Task) is included by the six AI use cases and belongs to F05, F06, F07, F08, F10 and F11; UC15 (Resolve Unknown Exercise) extends UC02 and belongs to F02.
+**Every use case belongs to a feature.** UC01 to UC13 map to features directly; UC14 (Run Agent Task) is included by the seven AI use cases and belongs to F05, F06, F07, F08, F10, F11 and F12; UC15 (Resolve Unknown Exercise) extends UC02 and belongs to F02.
 
 **Every pattern is used by more than one feature**, which is what distinguishes a structural decision from decoration.
 
@@ -29,10 +30,10 @@ Every feature traces to a use case that describes the interaction, the classes t
 | Facade | F01 to F11 |
 | Strategy | F05, F11, and every feature that reaches the model through `LLMClient` |
 | Observer | F01, F02, F03, F05, F06, F07, F09 |
-| Command | F05, F06, F07 |
+| Command | F05, F06, F07, F12 |
 | Adapter | F02, F03 |
 | Factory Method | F02, F03, F05, F06, F10, F11 |
-| Template Method | F05, F06, F07, F08, F10, F11 |
-| Decorator | F05, F06, F07, F08, F10, F11 (caching and recording around every model call) |
+| Template Method | F05, F06, F07, F08, F10, F11, F12 |
+| Decorator | F05 to F08 and F10 to F12 (caching and recording around every model call) |
 
-**Deterministic and AI behaviour are separable for Stage 3.** The classes in the traceability table divide cleanly: `StrengthAnalytics`, `RPEChart`, `AttemptCalculator`, `MacroTracker`, `RecoveryRuleEngine`, `CsvImportService`, the adapters, the catalogs and the repositories are all unit testable with JUnit, while the six `CoachAgent` subclasses and their validators are what KUMA exercises. `PlanValidator` sits on the boundary and is testable both ways, which is deliberate: it is the component that decides whether model output is acceptable.
+**Deterministic and AI behaviour are separable for Stage 3.** The classes in the traceability table divide cleanly: `StrengthAnalytics`, `RPEChart`, `AttemptCalculator`, `MacroTracker`, `RecoveryRuleEngine`, `PlanAdherence`, `CsvImportService`, the adapters, the catalogs and the repositories are all unit testable with JUnit, while the seven `CoachAgent` subclasses and their validators are what KUMA exercises. `PlanValidator` sits on the boundary and is testable both ways, which is deliberate: it is the component that decides whether model output is acceptable.

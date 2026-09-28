@@ -18,9 +18,9 @@ Spotter imports a workout history and recovery history, computes strength metric
 
 The deterministic half of the system parses the CSV exports, estimates a one rep max from RPE based sets, aggregates weekly tonnage and trends, calculates attempt or test day numbers with correct plate rounding, tracks macros against targets, and applies fixed thresholds to flag a day after poor recovery.
 
-The agent half plans a training block from that evidence, rewrites a session when recovery is poor, chooses a substitute exercise when the gym lacks equipment, explains attempt selection in terms of how the block actually went, composes a meal that fits the macros remaining for the day, and answers coaching questions in conversation while remembering earlier ones.
+The agent half plans a training block from that evidence, revises the remaining weeks when a week is not executed as prescribed, rewrites a session when recovery is poor, chooses a substitute exercise when the gym lacks equipment, explains attempt selection in terms of how the block actually went, composes a meal that fits the macros remaining for the day, and answers coaching questions in conversation while remembering earlier ones.
 
-Eleven features are specified in section 2. Both interfaces reach all of them: a JavaFX dashboard with tabs for profile, log, analytics, plan, meet, nutrition and chat, and a picocli command line tool exposing the same operations, which also makes the agent scriptable for the Stage 3 behavioural tests.
+Twelve features are specified in section 2. Both interfaces reach all of them: a JavaFX dashboard with tabs for profile, log, analytics, plan, meet, nutrition and chat, and a picocli command line tool exposing the same operations, which also makes the agent scriptable for the Stage 3 behavioural tests.
 
 ## 1.4 Why an Agent Rather Than a Program
 
@@ -48,7 +48,7 @@ Three properties follow from this arrangement, and they are what make the system
 
 Model output is never trusted. A training block only becomes a `TrainingBlock` after the validator has checked loads against the lifter's progression strategy and confirmed every exercise exists. A substitute exercise must be one of the candidates the deterministic filter produced. A meal's nutrition figures are read from the food catalog, not from the model's reply. Numbers in an attempt rationale must match what `AttemptCalculator` produced.
 
-The agent works from retrieved facts rather than from memory of its training data. Tools such as `AnalyticsTool`, `ExerciseDBTool`, `FoodDBTool`, `PlanLookupTool` and `RecoveryLookupTool` are how it learns anything about this lifter.
+The agent works from retrieved facts rather than from memory of its training data. Tools such as `AnalyticsTool`, `ExerciseDBTool`, `FoodDBTool`, `PlanLookupTool`, `RecoveryLookupTool` and `AdherenceTool` are how it learns anything about this lifter.
 
 Failure is a designed path. Tool errors are returned to the model rather than thrown, the tool loop is bounded, and features that can fall back deterministically do so, such as the recovery adjustment which offers a fixed reduction when the agent is unavailable.
 
@@ -65,7 +65,7 @@ Five layers, each depending only on the layer beneath it or on an interface.
 | Presentation | `DashboardApp` with seven panels, `CoachCLI` | Collect input, display results. No logic. |
 | Application | `CoachController`, `EventBus`, `PlanEditHistory`, `FxTaskRunner` | One entry point per feature; notify the GUI; record undoable edits; keep long work off the UI thread. |
 | Domain | Entities plus `StrengthAnalytics`, `AttemptCalculator`, `MacroTracker`, `RecoveryRuleEngine`, `ProgressionStrategy` | The data model and every calculation. Knows nothing about LLMs. |
-| Agent | `CoachAgent` and six agents, `ClaudeClient`, `ToolManager` and five tools, `PromptBuilder`, `ResponseParser`, `PlanValidator`, `MemoryManager` | Turn a request into validated output using the model and tools. |
+| Agent | `CoachAgent` and seven agents, `ClaudeClient`, `ToolManager` and six tools, `PromptBuilder`, `ResponseParser`, `PlanValidator`, `MemoryManager` | Turn a request into validated output using the model and tools. |
 | Infrastructure | CSV adapters behind `DataSource`, `CsvImportService`, catalogs, SQLite repositories | Get data in and out. |
 
 Because an agent call takes seconds and JavaFX has a single UI thread, `CoachController` dispatches agent work through `FxTaskRunner` on a background thread and returns results through `Platform.runLater()`. The CLI calls the same controller methods and blocks, having no UI thread to protect.
@@ -93,8 +93,6 @@ Live Hevy and Whoop APIs are deliberately out of scope. Both require account aut
 ## 1.8 Beyond the Course: Deliberate Extension Points
 
 Spotter is built to outlive the course, so several boundaries exist specifically to let it grow without being rewritten. None of the work below is in scope for Stages 2 and 3; it is recorded here because the design accommodates it on purpose rather than by accident.
-
-**Adherence and automatic progression.** The system currently plans a block and imports what was logged, but does not compare the two. A service that reads prescribed sessions against logged ones would close the coaching loop: loads advance when the lifter hits the prescribed work at or below the target RPE, and back off when reps are missed repeatedly. Every input it needs already exists (`TrainingBlock` for what was prescribed, `WorkoutSession` for what happened, `StrengthAnalytics` for the trend), so this is a new domain service and one agent, not a change to the architecture. This is the highest value extension and the one that turns a plan generator into a coach.
 
 **Live data sources.** CSV export is deliberate for now, because account authentication would consume implementation time without demonstrating additional design. `DataSource` is the seam: a `HevyApiAdapter` or `WhoopApiAdapter` implements the same interface and `DataSourceFactory` returns it, with nothing above the interface changing.
 

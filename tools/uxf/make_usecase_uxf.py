@@ -27,11 +27,12 @@ USE_CASES = [
     ("UC11 Track Macros", COL_X),
     ("UC12 Get Meal Suggestion", COL_X),
     ("UC13 Chat with Coach", COL_X),
+    ("UC16 Review Adherence and Progress Plan", COL_X),
 ]
 
 INCLUDED = [("UC14 Run Agent Task", 7), ("UC15 Resolve Unknown Exercise", 1)]
 
-INCLUDES = ["UC06", "UC08", "UC09", "UC10", "UC12", "UC13"]
+INCLUDES = ["UC06", "UC08", "UC09", "UC10", "UC12", "UC13", "UC16"]
 
 
 def main():

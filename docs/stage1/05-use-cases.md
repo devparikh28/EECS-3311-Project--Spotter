@@ -15,7 +15,7 @@ Source: `diagrams/usecase/usecase.puml`, also available as `diagrams/uxf/usecase
 
 ## 5.2 Relationships
 
-**Include.** UC06, UC08, UC09, UC10, UC12, and UC13 all include **UC14 Run Agent Task**. UC14 captures the behaviour every AI feature shares: gather context, call Claude with tools, parse, validate, and retry once on failure. This mirrors the Template Method `CoachAgent.run()` in the class diagram.
+**Include.** UC06, UC08, UC09, UC10, UC12, UC13 and UC16 all include **UC14 Run Agent Task**. UC14 captures the behaviour every AI feature shares: gather context, call Claude with tools, parse, validate, and retry once on failure. This mirrors the Template Method `CoachAgent.run()` in the class diagram.
 
 **Extend.** **UC15 Resolve Unknown Exercise** extends UC02 at the extension point "unrecognised exercise name", because it only happens when an imported name is not in the exercise catalog.
 
@@ -211,6 +211,20 @@ Every use case initiated by the lifter is available in both interfaces. The GUI 
 | Postconditions | The answer is shown and the exchange is available to later conversations. |
 | Related Feature(s) | F11 |
 
+## UC16 — Review Adherence and Progress the Plan
+
+| Field | Description |
+|---|---|
+| Actor(s) | Lifter (primary), Claude LLM Service (secondary, via UC14) |
+| Goal | See how the week's training compared with what was prescribed, and let the plan respond to it. |
+| Interface | GUI: Plan tab, Review Week and Progress Plan. CLI: `spotter plan review <week>`, `spotter plan progress <week>` |
+| Preconditions | An active block exists and at least one session from the week in question has been logged or imported. |
+| Trigger | The lifter opens Review Week, typically at the end of a training week. |
+| Main Success Scenario | 1. `PlanPanel.onReviewWeekClicked()` calls `CoachController.reviewAdherence(week)`. 2. The controller loads the block and the logged sessions. 3. `PlanAdherence.compare()` matches each prescription to logged sets and assigns a verdict per exercise. 4. The `AdherenceReport` is displayed. 5. The lifter clicks Progress Plan. 6. `ProgressionAgent.run()` executes **UC14** using `AdherenceTool`, and proposes revised remaining weeks with reasons. 7. `PlanValidator.validateProgression()` confirms loads advance only where verdicts allow and within the week over week cap. 8. The lifter accepts, and an `ApplyProgressionCommand` is applied through `PlanEditHistory`. |
+| Alternative / Exception Flows | 3a. A prescribed session has no matching log: it is reported as missed rather than assumed complete. 3b. A logged set carries no RPE: the comparison uses reps alone. 6a. There is no shortfall and the lifter does not ask: the report is shown and nothing changes. 7a. Validation fails twice, or the agent is unavailable: the report is still shown, since the comparison is deterministic. 8a. The lifter rejects the revision: the block is unchanged. |
+| Postconditions | The lifter knows how the week went. If a revision was accepted, the remaining weeks reflect it and the change is undoable. |
+| Related Feature(s) | F12, and it feeds F05 by giving the next block generation an execution history |
+
 ## UC14 — Run Agent Task (included)
 
 | Field | Description |
@@ -254,5 +268,6 @@ Every use case initiated by the lifter is available in both interfaces. The GUI 
 | F09 Macro Targets and Adherence | UC01, UC11 |
 | F10 Vegetarian Meal Suggestion | UC12, UC14 |
 | F11 Coaching Chat with Memory | UC13, UC14 |
+| F12 Plan Adherence and Progression | UC16, UC07, UC14 |
 
 Every feature is covered by at least one use case, and every use case maps back to at least one feature.

@@ -34,7 +34,7 @@ package "Application\none way in" as A {
 
 package "Domain\nevery number is computed here" as D {
   rectangle "**Entities**\nLifterProfile, TrainingGoal, WorkoutSession,\nSetEntry, RecoveryDay, TrainingBlock >\nWeek > Session > Prescription, DailyIntake" as Ent
-  rectangle "**StrengthAnalytics** + RPEChart\nestimated 1RM, tonnage, trends" as An
+  rectangle "**StrengthAnalytics** + RPEChart\nestimated 1RM, tonnage, trends\n**PlanAdherence** prescribed vs logged" as An
   rectangle "**AttemptCalculator**\nmeet attempts or test day plan,\nplate rounding" as Calc
   rectangle "**MacroTracker**\nremaining macros, adherence" as Mac
   rectangle "**RecoveryRuleEngine**\nflags poor recovery,\ndeterministic fallback" as Rules
@@ -42,8 +42,8 @@ package "Domain\nevery number is computed here" as D {
 }
 
 package "Agent\njudgement, inside limits" as G {
-  rectangle "**CoachAgent** «Template Method»\ngather context > build prompt > call model >\nrun tools > parse > validate > retry once\n\nSix agents: BlockGeneration, Substitution,\nAdjustment, AttemptRationale,\nMealSuggestion, Chat" as Agent
-  rectangle "**Tools**\nwhat the agent may look up:\nAnalyticsTool, ExerciseDBTool, FoodDBTool,\nPlanLookupTool, RecoveryLookupTool" as Tools
+  rectangle "**CoachAgent** «Template Method»\ngather context > build prompt > call model >\nrun tools > parse > validate > retry once\n\nSeven agents: BlockGeneration, Substitution,\nAdjustment, AttemptRationale, MealSuggestion,\nProgression, Chat" as Agent
+  rectangle "**Tools**\nwhat the agent may look up:\nAnalyticsTool, ExerciseDBTool, FoodDBTool,\nPlanLookupTool, RecoveryLookupTool, AdherenceTool" as Tools
   rectangle "**PromptBuilder** «Builder»\ninstructions, context, JSON schema" as Prompt
   rectangle "**ResponseParser**\nJSON into domain objects,\nfacts read from the catalogs" as Parse
   rectangle "**PlanValidator**\nthe gate: loads in range, exercise exists,\nmeal permitted, numbers match the calculator" as Val

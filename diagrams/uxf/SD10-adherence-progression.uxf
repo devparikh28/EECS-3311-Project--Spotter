@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="15.1">
+  <zoom_level>10</zoom_level>
+  <element>
+    <id>UMLSequenceAllInOne</id>
+    <coordinates>
+      <x>20</x>
+      <y>20</y>
+      <w>1500</w>
+      <h>1160</h>
+    </coordinates>
+    <panel_attributes>title=SD10 Review Adherence and Progress the Plan (F12 / UC16)
+obj=Lifter~lifter ACTOR
+obj=PlanPanel~ui
+obj=CoachController~ctrl
+obj=PlanAdherence~adh
+obj=ProgressionAgent~agent
+obj=AdherenceTool~tool
+obj=ClaudeClient~llm
+obj=PlanValidator~val
+obj=PlanEditHistory~hist
+obj=TrainingBlock~block
+
+lifter-&gt;&gt;&gt;ui : onReviewWeekClicked(week); on=ui
+ui-&gt;&gt;&gt;ctrl : reviewAdherence(week); on=ctrl
+ctrl-&gt;&gt;&gt;adh : compare(block, logged, from, to); on=adh
+adh-&gt;&gt;&gt;adh +1 : matchSession and verdictFor each prescription
+adh.&gt;ctrl : AdherenceReport(completionRate, entries); off=adh
+ctrl.&gt;ui : report
+ui.&gt;lifter : prescribed against actual, per exercise
+combinedFragment=alt~f1 lifter block
+lifter:[shortfall, or asks to progress]
+lifter-&gt;&gt;&gt;ui : onProgressPlanClicked()
+ui-&gt;&gt;&gt;ctrl : progressPlan(week)
+ctrl-&gt;&gt;&gt;agent : run(AgentRequest(block, report)); on=agent
+agent-&gt;&gt;&gt;tool : execute(week)
+tool.&gt;agent : adherence summary
+ref=agent llm :UC14 agent loop, see SD03
+agent-&gt;&gt;&gt;val : validateProgression(revised, original, report)
+val.&gt;agent : loads advance only where the verdict allows
+agent.&gt;ctrl : AgentResult(revised weeks, rationale); off=agent
+ctrl.&gt;ui : proposed changes with reasons
+lifter-&gt;&gt;&gt;ui : accept()
+ui-&gt;&gt;&gt;ctrl : applyEdit(ApplyProgressionCommand)
+ctrl-&gt;&gt;&gt;hist : execute(cmd)
+hist-&gt;&gt;&gt;block : replaceWeeks(revised)
+ctrl.&gt;ui : plan updated
+ui.&gt;lifter : remaining weeks revised, Undo available
+..=f1
+lifter:[no shortfall, no request]
+ctrl.&gt;ui : report only
+--=f1
+off=ctrl; off=ui</panel_attributes>
+    <additional_attributes />
+  </element>
+</diagram>

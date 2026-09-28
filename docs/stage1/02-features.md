@@ -1,6 +1,6 @@
 # 2. Feature Specifications
 
-Eleven features, each classified as deterministic, AI, or hybrid. The system serves any strength trainee: a meet date is optional, and the training goal recorded in F01 drives planning for everyone else. That classification decides how the feature is tested in Stage 3: deterministic behaviour through automated unit and integration tests, agent behaviour through KUMA.
+Twelve features, each classified as deterministic, AI, or hybrid. The system serves any strength trainee: a meet date is optional, and the training goal recorded in F01 drives planning for everyone else. That classification decides how the feature is tested in Stage 3: deterministic behaviour through automated unit and integration tests, agent behaviour through KUMA.
 
 | ID | Feature | Type |
 |---|---|---|
@@ -15,6 +15,7 @@ Eleven features, each classified as deterministic, AI, or hybrid. The system ser
 | F09 | Macro Targets and Adherence Tracking | Deterministic |
 | F10 | Vegetarian Meal Suggestion | AI |
 | F11 | Coaching Chat with Memory | AI |
+| F12 | Plan Adherence and Progression | Hybrid |
 
 ## F01 — Lifter Profile and Constraints
 
@@ -125,3 +126,15 @@ Eleven features, each classified as deterministic, AI, or hybrid. The system ser
 - **AI Involvement:** AI.
 - **Expected Workflow:** `MemoryManager.recall()` supplies relevant earlier turns, the model selects among `AnalyticsTool`, `PlanLookupTool`, and `RecoveryLookupTool`, the results are returned to it, and the answer is stored by `MemoryManager.remember()` for later recall.
 - **Error and Alternative Cases:** A question the tools cannot answer receives an honest statement that the data is unavailable rather than a fabricated figure. An ambiguous question prompts a clarifying question. A failing tool is reported as unavailable. Conversations longer than the history limit have older turns summarised.
+
+## F12 — Plan Adherence and Progression
+
+- **Description:** Compares what the block prescribed against what was actually logged, and uses that comparison to advance or hold the remaining weeks. This is what closes the coaching loop: without it the system plans and never learns whether the plan was followed.
+- **User Interaction:** Plan tab, Review Week shows the comparison, Progress Plan applies a revision. CLI: `spotter plan review <week>`, `spotter plan progress <week>`.
+- **Input:** The active `TrainingBlock` and the `WorkoutSession` records logged during that week.
+- **Output:** An `AdherenceReport` with a completion rate and, per exercise, prescribed against completed sets and reps, target against actual RPE, and a verdict. Optionally a revised set of remaining weeks.
+- **AI Involvement:** Hybrid. The comparison is deterministic; only the revision is generated.
+- **Expected Workflow:** `PlanAdherence.compare()` matches each prescription to the logged sets and assigns a verdict such as `COMPLETED_BELOW_TARGET_RPE` or `MISSED_REPS`. If there is a shortfall, or the lifter asks, `ProgressionAgent` revises the remaining weeks using the report through `AdherenceTool`, and `PlanValidator.validateProgression()` confirms loads advance only where the verdict permits, that week over week increases stay within a cap, and that no competition lift was dropped. An accepted revision is applied as an `ApplyProgressionCommand`, so it can be undone.
+- **Error and Alternative Cases:** A session with no matching log is reported as `MISSED_SESSION` rather than assumed complete. A logged set with no RPE is compared on reps alone. If the agent fails or its revision fails validation twice, the report is still shown, since the comparison is deterministic and useful on its own. The lifter can reject a revision.
+
+**Worked example.** A prescription of three reps at RPE 8 with a logged set of two reps at RPE 7 produces `MISSED_REPS` with the note that actual RPE was below target: the volume was not completed but the effort was low, which points to a stopped set or drifting RPE calibration rather than a load that was too heavy. A prescription of three reps at RPE 8 logged as three reps at RPE 6.5 produces `COMPLETED_BELOW_TARGET_RPE`, which is the signal to advance load next week.

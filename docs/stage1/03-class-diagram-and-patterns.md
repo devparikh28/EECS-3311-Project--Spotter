@@ -38,7 +38,7 @@ The system is organised in five layers. Each layer depends only on the layer ben
 
 **Domain** holds the data model (`LifterProfile`, `WorkoutSession`, `SetEntry`, `RecoveryDay`, `TrainingBlock` → `Week` → `Session` → `ExercisePrescription`, `DailyIntake`, `FoodEntry`, `MeetAttempts`) and the deterministic services (`StrengthAnalytics`, `AttemptCalculator`, `MacroTracker`, `RecoveryRuleEngine`). Nothing in this layer knows an LLM exists.
 
-**Agent** holds the abstract `CoachAgent` and six concrete agents, the `LLMClient` interface with `ClaudeClient`, the `ToolManager` and five tools, `PromptBuilder`, `ResponseParser`, `PlanValidator`, and `MemoryManager`.
+**Agent** holds the abstract `CoachAgent` and seven concrete agents, the `LLMClient` interface with `ClaudeClient`, the `ToolManager` and six tools, `PromptBuilder`, `ResponseParser`, `PlanValidator`, and `MemoryManager`.
 
 **Infrastructure** holds the CSV adapters behind `DataSource`, `CsvImportService`, the exercise and food catalogs, and the SQLite repositories behind a generic `Repository<T>` interface.
 
@@ -69,7 +69,7 @@ The key principle is that **the LLM never writes directly to the domain**. Every
 | `PlanEditHistory` → `PlanEditCommand` | Aggregation | 1 to * | The undo stack |
 | `ChatAgent` → `MemoryManager` → `ConversationHistory` | Association, then composition | 1 to 1 | Only the chat agent carries long term memory |
 
-Inheritance appears in `BasePanel` (7 panels), `CoachAgent` (6 agents), and interface realisation in `LLMClient`, `Tool`, `DataSource`, `ProgressionStrategy`, `PlanEditCommand`, `EventListener`, and `Repository<T>`.
+Inheritance appears in `BasePanel` (7 panels), `CoachAgent` (7 agents), and interface realisation in `LLMClient`, `Tool`, `DataSource`, `ProgressionStrategy`, `PlanEditCommand`, `EventListener`, and `Repository<T>`.
 
 ## 3.3 Design Changes Since the Initial Outline
 
@@ -115,7 +115,7 @@ Eight patterns are applied. Each one solves a problem that exists in this system
 
 **Problem.** Lifters edit generated plans by swapping exercises, changing loads, and accepting or rejecting agent adjustments. These edits must be undoable, and an agent generated adjustment must be applied through exactly the same mechanism as a manual edit so it can be undone the same way.
 
-**Participants.** `PlanEditCommand` is the command interface; `SwapExerciseCommand`, `ChangeLoadCommand`, and `ApplyAdjustmentCommand` are concrete commands; `PlanEditHistory` is the invoker; `TrainingBlock` is the receiver; `CoachController` is the client that creates commands.
+**Participants.** `PlanEditCommand` is the command interface; `SwapExerciseCommand`, `ChangeLoadCommand`, `ApplyAdjustmentCommand` and `ApplyProgressionCommand` are concrete commands; `PlanEditHistory` is the invoker; `TrainingBlock` is the receiver; `CoachController` is the client that creates commands.
 
 **Why it fits.** Each command stores the previous value it replaced, which makes `undo()` trivial, and the history doubles as an audit log of how a plan evolved.
 
@@ -143,9 +143,9 @@ Eight patterns are applied. Each one solves a problem that exists in this system
 
 ## 4.7 Template Method — `CoachAgent.run()`
 
-**Problem.** All six agents follow the same algorithm: gather context, build a prompt, call the model (running any requested tools), parse the reply, validate it, and retry once with the validation errors if it fails. Only the individual steps differ between agents.
+**Problem.** All seven agents follow the same algorithm: gather context, build a prompt, call the model (running any requested tools), parse the reply, validate it, and retry once with the validation errors if it fails. Only the individual steps differ between agents.
 
-**Participants.** `CoachAgent` is the abstract class and `run()` is the final template method. The primitive operations are `gatherContext()`, `buildPrompt()`, `parse()`, `validate()`, and `createToolset()`. `BlockGenerationAgent`, `SubstitutionAgent`, `AdjustmentAgent`, `AttemptRationaleAgent`, `MealSuggestionAgent`, and `ChatAgent` are the concrete classes.
+**Participants.** `CoachAgent` is the abstract class and `run()` is the final template method. The primitive operations are `gatherContext()`, `buildPrompt()`, `parse()`, `validate()`, and `createToolset()`. `BlockGenerationAgent`, `SubstitutionAgent`, `AdjustmentAgent`, `AttemptRationaleAgent`, `MealSuggestionAgent`, `ProgressionAgent` and `ChatAgent` are the concrete classes.
 
 **Why it fits.** The invariant parts (the tool calling loop, retry policy, error handling, and result wrapping) are the parts most likely to contain bugs and most important to test once. Subclasses cannot accidentally skip validation because they never control the sequence.
 
@@ -153,7 +153,7 @@ Eight patterns are applied. Each one solves a problem that exists in this system
 
 ## 4.8 Decorator — `LLMClientDecorator`, `CachingLLMClient`, `RecordingLLMClient`
 
-**Problem.** Two concerns sit around every model call and belong to neither the agents nor the client. Repeated identical requests should not be paid for twice, which matters most when the Stage 3 suites rerun the same scenarios while prompts are being tuned. And unit tests need real responses without a network call, which means capturing them once and replaying them afterwards. Putting either concern inside `ClaudeClient` would mix caching and test tooling into the class whose only job is talking to the model, and putting them in `CoachAgent` would repeat them for all six agents.
+**Problem.** Two concerns sit around every model call and belong to neither the agents nor the client. Repeated identical requests should not be paid for twice, which matters most when the Stage 3 suites rerun the same scenarios while prompts are being tuned. And unit tests need real responses without a network call, which means capturing them once and replaying them afterwards. Putting either concern inside `ClaudeClient` would mix caching and test tooling into the class whose only job is talking to the model, and putting them in `CoachAgent` would repeat them for all seven agents.
 
 **Participants.** `LLMClient` is the component interface. `ClaudeClient` and `ScriptedLLMClient` are concrete components. `LLMClientDecorator` is the abstract decorator holding a delegate `LLMClient`. `CachingLLMClient` returns a stored reply for an identical prompt and tool set, and `RecordingLLMClient` writes each live response to a fixture file for later replay. `LLMClientProvider` assembles the chain.
 
@@ -172,8 +172,8 @@ Eight patterns are applied. Each one solves a problem that exists in this system
 | Facade | `CoachController` | All (F01 to F11) |
 | Strategy | `LLMClient`, `ClaudeClient`, `ScriptedLLMClient`; `ProgressionStrategy` and implementations | F05 to F08, F10, F11 |
 | Observer | `EventBus`, `EventListener`, `BasePanel` subclasses | F01 to F03, F05 to F07, F09 |
-| Command | `PlanEditCommand`, `PlanEditHistory`, three concrete commands | F05, F06, F07 |
+| Command | `PlanEditCommand`, `PlanEditHistory`, four concrete commands | F05, F06, F07, F12 |
 | Adapter | `DataSource`, `HevyCsvAdapter`, `WhoopCsvAdapter`, `CsvFileReader` | F02, F03 |
 | Factory Method | `CoachAgent.createToolset()`, concrete agents, `Tool`; `DataSourceFactory`; `ProgressionStrategyFactory` | F02, F03, F05, F06, F10, F11 |
-| Template Method | `CoachAgent.run()`, six concrete agents | F05 to F08, F10, F11 |
-| Decorator | `LLMClientDecorator`, `CachingLLMClient`, `RecordingLLMClient` | F05 to F08, F10, F11 |
+| Template Method | `CoachAgent.run()`, seven concrete agents | F05 to F08, F10 to F12 |
+| Decorator | `LLMClientDecorator`, `CachingLLMClient`, `RecordingLLMClient` | F05 to F08, F10 to F12 |

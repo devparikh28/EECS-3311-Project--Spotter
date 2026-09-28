@@ -220,6 +220,31 @@ Each feature is described by its use case, its sequence diagram, the classes inv
 
 ---
 
+## F12 — Plan Adherence and Progression
+
+**Use case:** UC16 Review Adherence and Progress the Plan **Sequence diagram:** SD10
+
+**Classes**
+
+- `PlanPanel` — Review Week and Progress Plan actions, and the comparison table.
+- `CoachController` — loads the block and the logged sessions, then coordinates.
+- `PlanAdherence` — the deterministic comparison; matches prescriptions to logged sets and assigns a verdict.
+- `AdherenceReport`, `AdherenceEntry`, `AdherenceVerdict` — the result: completion rate, per exercise figures, and one of completed at target, completed below target RPE, completed above target RPE, missed reps or missed session.
+- `AdherenceTool` — exposes that report to the agent.
+- `ProgressionAgent` — proposes revised remaining weeks.
+- `PlanValidator` — confirms the revision only advances load where the verdict allows, within a week over week cap.
+- `PlanEditHistory` and `ApplyProgressionCommand` — apply it reversibly.
+
+**Methods:** `PlanPanel.onReviewWeekClicked()`, `CoachController.reviewAdherence()`, `PlanAdherence.compare()`, `matchSession()`, `verdictFor()`, `AdherenceReport.hasShortfall()`, `CoachController.progressPlan()`, `CoachAgent.run()`, `PlanValidator.validateProgression()`, `CoachController.applyEdit()`
+
+**Execution.** At the end of a week the lifter opens Review Week. The controller loads the active block and the sessions logged in that window, and `PlanAdherence.compare()` walks each prescription, finds the matching logged sets, and assigns a verdict. Three reps prescribed at RPE 8 but logged as two reps at RPE 7 becomes `MISSED_REPS` with actual RPE below target; the same prescription logged as three reps at RPE 6.5 becomes `COMPLETED_BELOW_TARGET_RPE`, which is the signal that load can advance. The report is shown regardless of what happens next, because it is deterministic and useful by itself.
+
+If there is a shortfall, or the lifter asks, `ProgressionAgent` reads the report through `AdherenceTool` and proposes revisions to the remaining weeks with reasons. The validator is stricter here than elsewhere, because this path changes future training rather than describing it: loads may rise only where the verdict permits, increases are capped week over week, and competition lifts cannot be removed. An accepted revision goes through the same command mechanism as a manual edit, so it can be undone.
+
+**Why this feature matters beyond the course.** Without it, Spotter plans and never learns. The estimated one rep max does update from logged sets, so a regenerated block reflects reality, but nothing notices a pattern of missed reps inside a block, and nothing adapts the weeks that remain. F12 is what makes the system behave like a coach rather than a plan generator, and it reuses classes that already exist rather than adding a new layer.
+
+---
+
 ## 9.1 What This Design Is Meant to Demonstrate
 
 Reading the eleven descriptions together, the same shape recurs: deterministic code establishes the facts and the constraints, the agent supplies judgement within them, and a validator decides whether that judgement is acceptable before it reaches the domain model. The lifter always keeps the final say, through acceptance, rejection and undo.
