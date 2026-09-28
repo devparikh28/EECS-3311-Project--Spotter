@@ -22,7 +22,7 @@ obj=EventBus~bus
 
 lifter-&gt;&gt;&gt;pui : onSaveClicked(); on=pui
 pui-&gt;&gt;&gt;ctrl : saveProfile(profile); on=ctrl
-ctrl-&gt;&gt;&gt;ctrl : validate(required fields, goal, meet date if given)
+ctrl-&gt;&gt;&gt;ctrl +1 : validate(required fields, goal, meet date if given)
 combinedFragment=alt~f1 ctrl bus
 ctrl:[valid]
 ctrl-&gt;&gt;&gt;prepo : save(profile)

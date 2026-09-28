@@ -6,6 +6,7 @@ UMLet's sequence text syntax, so the diagram stays editable as text in UMLet.
 """
 
 import os
+import re
 from puml_to_uxf import write_uxf
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -463,6 +464,22 @@ DIAGRAMS = [
 ]
 
 
+SELF_MSG = re.compile(r"^(\s*)(\w+)(->>>|\.>|->)\2(\s*)(:|;|$)")
+
+
+def normalise(spec):
+    """UMLet requires a duration on self messages (a->>>a +1 : text)."""
+    out = []
+    for line in spec.splitlines():
+        m = SELF_MSG.match(line)
+        if m:
+            indent, obj, arrow, _, tail = m.groups()
+            rest = line[m.end(4):]
+            line = "%s%s%s%s +1 %s" % (indent, obj, arrow, obj, rest)
+        out.append(line)
+    return "\n".join(out)
+
+
 def size_for(spec):
     lifelines = sum(1 for line in spec.splitlines() if line.startswith("obj="))
     steps = sum(1 for line in spec.splitlines()
@@ -477,7 +494,7 @@ def main():
     for name, spec in DIAGRAMS:
         w, h = size_for(spec)
         path = os.path.join(OUT, "%s.uxf" % name)
-        write_uxf(path, [("UMLSequenceAllInOne", (20, 20, w, h), spec.strip(), "")])
+        write_uxf(path, [("UMLSequenceAllInOne", (20, 20, w, h), normalise(spec.strip()), "")])
         print("%-28s %4dx%-4d -> %s" % (name, w, h, os.path.relpath(path, ROOT)))
 
 

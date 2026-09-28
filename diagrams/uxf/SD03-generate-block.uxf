@@ -25,8 +25,8 @@ obj=Claude API~api ACTOR
 lifter-&gt;&gt;&gt;ui : onGenerateClicked(weeks = 6); on=ui
 ui-&gt;&gt;&gt;ctrl : generateBlock(6); on=ctrl
 ctrl-&gt;&gt;&gt;agent : run(AgentRequest); on=agent
-agent-&gt;&gt;&gt;agent : createToolset() Factory Method
-agent-&gt;&gt;&gt;agent : gatherContext(req)
+agent-&gt;&gt;&gt;agent +1 : createToolset() Factory Method
+agent-&gt;&gt;&gt;agent +1 : gatherContext(req)
 agent-&gt;&gt;&gt;prompt : system, context, schema, build()
 prompt.&gt;agent : List&lt;Message&gt;
 combinedFragment=loop~l1 agent api
