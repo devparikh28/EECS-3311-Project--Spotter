@@ -60,7 +60,7 @@ package "presentation" $pres {
   }
   class CoachCLI $pres {
     - controller : CoachController
-    + run(argv : List<str>) : int
+    + run(argv : List<String>) : int
   }
 }
 
@@ -81,8 +81,8 @@ package "application" $app {
     - events : EventBus
     - editHistory : PlanEditHistory
     + saveProfile(p : LifterProfile) : void
-    + importWorkouts(path : str) : ImportReport
-    + importRecovery(path : str) : ImportReport
+    + importWorkouts(path : String) : ImportReport
+    + importRecovery(path : String) : ImportReport
     + logWorkout(s : WorkoutSession) : void
     + getAnalytics(lift : Lift) : AnalyticsSummary
     + generateBlock(weeks : int) : AgentResult<TrainingBlock>
@@ -92,7 +92,7 @@ package "application" $app {
     + calculateAttempts() : List<MeetAttempts>
     + logIntake(e : FoodEntry) : MacroTotals
     + suggestMeal() : AgentResult<MealSuggestion>
-    + chat(message : str) : AgentResult<str>
+    + chat(message : String) : AgentResult<String>
     + applyEdit(cmd : PlanEditCommand) : void
     + undoLastEdit() : void
   }
@@ -108,7 +108,7 @@ package "application" $app {
   class DomainEvent $app {
     + type : EventType
     + payload : object
-    + timestamp : datetime
+    + timestamp : LocalDateTime
   }
   enum EventType $app {
     PROFILE_UPDATED
@@ -121,12 +121,12 @@ package "application" $app {
     - undoStack : List<PlanEditCommand>
     + execute(cmd : PlanEditCommand) : void
     + undo() : void
-    + canUndo() : bool
+    + canUndo() : boolean
   }
   interface PlanEditCommand <<Command>> $app {
     + execute() : void
     + undo() : void
-    + describe() : str
+    + describe() : String
   }
   class SwapExerciseCommand $app {
     - block : TrainingBlock
@@ -137,8 +137,8 @@ package "application" $app {
   class ChangeLoadCommand $app {
     - block : TrainingBlock
     - prescriptionId : int
-    - newLoadKg : float
-    - previousLoadKg : float
+    - newLoadKg : double
+    - previousLoadKg : double
   }
   class ApplyAdjustmentCommand $app {
     - block : TrainingBlock
@@ -159,19 +159,19 @@ package "application" $app {
 package "domain" $dom {
   class LifterProfile $dom {
     + id : int
-    + bodyweightKg : float
-    + weightClassKg : float
-    + meetDate : date
+    + bodyweightKg : double
+    + weightClassKg : double
+    + meetDate : LocalDate
     + trainingDaysPerWeek : int
     + equipment : Set<Equipment>
-    + weeksUntilMeet(today : date) : int
-    + hasEquipment(e : Equipment) : bool
+    + weeksUntilMeet(today : LocalDate) : int
+    + hasEquipment(e : Equipment) : boolean
   }
   class DietaryConstraints $dom {
-    + vegetarian : bool
-    + allowsDairy : bool
-    + allowsEggs : bool
-    + permits(f : FoodItem) : bool
+    + vegetarian : boolean
+    + allowsDairy : boolean
+    + allowsEggs : boolean
+    + permits(f : FoodItem) : boolean
   }
   enum Lift $dom {
     SQUAT
@@ -190,33 +190,33 @@ package "domain" $dom {
   }
   class Exercise $dom {
     + id : int
-    + name : str
-    + muscleGroups : Set<str>
-    + movementPattern : str
+    + name : String
+    + muscleGroups : Set<String>
+    + movementPattern : String
     + requiredEquipment : Set<Equipment>
     + competitionLift : Lift [0..1]
   }
   class WorkoutSession $dom {
     + id : int
-    + date : date
-    + source : str
-    + totalTonnage() : float
+    + date : LocalDate
+    + source : String
+    + totalTonnage() : double
   }
   class SetEntry $dom {
-    + weightKg : float
+    + weightKg : double
     + reps : int
-    + rpe : float [0..1]
+    + rpe : double [0..1]
   }
   class RecoveryDay $dom {
-    + date : date
+    + date : LocalDate
     + recoveryScore : int [0..1]
-    + hrvMs : float [0..1]
-    + sleepHours : float [0..1]
+    + hrvMs : double [0..1]
+    + sleepHours : double [0..1]
   }
   class TrainingBlock $dom {
     + id : int
-    + startDate : date
-    + progression : str
+    + startDate : LocalDate
+    + progression : String
     + findSession(id : int) : Session
     + findPrescription(id : int) : ExercisePrescription
   }
@@ -225,49 +225,49 @@ package "domain" $dom {
   }
   class Session $dom {
     + id : int
-    + date : date
-    + adjustmentNote : str [0..1]
+    + date : LocalDate
+    + adjustmentNote : String [0..1]
   }
   class ExercisePrescription $dom {
     + id : int
     + sets : int
     + reps : int
-    + targetRpe : float
-    + loadKg : float
+    + targetRpe : double
+    + loadKg : double
   }
   class MeetAttempts $dom {
     + lift : Lift
-    + opener : float
-    + second : float
-    + third : float
-    + rationale : str
+    + opener : double
+    + second : double
+    + third : double
+    + rationale : String
   }
   class MacroTarget $dom {
     + calories : int
-    + proteinG : float
-    + carbsG : float
-    + fatG : float
+    + proteinG : double
+    + carbsG : double
+    + fatG : double
   }
   class DailyIntake $dom {
-    + date : date
+    + date : LocalDate
     + totals() : MacroTotals
   }
   class FoodEntry $dom {
-    + grams : float
+    + grams : double
     + totals() : MacroTotals
   }
   class FoodItem $dom {
-    + name : str
+    + name : String
     + per100g : MacroTotals
-    + vegetarian : bool
-    + containsDairy : bool
-    + containsEgg : bool
+    + vegetarian : boolean
+    + containsDairy : boolean
+    + containsEgg : boolean
   }
   class MacroTotals $dom {
-    + calories : float
-    + proteinG : float
-    + carbsG : float
-    + fatG : float
+    + calories : double
+    + proteinG : double
+    + carbsG : double
+    + fatG : double
     + minus(o : MacroTotals) : MacroTotals
   }
   class AnalyticsSummary $dom {
@@ -275,61 +275,61 @@ package "domain" $dom {
     + e1rmSeries : List<Point>
     + tonnage : List<Point>
     + bestSet : SetEntry [0..1]
-    + warnings : List<str>
+    + warnings : List<String>
     + {static} empty(lift : Lift) : AnalyticsSummary
   }
   class Point $dom {
-    + date : date
-    + value : float
+    + date : LocalDate
+    + value : double
   }
   class Range $dom {
-    + minKg : float
-    + maxKg : float
-    + contains(kg : float) : bool
+    + minKg : double
+    + maxKg : double
+    + contains(kg : double) : boolean
   }
   class MealSuggestion $dom {
-    + rationale : str
+    + rationale : String
     + totals() : MacroTotals
   }
 
   ' domain services
   class StrengthAnalytics $dom {
     - rpeChart : RPEChart
-    + computeE1RM(s : SetEntry) : float
+    + computeE1RM(s : SetEntry) : double
     + e1rmSeries(lift : Lift, h : List<WorkoutSession>) : List<Point>
     + weeklyTonnage(lift : Lift, h : List<WorkoutSession>) : List<Point>
     + bestSet(lift : Lift, h : List<WorkoutSession>) : SetEntry
-    + currentE1RMs(h : List<WorkoutSession>) : Map<Lift, float>
+    + currentE1RMs(h : List<WorkoutSession>) : Map<Lift, double>
   }
   class RPEChart $dom {
-    + percentOf1RM(reps : int, rpe : float) : float
+    + percentOf1RM(reps : int, rpe : double) : double
   }
   class AttemptCalculator $dom {
-    - openerPct : float = 0.91
-    - secondPct : float = 0.96
-    - thirdPct : float = 1.01
-    + calculate(lift : Lift, e1rm : float) : MeetAttempts
-    - roundToPlate(kg : float) : float
+    - openerPct : double = 0.91
+    - secondPct : double = 0.96
+    - thirdPct : double = 1.01
+    + calculate(lift : Lift, e1rm : double) : MeetAttempts
+    - roundToPlate(kg : double) : double
   }
   class MacroTracker $dom {
     - target : MacroTarget
-    + recordIntake(date : date, e : FoodEntry) : MacroTotals
-    + getRemaining(date : date) : MacroTotals
-    + weeklyAdherence(weekStart : date) : float
+    + recordIntake(date : LocalDate, e : FoodEntry) : MacroTotals
+    + getRemaining(date : LocalDate) : MacroTotals
+    + weeklyAdherence(weekStart : LocalDate) : double
   }
   class RecoveryRuleEngine $dom {
     - minRecoveryScore : int = 33
-    - minSleepHours : float = 6.0
+    - minSleepHours : double = 6.0
     + evaluate(d : RecoveryDay) : RecoveryFlag [0..1]
     + fallbackAdjustment(s : Session) : Session
   }
   class RecoveryFlag $dom {
-    + date : date
-    + reasons : List<str>
+    + date : LocalDate
+    + reasons : List<String>
   }
   interface ProgressionStrategy <<Strategy>> $dom {
-    + loadRange(e1rm : float, reps : int, rpe : float, week : int) : Range
-    + describe() : str
+    + loadRange(e1rm : double, reps : int, rpe : double, week : int) : Range
+    + describe() : String
   }
   class RPEProgression $dom
   class LinearProgression $dom
@@ -338,6 +338,14 @@ package "domain" $dom {
 
 ' ---------------- Agent ----------------
 package "agent" $agent {
+  note as N_LC4J
+    ClaudeClient and ConversationHistory wrap
+    LangChain4j types (AnthropicChatModel,
+    ToolSpecification, MessageWindowChatMemory).
+    The rest of the system depends only on the
+    LLMClient and Tool interfaces, so the
+    framework stays replaceable.
+  end note
   abstract class CoachAgent <<Template Method>> $agent {
     # llm : LLMClient
     # tools : ToolManager
@@ -350,7 +358,7 @@ package "agent" $agent {
     # {abstract} createToolset() : List<Tool>
     # {abstract} gatherContext(req : AgentRequest) : AgentContext
     # {abstract} buildPrompt(ctx : AgentContext) : List<Message>
-    # {abstract} parse(raw : str) : object
+    # {abstract} parse(raw : String) : object
     # {abstract} validate(result : object, ctx : AgentContext) : ValidationReport
     - toolLoop(msgs : List<Message>) : LLMResponse
   }
@@ -365,93 +373,94 @@ package "agent" $agent {
     - memory : MemoryManager
   }
   class AgentRequest $agent {
-    + kind : str
-    + params : Map<str, object>
+    + kind : String
+    + params : Map<String, object>
   }
   class AgentContext $agent {
     + profile : LifterProfile
-    + facts : Map<str, object>
+    + facts : Map<String, object>
   }
   class "AgentResult<T>" as AgentResult $agent {
-    + success : bool
+    + success : boolean
     + value : T [0..1]
-    + errors : List<str>
+    + errors : List<String>
     + attempts : int
   }
 
   interface LLMClient <<Strategy>> $agent {
-    + complete(msgs : List<Message>, tools : List<ToolSchema>, system : str) : LLMResponse
+    + complete(msgs : List<Message>, tools : List<ToolSchema>, system : String) : LLMResponse
   }
   class ClaudeClient $agent {
-    - client : anthropic.Anthropic
-    - model : str
+    - chatModel : AnthropicChatModel
+    - modelName : String
     - maxTokens : int
-    - timeoutS : int
-    - toAnthropicTools(t : List<ToolSchema>) : List<dict>
+    - timeoutSeconds : int
+    - toSpecifications(t : List<ToolSchema>) : List<ToolSpecification>
+    - fromAiMessage(m : AiMessage) : LLMResponse
   }
   class ScriptedLLMClient $agent {
     - responses : List<LLMResponse>
   }
   class LLMResponse $agent {
-    + content : str [0..1]
+    + content : String [0..1]
     + toolCalls : List<ToolCall>
-    + finishReason : str
+    + finishReason : String
   }
   class Message $agent {
-    + role : str
-    + content : str
+    + role : String
+    + content : String
   }
   class PromptBuilder <<Builder>> $agent {
-    + system(text : str) : PromptBuilder
-    + context(key : str, value : object) : PromptBuilder
-    + schema(s : dict) : PromptBuilder
-    + memory(snips : List<str>) : PromptBuilder
-    + user(text : str) : PromptBuilder
+    + system(text : String) : PromptBuilder
+    + context(key : String, value : object) : PromptBuilder
+    + schema(s : Map<String, Object>) : PromptBuilder
+    + memory(snips : List<String>) : PromptBuilder
+    + user(text : String) : PromptBuilder
     + build() : List<Message>
   }
   class ResponseParser $agent {
-    + parseJson(raw : str) : dict
-    + toBlock(d : dict, catalog : ExerciseCatalog) : TrainingBlock
-    + toSession(d : dict) : Session
-    + toMeal(d : dict, foods : FoodCatalog) : MealSuggestion
+    + parseJson(raw : String) : Map<String, Object>
+    + toBlock(d : Map<String, Object>, catalog : ExerciseCatalog) : TrainingBlock
+    + toSession(d : Map<String, Object>) : Session
+    + toMeal(d : Map<String, Object>, foods : FoodCatalog) : MealSuggestion
   }
   class PlanValidator $agent {
     + validateBlock(b : TrainingBlock, ctx : AgentContext, s : ProgressionStrategy) : ValidationReport
     + validateSubstitution(e : Exercise, allowed : List<Exercise>) : ValidationReport
     + validateMeal(m : MealSuggestion, d : DietaryConstraints, remaining : MacroTotals) : ValidationReport
-    + validateRationale(text : str, a : MeetAttempts) : ValidationReport
+    + validateRationale(text : String, a : MeetAttempts) : ValidationReport
   }
   class ValidationReport $agent {
-    + valid : bool
-    + errors : List<str>
+    + valid : boolean
+    + errors : List<String>
   }
 
   class ToolManager $agent {
-    - tools : Map<str, Tool>
+    - tools : Map<String, Tool>
     - callLog : List<ToolCall>
     + register(t : Tool) : void
     + schemas() : List<ToolSchema>
     + execute(call : ToolCall) : ToolResult
   }
   interface Tool $agent {
-    + name() : str
+    + name() : String
     + schema() : ToolSchema
-    + execute(args : dict) : ToolResult
+    + execute(args : Map<String, Object>) : ToolResult
   }
   class ToolSchema $agent {
-    + name : str
-    + description : str
-    + inputSchema : dict
+    + name : String
+    + description : String
+    + inputSchema : Map<String, Object>
   }
   class ToolCall $agent {
-    + id : str
-    + toolName : str
-    + arguments : dict
+    + id : String
+    + toolName : String
+    + arguments : Map<String, Object>
   }
   class ToolResult $agent {
-    + ok : bool
+    + ok : boolean
     + data : object
-    + error : str [0..1]
+    + error : String [0..1]
   }
   class AnalyticsTool $agent
   class ExerciseDBTool $agent
@@ -463,10 +472,11 @@ package "agent" $agent {
     - history : ConversationHistory
     - store : MemoryRepository
     + remember(user : Message, reply : Message) : void
-    + recall(query : str, k : int) : List<str>
+    + recall(query : String, k : int) : List<String>
     + summarizeOlderTurns() : void
   }
   class ConversationHistory $agent {
+    - chatMemory : MessageWindowChatMemory
     - maxTurns : int = 20
     + append(m : Message) : void
     + recent(n : int) : List<Message>
@@ -476,17 +486,17 @@ package "agent" $agent {
 ' ---------------- Infrastructure ----------------
 package "infrastructure" $infra {
   interface DataSource <<Adapter: Target>> $infra {
-    + read(path : str) : ImportBatch
+    + read(path : String) : ImportBatch
   }
   class HevyCsvAdapter <<Adapter>> $infra
   class WhoopCsvAdapter <<Adapter>> $infra
   class CsvFileReader <<Adaptee>> $infra {
-    + rows(path : str) : Iterator<dict>
-    + header(path : str) : List<str>
+    + rows(path : String) : Iterator<Map<String, Object>>
+    + header(path : String) : List<String>
   }
   class DataSourceFactory <<Factory>> $infra {
     + create(kind : SourceKind) : DataSource
-    + detect(path : str) : SourceKind
+    + detect(path : String) : SourceKind
   }
   enum SourceKind $infra {
     HEVY
@@ -495,31 +505,31 @@ package "infrastructure" $infra {
   class ImportBatch $infra {
     + sessions : List<WorkoutSession>
     + recoveryDays : List<RecoveryDay>
-    + rowErrors : List<str>
+    + rowErrors : List<String>
   }
   class ImportReport $infra {
     + imported : int
     + duplicatesSkipped : int
-    + unknownExercises : List<str>
-    + rowErrors : List<str>
+    + unknownExercises : List<String>
+    + rowErrors : List<String>
   }
   class CsvImportService $infra {
     - factory : DataSourceFactory
     - catalog : ExerciseCatalog
-    + importFile(path : str, kind : SourceKind) : ImportReport
-    - mapExerciseNames(b : ImportBatch) : List<str>
+    + importFile(path : String, kind : SourceKind) : ImportReport
+    - mapExerciseNames(b : ImportBatch) : List<String>
     - dedupe(b : ImportBatch) : int
   }
   class ExerciseCatalog $infra {
-    + byName(name : str) : Exercise [0..1]
-    + closestMatches(name : str, k : int) : List<Exercise>
-    + addAlias(alias : str, e : Exercise) : void
+    + byName(name : String) : Exercise [0..1]
+    + closestMatches(name : String, k : int) : List<Exercise>
+    + addAlias(alias : String, e : Exercise) : void
     + add(e : Exercise) : void
-    + candidates(pattern : str, muscles : Set<str>, eq : Set<Equipment>) : List<Exercise>
+    + candidates(pattern : String, muscles : Set<String>, eq : Set<Equipment>) : List<Exercise>
   }
   class FoodCatalog $infra {
-    + search(d : DietaryConstraints, maxCalories : float) : List<FoodItem>
-    + byName(name : str) : FoodItem [0..1]
+    + search(d : DietaryConstraints, maxCalories : double) : List<FoodItem>
+    + byName(name : String) : FoodItem [0..1]
     + add(f : FoodItem) : void
   }
   interface "Repository<T>" as Repository $infra {
@@ -529,23 +539,23 @@ package "infrastructure" $infra {
     + delete(id : int) : void
   }
   class Database $infra {
-    - path : str
+    - path : String
     + connection() : Connection
     + migrate() : void
   }
   class ProfileRepository $infra
   class WorkoutRepository $infra {
-    + findByLift(l : Lift, since : date) : List<WorkoutSession>
+    + findByLift(l : Lift, since : LocalDate) : List<WorkoutSession>
   }
   class RecoveryRepository $infra {
-    + findByDate(d : date) : RecoveryDay [0..1]
+    + findByDate(d : LocalDate) : RecoveryDay [0..1]
   }
   class BlockRepository $infra {
     + findActive() : TrainingBlock [0..1]
   }
   class IntakeRepository $infra
   class MemoryRepository $infra {
-    + search(query : str, k : int) : List<str>
+    + search(query : String, k : int) : List<String>
   }
 }
 

@@ -24,7 +24,7 @@ The system is organised in five layers. Each layer depends only on the layer ben
 
 **Infrastructure** holds the CSV adapters behind `DataSource`, `CsvImportService`, the exercise and food catalogs, and the SQLite repositories behind a generic `Repository<T>` interface.
 
-The LLM is Anthropic Claude, called through the official `anthropic` Python SDK inside `ClaudeClient`. The model name, token limit, and timeout are read from configuration rather than hard coded, so the model can be changed without code changes. Tools are passed to Claude using its native tool use format, and structured outputs (training blocks, meal suggestions) are requested as JSON matching a schema supplied by `PromptBuilder`.
+The LLM is Anthropic Claude, reached through LangChain4j's `AnthropicChatModel` inside `ClaudeClient`. The model name, token limit, and timeout are read from configuration rather than hard coded, so the model can be changed without code changes. Tools are passed to Claude as LangChain4j `ToolSpecification` objects built from our own `ToolSchema`, and structured outputs (training blocks, meal suggestions) are requested as JSON matching a schema supplied by `PromptBuilder`.
 
 The key principle is that **the LLM never writes directly to the domain**. Every model response passes through `ResponseParser` (structure) and `PlanValidator` (rules) before a domain object is created, and every number the agent reports (e1RM, attempts, macros) comes from a deterministic service or tool rather than from the model. This makes the deterministic layer fully unit testable and gives the agent layer clear behavioural contracts to test with KUMA.
 
@@ -73,11 +73,11 @@ Seven patterns are applied. Each one solves a problem that exists in this system
 
 **Problem.** Two parts of the system have interchangeable algorithms. The LLM provider must be swappable, both for testing (a scripted fake) and so a cheaper or newer model can be tried without touching agent code. The progression scheme used to plan a block (RPE based, linear, or percentage based) changes which loads are valid, and both the prompt and the validator need to follow whichever scheme was chosen.
 
-**Participants.** For the LLM: `LLMClient` is the strategy interface, `ClaudeClient` and `ScriptedLLMClient` are concrete strategies, and `CoachAgent` is the context. For progression: `ProgressionStrategy` is the interface, `RPEProgression`, `LinearProgression`, and `PercentageProgression` are concrete strategies, and `BlockGenerationAgent` and `PlanValidator` are the contexts.
+**Participants.** For the LLM: `LLMClient` is the strategy interface, `ClaudeClient` (which wraps LangChain4j) and `ScriptedLLMClient` are concrete strategies, and `CoachAgent` is the context. For progression: `ProgressionStrategy` is the interface, `RPEProgression`, `LinearProgression`, and `PercentageProgression` are concrete strategies, and `BlockGenerationAgent` and `PlanValidator` are the contexts.
 
 **Why it fits.** The contexts only need one operation each (`complete()` and `loadRange()`), and the choice is made once at configuration time.
 
-**Without it.** Agents would contain provider specific HTTP code, deterministic tests of the agent loop would require live API calls, and the validator would contain an `if scheme == ...` chain that must be kept in sync with the prompt.
+**Without it.** Agents would depend directly on LangChain4j types, deterministic tests of the agent loop would require live API calls, and the validator would contain an `if scheme == ...` chain that must be kept in sync with the prompt.
 
 ## 4.3 Observer — `EventBus`, `EventListener`, `BasePanel`
 
