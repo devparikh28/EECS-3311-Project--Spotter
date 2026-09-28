@@ -1,0 +1,102 @@
+@startuml architecture
+title Spotter — System Overview\nwhat the agent is made of, what each part does, and what it talks to
+
+skinparam shadowing false
+skinparam defaultFontSize 12
+skinparam nodesep 25
+skinparam ranksep 45
+skinparam rectangle {
+  BackgroundColor #FFFFFF
+  BorderColor #444444
+}
+skinparam package {
+  BackgroundColor #F8F8F8
+  BorderColor #AAAAAA
+  FontStyle bold
+}
+skinparam ArrowColor #444444
+skinparam actorStyle awesome
+left to right direction
+
+actor "Lifter" as User
+
+package "Presentation\nhow it is used" as P {
+  rectangle "**JavaFX Dashboard**\n7 tabs: Profile, Log, Analytics,\nPlan, Meet, Nutrition, Coach Chat" as GUI
+  rectangle "**CLI** (picocli)\nsame operations, scriptable\nspotter plan generate 6" as CLI
+}
+
+package "Application\none way in" as A {
+  rectangle "**CoachController** «Facade»\none method per feature; both\ninterfaces call only this class" as Ctrl
+  rectangle "**FxTaskRunner**\nagent calls run off the\nJavaFX thread" as Fx
+  rectangle "**EventBus** «Observer»\nPLAN_UPDATED, DATA_IMPORTED,\nRECOVERY_FLAGGED" as Bus
+  rectangle "**PlanEditHistory** «Command»\nundo stack for every plan\nchange, manual or agent" as Hist
+}
+
+package "Domain\nevery number is computed here" as D {
+  rectangle "**Entities**\nLifterProfile, TrainingGoal, WorkoutSession,\nSetEntry, RecoveryDay, TrainingBlock >\nWeek > Session > Prescription, DailyIntake" as Ent
+  rectangle "**StrengthAnalytics** + RPEChart\nestimated 1RM, tonnage, trends" as An
+  rectangle "**AttemptCalculator**\nmeet attempts or test day plan,\nplate rounding" as Calc
+  rectangle "**MacroTracker**\nremaining macros, adherence" as Mac
+  rectangle "**RecoveryRuleEngine**\nflags poor recovery,\ndeterministic fallback" as Rules
+  rectangle "**ProgressionStrategy** «Strategy»\nRPE, linear or percentage,\npicked from the training goal" as Prog
+}
+
+package "Agent\njudgement, inside limits" as G {
+  rectangle "**CoachAgent** «Template Method»\ngather context > build prompt > call model >\nrun tools > parse > validate > retry once\n\nSix agents: BlockGeneration, Substitution,\nAdjustment, AttemptRationale,\nMealSuggestion, Chat" as Agent
+  rectangle "**Tools**\nwhat the agent may look up:\nAnalyticsTool, ExerciseDBTool, FoodDBTool,\nPlanLookupTool, RecoveryLookupTool" as Tools
+  rectangle "**PromptBuilder** «Builder»\ninstructions, context, JSON schema" as Prompt
+  rectangle "**ResponseParser**\nJSON into domain objects,\nfacts read from the catalogs" as Parse
+  rectangle "**PlanValidator**\nthe gate: loads in range, exercise exists,\nmeal permitted, numbers match the calculator" as Val
+  rectangle "**MemoryManager** + ConversationHistory\nrecall, remember, summarise" as Mem
+  rectangle "**LLMClient** «Strategy»\nClaudeClient via LangChain4j\nScriptedLLMClient for tests" as LLM
+}
+
+package "Infrastructure\ndata in and out" as I {
+  rectangle "**DataSource** «Adapter»\nHevyCsvAdapter, WhoopCsvAdapter\nCsvImportService" as DS
+  rectangle "**Catalogs**\nExerciseCatalog, FoodCatalog" as Cat
+  rectangle "**Repository<T>**\nprofile, workouts, recovery,\nblocks, intake, memory" as Repo
+}
+
+cloud "**Claude**\nAnthropic API" as Claude
+file "Hevy CSV" as Hevy
+file "Whoop CSV" as Whoop
+database "SQLite" as DB
+
+User --> GUI
+User --> CLI
+GUI --> Ctrl
+CLI --> Ctrl
+Ctrl --> Fx
+Ctrl --> Bus
+Ctrl --> Hist
+Bus --> GUI : refresh
+
+Ctrl --> An
+Ctrl --> Calc
+Ctrl --> Mac
+Ctrl --> Rules
+Ctrl --> Prog
+Ctrl --> DS
+Fx --> Agent : runs agents\nin the background
+
+Agent --> Prompt
+Agent --> LLM
+Agent --> Tools
+Agent --> Parse
+Agent --> Val
+Agent --> Mem
+LLM --> Claude : tool schemas out,\nJSON replies back
+Tools --> An
+Tools --> Cat
+Tools --> Repo
+Val --> Prog
+Val --> Ent : only validated output\nbecomes domain data
+Parse --> Cat
+Hist --> Ent
+DS --> Hevy
+DS --> Whoop
+DS --> Repo
+Cat --> Repo
+Ent --> Repo
+Repo --> DB
+@enduml

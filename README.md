@@ -39,6 +39,7 @@ Every diagram exists in two forms. PlantUML source is the working format, render
 
 ```
 diagrams/
+  architecture/  one page system overview: every component, what it does, what it talks to
   class/      model.iuml plus five views (full, presentation and application, domain, agent, infrastructure)
   usecase/    usecase.puml
   sequence/   SD01 to SD09
@@ -107,6 +108,8 @@ while (test_input := run.get_input()) is not None:
 `execute_agent` invokes the Java CLI as a subprocess and returns its output. The CLI appends one JSON object per tool call, validation result, and retry to `trace.jsonl`, which KUMA ingests as evidence. No application logic lives in Python: the harness under `tools/kuma/` only starts the Java process, passes the test input, and hands the result and trace back to KUMA.
 
 ## Architecture
+
+![Spotter system overview](diagrams/architecture/architecture.png)
 
 Five layers, each depending only on the layer beneath it or on an interface.
 
