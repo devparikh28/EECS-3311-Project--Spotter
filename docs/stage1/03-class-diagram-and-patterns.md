@@ -40,7 +40,7 @@ The system is organised in five layers. Each layer depends only on the layer ben
 
 **Agent** holds the abstract `CoachAgent` and seven concrete agents, the `LLMClient` interface with `ClaudeClient`, the `ToolManager` and six tools, `PromptBuilder`, `ResponseParser`, `PlanValidator`, and `MemoryManager`.
 
-**Infrastructure** holds the CSV adapters behind `DataSource`, `CsvImportService`, the exercise and food catalogs, and the SQLite repositories behind a generic `Repository<T>` interface.
+**Infrastructure** holds the CSV adapters behind `DataSource` (two recognised formats plus a mapped generic one), `CsvImportService`, the exercise and food catalogs, saved import profiles, and the SQLite repositories behind a generic `Repository<T>` interface.
 
 The LLM is Anthropic Claude, reached through LangChain4j's `AnthropicChatModel` inside `ClaudeClient`. The model name, token limit, and timeout are read from configuration rather than hard coded, so the model can be changed without code changes. Tools are passed to Claude as LangChain4j `ToolSpecification` objects built from our own `ToolSchema`, and structured outputs (training blocks, meal suggestions) are requested as JSON matching a schema supplied by `PromptBuilder`.
 
@@ -123,13 +123,13 @@ Eight patterns are applied. Each one solves a problem that exists in this system
 
 ## 4.5 Adapter — `DataSource`, `HevyCsvAdapter`, `WhoopCsvAdapter`
 
-**Problem.** Hevy and Whoop exports have completely different column layouts, units, and date formats. The import service should see a single uniform interface that returns domain objects.
+**Problem.** Every tracking app exports a different shape: different column layouts, units and date formats. Hevy and Whoop are the two the system recognises by name, but a lifter may use Strong, FitNotes, Garmin, Oura or anything else, and the import service should not know or care. It needs one uniform interface that returns domain objects.
 
-**Participants.** `DataSource` is the target interface, `HevyCsvAdapter` and `WhoopCsvAdapter` are adapters, `CsvFileReader` (raw rows as dictionaries) is the adaptee, and `CsvImportService` is the client.
+**Participants.** `DataSource` is the target interface. `HevyCsvAdapter` and `WhoopCsvAdapter` adapt the two recognised formats, and `GenericCsvAdapter` adapts any other file through a `ColumnMapping` the lifter confirms once and which is then saved as a named import profile. `CsvFileReader` is the adaptee, and `CsvImportService` is the client.
 
-**Why it fits.** The vendor formats are fixed and outside our control; only a translation layer can make them conform. This is also the extension point for a live API integration later: a `HevyApiAdapter` would implement the same interface with no change above it.
+**Why it fits.** The vendor formats are fixed and outside our control; only a translation layer can make them conform. The generic adapter shows the pattern paying off twice, since supporting an unknown app became configuration rather than code. This is also the extension point for a live API integration later: a `HevyApiAdapter` would implement the same interface with no change above it.
 
-**Without it.** `CsvImportService` would contain vendor specific parsing branches, and every new data source would require modifying tested code.
+**Without it.** `CsvImportService` would contain vendor specific parsing branches, every new app would require modifying tested code, and supporting an app the author has never seen would be impossible without a release.
 
 ## 4.6 Factory Method — `CoachAgent.createToolset()`
 

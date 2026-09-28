@@ -5,8 +5,8 @@ Twelve features, each classified as deterministic, AI, or hybrid. The system ser
 | ID | Feature | Type |
 |---|---|---|
 | F01 | Lifter Profile and Constraints | Deterministic |
-| F02 | Workout Import | Deterministic |
-| F03 | Recovery Import | Deterministic |
+| F02 | Workout Logging and Import | Deterministic |
+| F03 | Recovery Input | Deterministic |
 | F04 | Strength Analytics | Deterministic |
 | F05 | Training Block Generation | AI |
 | F06 | Equipment Substitution | AI |
@@ -27,25 +27,25 @@ Twelve features, each classified as deterministic, AI, or hybrid. The system ser
 - **Expected Workflow:** The lifter fills the form and saves; `CoachController.saveProfile()` validates required fields and persists through `ProfileRepository`; a `PROFILE_UPDATED` event refreshes dependent panels.
 - **Error and Alternative Cases:** A missing required field blocks the save with an inline message. A meet date is optional; if given it must be in the future. Selecting the meet prep goal without a meet date prompts for one, while every other goal ignores the field entirely. An empty equipment list is allowed and defaults to bodyweight only, with a warning that plan generation will be limited.
 
-## F02 — Workout Import
+## F02 — Workout Logging and Import
 
-- **Description:** Imports a Hevy CSV export, or accepts manual entry, to build the training history.
-- **User Interaction:** Log tab, Import Hevy CSV button and a manual entry form. CLI: `spotter import hevy <file>`, `spotter log add`.
-- **Input:** A Hevy export CSV file, or a manually typed exercise with sets, reps, weight, and RPE.
+- **Description:** Builds the training history from whichever source the lifter actually uses: a recognised export (Hevy), any other app's CSV through a saved column mapping, a one tap confirmation that a prescribed session was completed, or manual entry.
+- **User Interaction:** Log tab with Import CSV, a mapping dialog for unrecognised files, and a manual entry form; Plan tab has Log as Prescribed on each session. CLI: `spotter import hevy <file>`, `spotter import csv <file> <profile>`, `spotter log prescribed <sessionId>`, `spotter log add`.
+- **Input:** A CSV export from any workout app, or a confirmation with only the sets that differed from the plan, or a manually typed exercise with sets, reps, weight and RPE.
 - **Output:** `WorkoutSession` and `SetEntry` records in the database.
 - **AI Involvement:** Deterministic.
-- **Expected Workflow:** `DataSourceFactory` identifies the file, `HevyCsvAdapter` converts rows into domain objects, `CsvImportService` resolves exercise names through `ExerciseCatalog` and removes duplicates, valid sessions are saved, and an `ImportReport` summarises the result.
-- **Error and Alternative Cases:** A file whose header matches no known format is rejected before anything is saved. Malformed rows are skipped and listed in the report while valid rows continue. A duplicate session is skipped by default, with an option to import anyway. An unrecognised exercise name opens the mapping dialog, where the lifter maps it, adds it as a new exercise, or skips it.
+- **Expected Workflow:** `DataSourceFactory.detect()` recognises a known header and returns the matching adapter. An unrecognised file goes to `suggestMapping()`, which proposes a `ColumnMapping` the lifter confirms or corrects; `GenericCsvAdapter` then reads the file through that mapping, converting units and date formats. The mapping is saved as a named import profile, so the next export from the same app imports in one step. From there the path is identical for every source: `CsvImportService` resolves exercise names, removes duplicates, saves, and returns an `ImportReport`. Log as Prescribed takes the prescribed session and records it as logged, with only the deviations the lifter enters.
+- **Error and Alternative Cases:** A file whose header matches no known format opens the mapping dialog rather than being rejected; a mapping missing a required column (date, exercise, weight, reps) fails `ColumnMapping.validate()` with the missing field named. Malformed rows are skipped and listed in the report while valid rows continue. A duplicate session is skipped by default, with an option to import anyway. An unrecognised exercise name opens the mapping dialog, where the lifter maps it, adds it as a new exercise, or skips it.
 
-## F03 — Recovery Import
+## F03 — Recovery Input
 
-- **Description:** Imports a Whoop CSV export containing daily sleep, HRV, and recovery score data.
-- **User Interaction:** Log tab, Import Whoop CSV button. CLI: `spotter import whoop <file>`.
-- **Input:** A Whoop export CSV file.
-- **Output:** `RecoveryDay` records in the database, and recovery flags on upcoming sessions.
+- **Description:** Records how recovered the lifter is, from a wearable export or from the lifter directly. Whoop is recognised automatically, any other recovery export (Garmin, Oura, Apple Health and similar) is read through a saved column mapping, and a lifter with no wearable at all can complete a short daily check in instead.
+- **User Interaction:** Log tab, Import CSV, or the Check In panel with sleep hours, soreness and energy. CLI: `spotter import whoop <file>`, `spotter import csv <file> <profile>`, `spotter checkin`.
+- **Input:** A recovery CSV from any source, or sleep hours plus soreness and energy on a one to five scale.
+- **Output:** `RecoveryDay` records carrying a `RecoverySource` of wearable export or manual check in, and recovery flags on upcoming sessions.
 - **AI Involvement:** Deterministic.
-- **Expected Workflow:** `WhoopCsvAdapter` parses the file, `CsvImportService` validates dates and numeric fields, records are saved, and `RecoveryRuleEngine` evaluates upcoming training days.
-- **Error and Alternative Cases:** A malformed file is rejected. Missing fields for a day are stored as empty rather than blocking the import. Overlapping date ranges replace older values after a confirmation.
+- **Expected Workflow:** A recognised file goes through `WhoopCsvAdapter`, an unrecognised one through `GenericCsvAdapter` and a confirmed mapping, and a check in creates a `RecoveryDay` directly. `RecoveryRuleEngine` then evaluates upcoming training days: against the recovery score and sleep when an objective score exists, and against sleep, soreness and energy thresholds when the source is a check in. The rule engine reads `hasObjectiveScore()` rather than assuming a wearable.
+- **Error and Alternative Cases:** A malformed file is rejected; an unrecognised one opens the mapping dialog. Missing fields for a day are stored as empty rather than blocking the import. Overlapping date ranges replace older values after a confirmation. A day with neither an import nor a check in produces no flag, so absence of data is never read as poor recovery.
 
 ## F04 — Strength Analytics
 

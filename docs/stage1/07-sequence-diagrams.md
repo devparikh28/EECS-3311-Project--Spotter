@@ -4,7 +4,7 @@ Ten sequence diagrams cover every important behaviour in the system. Each one us
 
 | Diagram | Covers | Use Case(s) | Source |
 |---|---|---|---|
-| SD01 Import CSV Data | F02, F03 | UC02, UC04, UC15 | `diagrams/sequence/SD01-import-csv.puml` |
+| SD01 Import CSV Data | F02, F03 | UC02, UC04, UC15, UC17 | `diagrams/sequence/SD01-import-csv.puml` |
 | SD02 View Strength Analytics | F04 | UC05 | `SD02-analytics.puml` |
 | SD03 Generate Training Block | F05 | UC06, UC14 | `SD03-generate-block.puml` |
 | SD04 Substitute Unavailable Exercise | F06 | UC08, UC07 | `SD04-substitute-exercise.puml` |
@@ -25,7 +25,7 @@ SD03 is the reference diagram for the agent loop. Because all six AI features sh
 
 The lifter picks a file and `LogPanel` calls `CoachController.importWorkouts()`. `CsvImportService` asks `DataSourceFactory` to identify the file from its header, receives a `HevyCsvAdapter`, and the adapter translates raw rows from `CsvFileReader` into `WorkoutSession` and `SetEntry` objects. Each exercise name is resolved through `ExerciseCatalog`, duplicates are removed, and the surviving sessions are saved. The controller then publishes `DATA_IMPORTED`, which is what causes the Log and Analytics panels to refresh through the Observer relationship.
 
-Three alternative flows appear: an unrecognised header stops the import before anything is saved, individual malformed rows are collected into the report while valid rows continue, and an unknown exercise name opens the UC15 mapping dialog so the lifter can map or add it. Recovery import (UC04) has the same shape with `WhoopCsvAdapter`, `RecoveryDay`, and `RecoveryRepository`, which is noted on the diagram rather than drawn twice.
+Three alternative flows appear: an unrecognised header opens the UC17 mapping dialog, where the lifter confirms which column holds each field and the mapping is saved as a named profile so the next export from that app imports in one step, individual malformed rows are collected into the report while valid rows continue, and an unknown exercise name opens the UC15 mapping dialog so the lifter can map or add it. Recovery import (UC04) has the same shape with `WhoopCsvAdapter`, `RecoveryDay` and `RecoveryRepository`, which is noted on the diagram rather than drawn twice, and the same generic path applies to any other wearable's export. A lifter with no wearable at all bypasses this diagram entirely and records a check in, which creates a `RecoveryDay` directly.
 
 ## SD02 — View Strength Analytics
 

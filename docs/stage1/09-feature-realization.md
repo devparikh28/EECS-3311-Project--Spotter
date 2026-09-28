@@ -22,9 +22,9 @@ Each feature is described by its use case, its sequence diagram, the classes inv
 
 ---
 
-## F02 — Workout Import
+## F02 — Workout Logging and Import
 
-**Use case:** UC02 Import Workout History, with UC03 for manual entry and UC15 for unknown names **Sequence diagram:** SD01
+**Use case:** UC02 Import Workout History, with UC03 for direct logging, UC15 for unknown names and UC17 for unrecognised files **Sequence diagram:** SD01
 
 **Classes**
 
@@ -32,6 +32,8 @@ Each feature is described by its use case, its sequence diagram, the classes inv
 - `CoachController` — entry point for both paths.
 - `DataSourceFactory` — identifies the file and creates the right adapter.
 - `HevyCsvAdapter` — translates Hevy's columns into domain objects, using `CsvFileReader` for raw rows.
+- `GenericCsvAdapter` and `ColumnMapping` — read any other app's export through a mapping the lifter confirmed once, converting date formats and pounds to kilograms.
+- `ImportProfileRepository` — remembers each mapping by name, so a repeat import is one step.
 - `CsvImportService` — resolves exercise names, removes duplicates, collects errors into an `ImportReport`.
 - `ExerciseCatalog` — the known exercise list, including aliases learned from previous imports.
 - `WorkoutSession` and `SetEntry` — the imported history.
@@ -39,25 +41,26 @@ Each feature is described by its use case, its sequence diagram, the classes inv
 
 **Methods:** `LogPanel.onImportHevyClicked()`, `CoachController.importWorkouts()`, `CsvImportService.importFile()`, `DataSourceFactory.detect()` and `create()`, `HevyCsvAdapter.read()`, `ExerciseCatalog.byName()`, `closestMatches()` and `addAlias()`, `CsvImportService.dedupe()`, `WorkoutRepository.save()`
 
-**Execution.** The lifter picks a file. The factory reads its header, returns a `HevyCsvAdapter`, and the adapter produces an `ImportBatch` of sessions and per row errors. The service looks up each exercise name; an unrecognised name opens the UC15 dialog, where the lifter maps it, adds it, or skips it, and any mapping is stored as an alias so the next import resolves it silently. Duplicates are skipped by default, valid sessions are saved, `DATA_IMPORTED` is published, and the lifter sees a report of what was imported, skipped and rejected. Recovery import (F03) follows the identical path with `WhoopCsvAdapter`, which is precisely the point of the Adapter and Factory Method pair: a second source added no branching to the import service.
+**Execution.** The lifter picks a file. The factory reads its header; a recognised one returns `HevyCsvAdapter`, and anything else returns a suggested `ColumnMapping` for the lifter to confirm, after which `GenericCsvAdapter` reads it. Either way the adapter produces an `ImportBatch` of sessions and per row errors, so nothing downstream knows or cares which app the data came from. A lifter who tracks nothing can instead click Log as Prescribed on a planned session, which records it as completed with only the deviations they enter. The service looks up each exercise name; an unrecognised name opens the UC15 dialog, where the lifter maps it, adds it, or skips it, and any mapping is stored as an alias so the next import resolves it silently. Duplicates are skipped by default, valid sessions are saved, `DATA_IMPORTED` is published, and the lifter sees a report of what was imported, skipped and rejected. Recovery import (F03) follows the identical path with `WhoopCsvAdapter`, which is precisely the point of the Adapter and Factory Method pair: a second source added no branching to the import service.
 
 ---
 
-## F03 — Recovery Import
+## F03 — Recovery Input
 
-**Use case:** UC04 Import Recovery Data **Sequence diagram:** SD01
+**Use case:** UC04 Record Recovery, with UC17 for unrecognised files **Sequence diagram:** SD01
 
 **Classes**
 
 - `LogPanel`, `CoachController`, `CsvImportService`, `DataSourceFactory` — as in F02.
-- `WhoopCsvAdapter` — converts Whoop rows into `RecoveryDay` objects.
+- `WhoopCsvAdapter` — converts Whoop rows into `RecoveryDay` objects; `GenericCsvAdapter` does the same for any other wearable through a mapping.
+- `RecoverySource` — records whether a day came from a wearable or from a check in, which decides how it is judged.
 - `RecoveryRepository` — persistence, with lookup by date.
 - `RecoveryRuleEngine` — evaluates upcoming sessions against thresholds immediately after import.
 - `EventBus` — publishes `DATA_IMPORTED` and, where applicable, `RECOVERY_FLAGGED`.
 
 **Methods:** `LogPanel.onImportWhoopClicked()`, `CoachController.importRecovery()`, `WhoopCsvAdapter.read()`, `RecoveryRepository.save()`, `RecoveryRuleEngine.evaluate()`
 
-**Execution.** After parsing and saving, the controller runs the rule engine over training days that now have recovery data behind them. Days below the thresholds produce a `RecoveryFlag`, and the plan panel shows a badge. A day missing fields is stored with those fields empty rather than rejected, and a missing day produces no flag rather than an assumed bad one, which keeps the absence of data from being read as evidence.
+**Execution.** Recovery reaches the system three ways: a recognised export, any other export through a confirmed mapping, or a check in where the lifter gives sleep hours, soreness and energy. The last of these matters, because a lifter with no wearable would otherwise get a plan that ignores recovery entirely. After saving, the controller runs the rule engine over training days that now have recovery data behind them, and `RecoveryDay.hasObjectiveScore()` decides which thresholds apply: recovery score and sleep for a wearable, sleep with soreness and energy for a check in. Days below the thresholds produce a `RecoveryFlag`, and the plan panel shows a badge. A day missing fields is stored with those fields empty rather than rejected, and a missing day produces no flag rather than an assumed bad one, which keeps the absence of data from being read as evidence.
 
 ---
 

@@ -190,6 +190,17 @@
     <additional_attributes />
   </element>
   <element>
+    <id>UMLUseCase</id>
+    <coordinates>
+      <x>760</x>
+      <y>320</y>
+      <w>310</w>
+      <h>50</h>
+    </coordinates>
+    <panel_attributes>UC17 Map an Unrecognised CSV</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
     <id>UMLActor</id>
     <coordinates>
       <x>60</x>
@@ -208,7 +219,7 @@
       <w>100</w>
       <h>100</h>
     </coordinates>
-    <panel_attributes>Hevy App
+    <panel_attributes>Workout App
 &lt;&lt;external system&gt;&gt;</panel_attributes>
     <additional_attributes />
   </element>
@@ -220,7 +231,7 @@
       <w>100</w>
       <h>100</h>
     </coordinates>
-    <panel_attributes>Whoop App
+    <panel_attributes>Recovery Source
 &lt;&lt;external system&gt;&gt;</panel_attributes>
     <additional_attributes />
   </element>
@@ -393,6 +404,17 @@
   <element>
     <id>Relation</id>
     <coordinates>
+      <x>130</x>
+      <y>360</y>
+      <w>740</w>
+      <h>320</h>
+    </coordinates>
+    <panel_attributes>lt=-</panel_attributes>
+    <additional_attributes>10.0;313.1;725.9;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
       <x>150</x>
       <y>160</y>
       <w>200</w>
@@ -520,6 +542,32 @@ CSV export</panel_attributes>
     <panel_attributes>lt=&lt;.
 &lt;&lt;extend&gt;&gt;
 [unrecognised name]</panel_attributes>
+    <additional_attributes>10.0;5.0;120.0;5.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>550</x>
+      <y>200</y>
+      <w>310</w>
+      <h>130</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;.
+&lt;&lt;extend&gt;&gt;
+[unknown format]</panel_attributes>
+    <additional_attributes>10.6;10.0;299.4;120.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>640</x>
+      <y>340</y>
+      <w>130</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;.
+&lt;&lt;extend&gt;&gt;
+[unknown format]</panel_attributes>
     <additional_attributes>10.0;5.0;120.0;5.0</additional_attributes>
   </element>
 </diagram>
