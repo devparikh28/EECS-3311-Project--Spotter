@@ -32,7 +32,7 @@ combinedFragment=loop~l1 an chart
 an:[for each SetEntry]
 an-&gt;&gt;&gt;chart : percentOf1RM(reps, rpe)
 chart.&gt;an : percentage
-an-&gt;&gt;&gt;an : computeE1RM(set) or exclude invalid RPE
+an-&gt;&gt;&gt;an +1 : computeE1RM(set) or exclude invalid RPE
 --=l1
 an.&gt;ctrl : List&lt;Point&gt;; off=an
 ctrl-&gt;&gt;&gt;an : weeklyTonnage(SQUAT, history)

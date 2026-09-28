@@ -7,9 +7,9 @@ from puml_to_uxf import write_uxf, GRID, border_point
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 OUT = os.path.join(ROOT, "diagrams", "uxf", "usecase.uxf")
 
-UC_W, UC_H = 260, 50
+UC_W, UC_H = 310, 50
 COL_X = 340          # left column of use cases
-COL2_X = 720         # included / extending use cases
+COL2_X = 760         # included / extending use cases
 TOP = 80
 STEP = 80
 
@@ -40,7 +40,7 @@ def main():
 
     # system boundary
     height = TOP + len(USE_CASES) * STEP + 40
-    elements.append(("UMLFrame", (300, 40, 740, height - 20),
+    elements.append(("UMLFrame", (300, 40, 830, height - 20),
                      "Spotter (GUI and CLI)\n--", ""))
 
     for i, (label, x) in enumerate(USE_CASES):
@@ -52,7 +52,7 @@ def main():
     for label, slot in INCLUDED:
         y = TOP + slot * STEP
         key = label.split()[0]
-        w = 280
+        w = 310
         positions[key] = (COL2_X, y, w, UC_H)
         elements.append(("UMLUseCase", (COL2_X, y, w, UC_H), label, ""))
 
@@ -70,8 +70,8 @@ def main():
                      "Whoop App\n<<external system>>", ""))
 
     claude_y = TOP + 5 * STEP
-    positions["Claude"] = (1090, claude_y, 110, 100)
-    elements.append(("UMLActor", (1090, claude_y, 110, 100),
+    positions["Claude"] = (1180, claude_y, 110, 100)
+    elements.append(("UMLActor", (1180, claude_y, 110, 100),
                      "Claude LLM Service\n<<external system>>", ""))
 
     def centre(key):
@@ -103,9 +103,11 @@ def main():
     relation("Whoop", "UC04", "lt=-", "CSV export")
     relation("UC14", "Claude", "lt=-")
 
+    # UMLet draws the arrowhead at the FIRST point, and an include arrow
+    # points from the base use case to the included one, so UC14 comes first.
     for uc in INCLUDES:
-        relation(uc, "UC14", "lt=<.", "<<include>>")
-    relation("UC15", "UC02", "lt=<.", "<<extend>>\n[unrecognised name]")
+        relation("UC14", uc, "lt=<.", "<<include>>")
+    relation("UC02", "UC15", "lt=<.", "<<extend>>\n[unrecognised name]")
 
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     write_uxf(OUT, elements)

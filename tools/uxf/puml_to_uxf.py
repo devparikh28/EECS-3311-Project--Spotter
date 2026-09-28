@@ -20,9 +20,9 @@ MODEL = os.path.join(ROOT, "diagrams", "class", "model.iuml")
 OUTDIR = os.path.join(ROOT, "diagrams", "uxf")
 
 ZOOM = 10
-CHAR_W = 7          # approximate character width at zoom 10
+CHAR_W = 8          # approximate character width at zoom 10 (UMLet font)
 LINE_H = 14         # line height at zoom 10
-PAD_W = 24
+PAD_W = 30
 PAD_H = 20
 GRID = 10
 
@@ -271,14 +271,15 @@ def relation_element(p1, p2, style, m1, m2, label):
     minx, miny = int(round(minx / GRID) * GRID), int(round(miny / GRID) * GRID)
     w, h = max(int(round(w / GRID) * GRID), 20), max(int(round(h / GRID) * GRID), 20)
     rel = [x1 - minx, y1 - miny, x2 - minx, y2 - miny]
+    # UMLet parses one property per line: lt=, m1=, m2= must not share a line
     panel = [style]
     if m1:
         panel.append("m1=%s" % m1)
     if m2:
         panel.append("m2=%s" % m2)
-    text = " ".join(panel)
     if label:
-        text = text + "\n" + label
+        panel.append(label)
+    text = "\n".join(panel)
     return (minx, miny, w, h), text, ";".join("%.1f" % v for v in rel)
 
 

@@ -25,3 +25,7 @@ trace.jsonl
 *.iml
 .vscode/
 .DS_Store
+
+# UMLet conversion scratch
+diagrams/uxf/*.png
+!diagrams/uxf/png/*.png

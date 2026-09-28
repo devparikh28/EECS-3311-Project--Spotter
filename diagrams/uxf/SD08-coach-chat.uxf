@@ -47,7 +47,7 @@ agent.&gt;ctrl : AgentResult(clarifying question or honest gap)
 agent:[answer grounded in tool data]
 agent-&gt;&gt;&gt;mem : remember(userMessage, reply)
 mem-&gt;&gt;&gt;hist : append(m)
-mem-&gt;&gt;&gt;mem : summarizeOlderTurns() if above maxTurns
+mem-&gt;&gt;&gt;mem +1 : summarizeOlderTurns() if above maxTurns
 agent.&gt;ctrl : AgentResult(answer); off=agent
 --=f1
 ctrl.&gt;ui : answer; off=ctrl

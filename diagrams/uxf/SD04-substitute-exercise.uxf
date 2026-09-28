@@ -44,8 +44,8 @@ ui-&gt;&gt;&gt;ctrl : applyEdit(SwapExerciseCommand)
 ctrl-&gt;&gt;&gt;hist : execute(cmd); on=hist
 hist-&gt;&gt;&gt;cmd : execute(); on=cmd
 cmd-&gt;&gt;&gt;block : setExercise(prescriptionId, newExercise)
-cmd-&gt;&gt;&gt;cmd : store previous exercise for undo; off=cmd
-hist-&gt;&gt;&gt;hist : push(cmd); off=hist
+cmd-&gt;&gt;&gt;cmd +1 : store previous exercise for undo; off=cmd
+hist-&gt;&gt;&gt;hist +1 : push(cmd); off=hist
 ctrl.&gt;ui : plan updated
 ui.&gt;lifter : Undo available
 --=f1
