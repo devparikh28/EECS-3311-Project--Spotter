@@ -90,7 +90,9 @@ package "application" $app {
     + saveImportProfile(m : ColumnMapping) : void
     + getAnalytics(lift : Lift) : AnalyticsSummary
     + generateBlock(weeks : int) : AgentResult<TrainingBlock>
-    + suggestSubstitute(prescriptionId : int) : AgentResult<ExercisePrescription>
+    + suggestSubstitute(prescriptionId : int, reason : SubstitutionReason, note : String) : AgentResult<ExercisePrescription>
+    + setStartingStrength(lift : Lift, kg : double) : void
+    + startCalibrationWeek() : TrainingBlock
     + flagSessions() : List<RecoveryFlag>
     + adjustSession(sessionId : int) : AgentResult<Session>
     + calculateAttempts() : List<MeetAttempts>
@@ -184,7 +186,10 @@ package "domain" $dom {
     + bodyweightKg : double
     + weightClassKg : double
     + goal : TrainingGoal
+    + experience : ExperienceLevel
     + splitPreference : SplitPreference = AUTO
+    + displayUnit : WeightUnit = KG
+    + limitations : List<Limitation>
     + meetDate : LocalDate [0..1]
     + trainingDaysPerWeek : int
     + equipment : Set<Equipment>
@@ -197,6 +202,18 @@ package "domain" $dom {
     + allowsDairy : boolean
     + allowsEggs : boolean
     + permits(f : FoodItem) : boolean
+  }
+  enum ExperienceLevel $dom {
+    NOVICE
+    INTERMEDIATE
+    ADVANCED
+  }
+  class Limitation $dom {
+    + description : String
+    + avoidPatterns : Set<String>
+    + avoidExercises : Set<Exercise>
+    + painful : boolean
+    + note : String
   }
   enum SplitPreference $dom {
     AUTO
@@ -225,6 +242,12 @@ package "domain" $dom {
     DIP_BAR
     LEG_EXTENSION
     ...
+  }
+  enum SubstitutionReason $dom {
+    EQUIPMENT_UNAVAILABLE
+    PAIN_OR_DISCOMFORT
+    PREFERENCE
+    LIMITATION
   }
   class Exercise $dom {
     + id : int
@@ -349,6 +372,12 @@ package "domain" $dom {
     + bestSet(lift : Lift, h : List<WorkoutSession>) : SetEntry
     + currentE1RMs(h : List<WorkoutSession>) : Map<Lift, double>
   }
+  class StartingStrength $dom {
+    + fromStatedMax(lift : Lift, kg : double, confidence : String) : double
+    + fromRecentSet(lift : Lift, kg : double, reps : int, rpe : double) : double
+    + needsCalibration(history : List<WorkoutSession>, lift : Lift) : boolean
+    + calibrationSession(lifter : LifterProfile) : Session
+  }
   class RPEChart $dom {
     + percentOf1RM(reps : int, rpe : double) : double
   }
@@ -417,7 +446,7 @@ package "domain" $dom {
     + reasons : List<String>
   }
   class ProgressionStrategyFactory <<Factory>> $dom {
-    + forGoal(g : TrainingGoal) : ProgressionStrategy
+    + forGoal(g : TrainingGoal, e : ExperienceLevel) : ProgressionStrategy
   }
   interface ProgressionStrategy <<Strategy>> $dom {
     + loadRange(e1rm : double, reps : int, rpe : double, week : int) : Range
@@ -425,6 +454,7 @@ package "domain" $dom {
   }
   class RPEProgression $dom
   class LinearProgression $dom
+  class NoviceLinearProgression $dom
   class PercentageProgression $dom
 }
 
@@ -555,7 +585,7 @@ package "agent" $agent {
   class PlanValidator $agent {
     + validateBlock(b : TrainingBlock, ctx : AgentContext, s : ProgressionStrategy) : ValidationReport
     + validateSplit(b : TrainingBlock, p : LifterProfile) : ValidationReport
-    + validateSubstitution(e : Exercise, allowed : List<Exercise>) : ValidationReport
+    + validateSubstitution(e : Exercise, allowed : List<Exercise>, r : SubstitutionReason, l : List<Limitation>) : ValidationReport
     + validateMeal(m : MealSuggestion, d : DietaryConstraints, remaining : MacroTotals) : ValidationReport
     + validateRationale(text : String, a : MeetAttempts) : ValidationReport
     + validateProgression(revised : TrainingBlock, original : TrainingBlock, r : AdherenceReport) : ValidationReport
@@ -684,6 +714,7 @@ package "infrastructure" $infra {
     + addAlias(alias : String, e : Exercise) : void
     + add(e : Exercise) : void
     + candidates(pattern : String, muscles : Set<String>, eq : Set<Equipment>) : List<Exercise>
+    + candidatesExcluding(pattern : String, muscles : Set<String>, eq : Set<Equipment>, avoid : Set<String>) : List<Exercise>
   }
   class FoodCatalog $infra {
     + search(d : DietaryConstraints, maxCalories : double) : List<FoodItem>
@@ -785,8 +816,16 @@ MacroTracker ..> DailyIntake
 AttemptCalculator ..> MeetAttempts : creates
 AttemptCalculator ..> TestDayPlan : creates
 ProgressionStrategyFactory ..> ProgressionStrategy : creates
+ProgressionStrategyFactory --> ExperienceLevel
 LifterProfile --> TrainingGoal
 LifterProfile --> SplitPreference
+LifterProfile --> ExperienceLevel
+LifterProfile "1" *-- "0..*" Limitation
+LifterProfile --> WeightUnit
+Limitation "*" --> "*" Exercise : avoids >
+StartingStrength ..> Session : creates calibration
+SubstitutionAgent ..> SubstitutionReason
+PlanValidator ..> Limitation
 RecoveryRuleEngine ..> RecoveryFlag : creates
 RecoveryDay --> RecoverySource
 PlanAdherence ..> AdherenceReport : creates
@@ -798,6 +837,7 @@ PlanAdherence ..> WorkoutSession
 ProgressionAgent --> "1" ProgressionStrategy
 ProgressionStrategy <|.. RPEProgression
 ProgressionStrategy <|.. LinearProgression
+ProgressionStrategy <|.. NoviceLinearProgression
 ProgressionStrategy <|.. PercentageProgression
 
 ' agent

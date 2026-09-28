@@ -8,13 +8,15 @@ Answering those questions is what a coach does. A coach is also expensive, is no
 
 ## 1.2 Target Users
 
-The primary user is a self coached or remotely coached strength trainee who already tracks their training. The design deliberately does not assume a competitor. The profile carries a training goal, one of meet preparation, strength, hypertrophy, or general fitness, a split preference, and an optional meet date. Someone preparing for a powerlifting meet gets a block that peaks toward a date and competition attempt selection; someone who simply wants to get stronger, or who trains because they enjoy it, gets a block built around their goal and a planned heavy single on a test day instead. Everything else in the system, the analytics, the recovery handling, the equipment substitution and the nutrition features, is the same for both.
+The primary user is a self coached or remotely coached strength trainee who already tracks their training. The design deliberately does not assume a competitor. The profile carries a training goal, one of meet preparation, strength, hypertrophy, or general fitness, an experience level, a split preference, any physical limitations, and an optional meet date. Experience and limitations are not decoration: the first selects the progression scheme, since a novice can add load session to session and an advanced lifter cannot, and the second removes movements from consideration before anything is prescribed. Someone preparing for a powerlifting meet gets a block that peaks toward a date and competition attempt selection; someone who simply wants to get stronger, or who trains because they enjoy it, gets a block built around their goal and a planned heavy single on a test day instead. Everything else in the system, the analytics, the recovery handling, the equipment substitution and the nutrition features, is the same for both.
 
 There is no administrator role and no multi user requirement. Spotter runs locally against one lifter's data.
 
 ## 1.3 What the Agent Does
 
 Spotter imports a workout history and recovery history, computes strength metrics from them, and then uses an LLM agent to make the judgement calls that arithmetic alone cannot.
+
+A lifter with no training history is not left stuck: either they state a known max, which converts into a starting estimate, or the system prescribes a short calibration week and plans from what they log. Spotter offers training suggestions, not medical advice, and treats reported pain conservatively rather than programming around it indefinitely.
 
 The deterministic half of the system parses the CSV exports, estimates a one rep max from RPE based sets, aggregates weekly tonnage and trends, calculates attempt or test day numbers with correct plate rounding, tracks macros against targets, and applies fixed thresholds to flag a day after poor recovery.
 
