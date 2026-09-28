@@ -42,6 +42,8 @@ The wrapper matters. `ClaudeClient` implements the project's `LLMClient` interfa
 
 The model is reached through exactly one path. Every AI feature runs `CoachAgent.run()`, the template method that gathers context, builds a prompt through `PromptBuilder`, calls the model with the tool schemas the agent registered, executes any tools Claude requests through `ToolManager`, parses the reply with `ResponseParser`, and validates the result with `PlanValidator` before anything reaches the domain model. A failed validation is fed back into the prompt for one retry; a second failure returns a clear error rather than a bad plan.
 
+Cost is bounded by design: each agent declares a `ModelTier`, so only block generation uses the stronger model; `CachingLLMClient` returns a stored reply for an identical request; tools return summaries rather than raw history; and the single retry and bounded tool loop cap what any one feature can spend.
+
 Three properties follow from this arrangement, and they are what make the system testable rather than merely functional.
 
 Model output is never trusted. A training block only becomes a `TrainingBlock` after the validator has checked loads against the lifter's progression strategy and confirmed every exercise exists. A substitute exercise must be one of the candidates the deterministic filter produced. A meal's nutrition figures are read from the food catalog, not from the model's reply. Numbers in an attempt rationale must match what `AttemptCalculator` produced.
@@ -68,7 +70,7 @@ Five layers, each depending only on the layer beneath it or on an interface.
 
 Because an agent call takes seconds and JavaFX has a single UI thread, `CoachController` dispatches agent work through `FxTaskRunner` on a background thread and returns results through `Platform.runLater()`. The CLI calls the same controller methods and blocks, having no UI thread to protect.
 
-Seven design patterns are applied, each solving a problem that exists independently of the requirement to use patterns: Facade, Strategy, Observer, Command, Adapter, Factory Method and Template Method, with Builder and Repository as supporting patterns. Section 4 explains each one.
+Eight design patterns are applied, each solving a problem that exists independently of the requirement to use patterns: Facade, Strategy, Observer, Command, Adapter, Factory Method, Template Method and Decorator, with Builder and Repository as supporting patterns. Section 4 explains each one.
 
 ## 1.7 Technology
 

@@ -125,4 +125,4 @@ Infrastructure  CSV adapters, catalogs, SQLite repositories
 
 Agent calls take seconds, so `CoachController` runs them on a background thread through `FxTaskRunner` and delivers results to the panels with `Platform.runLater()`, keeping the JavaFX Application Thread free. The CLI calls the same controller methods and blocks, having no UI thread to protect.
 
-Design patterns applied: Facade, Strategy, Observer, Command, Adapter, Factory Method, Template Method. Builder and Repository appear as supporting patterns.
+Design patterns applied: Facade, Strategy, Observer, Command, Adapter, Factory Method, Template Method and Decorator. Builder and Repository appear as supporting patterns.

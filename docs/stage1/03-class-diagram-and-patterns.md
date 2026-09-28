@@ -46,6 +46,8 @@ The LLM is Anthropic Claude, reached through LangChain4j's `AnthropicChatModel` 
 
 An agent call takes seconds, and JavaFX has a single UI thread, so `CoachController` dispatches agent work through `FxTaskRunner` on a background thread and delivers results and events back through `Platform.runLater()`. The GUI therefore stays responsive while Claude is working, and the panels still receive events on the thread that is allowed to touch them. The CLI calls the same controller methods and simply blocks, since it has no UI thread to protect.
 
+Cost and latency are treated as design concerns rather than an afterthought. Each agent declares a `ModelTier` so that only block generation uses the stronger model; `CachingLLMClient` avoids paying twice for an identical request; tools return summaries rather than raw history, which reduces both tokens and the chance of a poor tool choice; and the bounded retry and tool round limits cap the cost of any single feature.
+
 The key principle is that **the LLM never writes directly to the domain**. Every model response passes through `ResponseParser` (structure) and `PlanValidator` (rules) before a domain object is created, and every number the agent reports (e1RM, attempts, macros) comes from a deterministic service or tool rather than from the model. This makes the deterministic layer fully unit testable and gives the agent layer clear behavioural contracts to test with KUMA.
 
 ## 3.2 Key Relationships and Multiplicities
@@ -77,7 +79,7 @@ Several refinements were made while drawing the diagram. A separate `Planner` cl
 
 # 4. Design Patterns
 
-Seven patterns are applied. Each one solves a problem that exists in this system independently of the requirement to use patterns.
+Eight patterns are applied. Each one solves a problem that exists in this system independently of the requirement to use patterns.
 
 ## 4.1 Facade — `CoachController`
 
@@ -93,7 +95,7 @@ Seven patterns are applied. Each one solves a problem that exists in this system
 
 **Problem.** Two parts of the system have interchangeable algorithms. The LLM provider must be swappable, both for testing (a scripted fake) and so a cheaper or newer model can be tried without touching agent code. The progression scheme used to plan a block (RPE based, linear, or percentage based) changes which loads are valid, and both the prompt and the validator need to follow whichever scheme was chosen.
 
-**Participants.** For the LLM: `LLMClient` is the strategy interface, `ClaudeClient` (which wraps LangChain4j) and `ScriptedLLMClient` are concrete strategies, and `CoachAgent` is the context. For progression: `ProgressionStrategy` is the interface, `RPEProgression`, `LinearProgression`, and `PercentageProgression` are concrete strategies, `ProgressionStrategyFactory.forGoal()` selects one from the lifter's `TrainingGoal`, and `BlockGenerationAgent` and `PlanValidator` are the contexts. A lifter preparing for a meet, one building general strength, and one training for fun need different load progressions, and this is what keeps that difference out of the planning code.
+**Participants.** For the LLM: `LLMClient` is the strategy interface, `ClaudeClient` (which wraps LangChain4j) and `ScriptedLLMClient` are concrete strategies, and `CoachAgent` is the context. Each agent also declares a `ModelTier`, and `LLMClientProvider.forTier()` hands it the matching client: block generation is the only task that needs the stronger model, while substitution, attempt rationale and meal composition are short constrained tasks that a fast model handles, so the same interface carries a cost decision as well as a vendor decision. For progression: `ProgressionStrategy` is the interface, `RPEProgression`, `LinearProgression`, and `PercentageProgression` are concrete strategies, `ProgressionStrategyFactory.forGoal()` selects one from the lifter's `TrainingGoal`, and `BlockGenerationAgent` and `PlanValidator` are the contexts. A lifter preparing for a meet, one building general strength, and one training for fun need different load progressions, and this is what keeps that difference out of the planning code.
 
 **Why it fits.** The contexts only need one operation each (`complete()` and `loadRange()`), and the choice is made once at configuration time.
 
@@ -149,11 +151,21 @@ Seven patterns are applied. Each one solves a problem that exists in this system
 
 **Without it.** The loop would be copied six times, a fix to the retry logic would need to be made in six places, and it would be easy for one agent to return unvalidated output.
 
-## 4.8 Supporting Patterns (not counted)
+## 4.8 Decorator — `LLMClientDecorator`, `CachingLLMClient`, `RecordingLLMClient`
+
+**Problem.** Two concerns sit around every model call and belong to neither the agents nor the client. Repeated identical requests should not be paid for twice, which matters most when the Stage 3 suites rerun the same scenarios while prompts are being tuned. And unit tests need real responses without a network call, which means capturing them once and replaying them afterwards. Putting either concern inside `ClaudeClient` would mix caching and test tooling into the class whose only job is talking to the model, and putting them in `CoachAgent` would repeat them for all six agents.
+
+**Participants.** `LLMClient` is the component interface. `ClaudeClient` and `ScriptedLLMClient` are concrete components. `LLMClientDecorator` is the abstract decorator holding a delegate `LLMClient`. `CachingLLMClient` returns a stored reply for an identical prompt and tool set, and `RecordingLLMClient` writes each live response to a fixture file for later replay. `LLMClientProvider` assembles the chain.
+
+**Why it fits.** Both behaviours wrap a call without changing its contract, and they compose: recording around caching around the real client is a valid configuration, and any of them can be omitted without touching another class. Nothing above `LLMClient` knows whether it is talking to Claude, a cache, or a recording.
+
+**Without it.** `ClaudeClient` would accumulate a cache, a fixture writer and the flags to switch them on and off, which is exactly the class you least want conditional logic in, and testing the cache would then require a live client.
+
+## 4.9 Supporting Patterns (not counted)
 
 `PromptBuilder` follows the **Builder** pattern, assembling prompts step by step from system instructions, context, schema, and memory. The `Repository<T>` interface follows the **Repository** pattern, isolating SQLite behind an interface so tests can use an in memory database. These are listed for completeness but are not counted toward the five required patterns.
 
-## 4.9 Pattern Summary
+## 4.10 Pattern Summary
 
 | Pattern | Key Classes | Features Using It |
 |---|---|---|
@@ -164,3 +176,4 @@ Seven patterns are applied. Each one solves a problem that exists in this system
 | Adapter | `DataSource`, `HevyCsvAdapter`, `WhoopCsvAdapter`, `CsvFileReader` | F02, F03 |
 | Factory Method | `CoachAgent.createToolset()`, concrete agents, `Tool`; `DataSourceFactory`; `ProgressionStrategyFactory` | F02, F03, F05, F06, F10, F11 |
 | Template Method | `CoachAgent.run()`, six concrete agents | F05 to F08, F10, F11 |
+| Decorator | `LLMClientDecorator`, `CachingLLMClient`, `RecordingLLMClient` | F05 to F08, F10, F11 |
