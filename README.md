@@ -86,6 +86,8 @@ tools/kuma/         Python harness for Stage 3 agent behaviour tests
 
 ## Why a Small Amount of Python
 
+The application is written entirely in Java. Python appears only in the Stage 3 test harness, where it cannot reasonably be replaced, which the course instructor confirmed is acceptable: use Java everywhere it is possible, and Python only where it is not.
+
 KUMA is a Python SDK and its protocol is a loop the caller owns:
 
 ```python
@@ -93,7 +95,7 @@ while (test_input := run.get_input()) is not None:
     report = run.submit(execute_agent(test_input), logs=["trace.jsonl"])
 ```
 
-`execute_agent` invokes the Java CLI as a subprocess and returns its output. The CLI appends one JSON object per tool call, validation result, and retry to `trace.jsonl`, which KUMA ingests as evidence. The application itself is entirely Java; the harness under `tools/kuma/` exists only to run Stage 3 behavioural tests.
+`execute_agent` invokes the Java CLI as a subprocess and returns its output. The CLI appends one JSON object per tool call, validation result, and retry to `trace.jsonl`, which KUMA ingests as evidence. No application logic lives in Python: the harness under `tools/kuma/` only starts the Java process, passes the test input, and hands the result and trace back to KUMA.
 
 ## Architecture
 
