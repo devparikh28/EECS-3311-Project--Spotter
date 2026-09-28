@@ -251,6 +251,44 @@ If there is a shortfall, or the lifter asks, `ProgressionAgent` reads the report
 
 ---
 
+## F13 — Guided Onboarding
+
+**Use case:** UC18 Complete Guided Onboarding **Sequence diagram:** SD11
+
+**Classes**
+
+- `OnboardingPanel` — asks one question at a time and shows the draft for review.
+- `CoachController` — starts the interview and saves the confirmed profile.
+- `OnboardingAgent` — conducts the intake, adapting questions to answers, bounded by a question limit.
+- `ProfileDraft` — the answers so far, what is still missing, and the conversion to a `LifterProfile`.
+- `PlanValidator` — checks required fields and contradictions before a profile exists.
+- `StartingStrength` — decides the first concrete step once the profile is saved.
+
+**Methods:** `CoachController.runOnboarding()`, `CoachAgent.run()`, `ProfileDraft.record()`, `missingRequired()`, `toProfile()`, `PlanValidator.validateProfileDraft()`, `StartingStrength.needsCalibration()`, `calibrationSession()`
+
+**Execution.** A new user meeting an empty profile form has to know what an RPE progression is, what split suits their goal, and what their macro targets should be. Onboarding replaces that with a short conversation: how long have you been training, what are you training for, how many days can you train, what equipment do you have, is anything bothering you. Answers accumulate in a `ProfileDraft`, the validator catches contradictions such as meet preparation with no meet date, and the lifter sees and corrects the draft before it becomes their profile. The interview is bounded, and on expiry the ordinary form opens prefilled, so the agent can never trap a user in an interview that will not end. It finishes on `StartingStrength`, because the useful outcome is not a filled form but a first session to do.
+
+## F14 — Adopt an Existing Programme
+
+**Use case:** UC19 Adopt an Existing Programme **Sequence diagram:** SD12
+
+**Classes**
+
+- `PlanPanel` — the Adopt Programme action and its three routes.
+- `CoachController` — coordinates whichever route was chosen.
+- `ProgrammeImportService` — builds a block from manual entry or a CSV, resolving names through `ExerciseCatalog`.
+- `ProgrammeParserAgent` — interprets a pasted programme in free text into the same structure.
+- `PlanValidator` — checks an adopted block, which no progression strategy produced.
+- `TrainingBlock` with `BlockOrigin` — records that this plan came from outside.
+
+**Methods:** `PlanPanel.onAdoptProgrammeClicked()`, `CoachController.adoptProgramme()`, `ProgrammeImportService.fromCsv()`, `fromManualEntry()`, `unresolvedExercises()`, `CoachAgent.run()`, `PlanValidator.validateAdoptedBlock()`, `BlockRepository.save()`
+
+**Execution.** Plenty of lifters already have a programme they trust, from a coach or a published template, and telling them to abandon it in favour of a generated one is the fastest way to lose them. Adoption takes the programme as structured entry, a CSV, or pasted text, and produces the same `TrainingBlock` the generator would have produced, marked `ADOPTED`. Only the text route uses the agent, because interpreting a coach's message is a language problem while reading structured rows is not.
+
+The validation differs deliberately. A generated block is checked against the progression strategy that produced it; an adopted block has no such strategy, so the check becomes existence of the exercises, sessions fitting the lifter's available days, and loads that are plausible against current strength. From the moment it is saved, everything else in the system treats it identically: adherence comparison, substitutions for equipment or pain, recovery adjustments, analytics and chat all work against it. That is the real payoff of having kept the domain model independent of how a block was created.
+
+---
+
 ## 9.1 What This Design Is Meant to Demonstrate
 
 Reading the eleven descriptions together, the same shape recurs: deterministic code establishes the facts and the constraints, the agent supplies judgement within them, and a validator decides whether that judgement is acceptable before it reaches the domain model. The lifter always keeps the final say, through acceptance, rejection and undo.

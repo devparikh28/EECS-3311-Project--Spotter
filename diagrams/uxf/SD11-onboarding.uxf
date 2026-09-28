@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="15.1">
+  <zoom_level>10</zoom_level>
+  <element>
+    <id>UMLSequenceAllInOne</id>
+    <coordinates>
+      <x>20</x>
+      <y>20</y>
+      <w>1350</w>
+      <h>1126</h>
+    </coordinates>
+    <panel_attributes>title=SD11 Complete Guided Onboarding (F13 / UC18)
+obj=Lifter~lifter ACTOR
+obj=OnboardingPanel~ui
+obj=CoachController~ctrl
+obj=OnboardingAgent~agent
+obj=ClaudeClient~llm
+obj=ProfileDraft~draft
+obj=PlanValidator~val
+obj=StartingStrength~start
+obj=ProfileRepository~repo
+
+lifter-&gt;&gt;&gt;ui : start onboarding; on=ui
+ui-&gt;&gt;&gt;ctrl : runOnboarding(); on=ctrl
+ctrl-&gt;&gt;&gt;agent : run(AgentRequest); on=agent
+combinedFragment=loop~l1 agent draft
+agent:[until required answers collected, at most 8]
+ref=agent llm :UC14 agent loop, see SD03
+agent.&gt;ui : next question
+lifter-&gt;&gt;&gt;ui : answer
+ui-&gt;&gt;&gt;agent : answer
+agent-&gt;&gt;&gt;draft : record(answer)
+--=l1
+agent-&gt;&gt;&gt;val : validateProfileDraft(draft)
+val.&gt;agent : required fields present, no contradictions
+combinedFragment=alt~f1 agent start
+agent:[draft complete]
+agent.&gt;ctrl : AgentResult(ProfileDraft); off=agent
+ctrl.&gt;ui : draft profile for review
+lifter-&gt;&gt;&gt;ui : confirm or correct
+ui-&gt;&gt;&gt;ctrl : saveProfile(draft.toProfile())
+ctrl-&gt;&gt;&gt;repo : save(profile)
+ctrl-&gt;&gt;&gt;start : needsCalibration(history, lift)
+start.&gt;ctrl : stated maxes or a calibration week
+ctrl.&gt;ui : concrete first step
+..=f1
+agent:[required answers still missing]
+agent.&gt;ctrl : AgentResult(draft, missingRequired)
+ctrl.&gt;ui : fall back to the prefilled profile form
+--=f1
+off=ctrl; off=ui</panel_attributes>
+    <additional_attributes />
+  </element>
+</diagram>

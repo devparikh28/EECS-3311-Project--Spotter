@@ -1,0 +1,66 @@
+@startuml SD11-onboarding
+!include _style.iuml
+title SD11 — Complete Guided Onboarding (F13 / UC18)
+
+actor Lifter
+boundary "OnboardingPanel\n<<GUI>>" as UI
+control "CoachController\n<<Facade>>" as Ctrl
+participant "OnboardingAgent" as Agent
+participant "ClaudeClient" as LLM
+participant "ProfileDraft" as Draft
+participant "PlanValidator" as Val
+participant "StartingStrength" as Start
+database "ProfileRepository" as Repo
+participant "EventBus" as Bus
+
+Lifter -> UI : start onboarding
+UI -> Ctrl : runOnboarding()
+activate Ctrl
+Ctrl -> Agent : run(AgentRequest)
+activate Agent
+
+loop until required answers collected, at most maxQuestions
+  ref over Agent, LLM : UC14 agent loop\n(see SD03)
+  Agent --> UI : next question
+  UI --> Lifter : one question at a time
+  Lifter -> UI : answer
+  UI -> Agent : answer
+  Agent -> Draft : record(answer)
+end
+
+Agent -> Val : validateProfileDraft(draft)
+activate Val
+note right of Val
+  required fields present, and no
+  contradictions: meet prep needs a
+  meet date, a novice is not given an
+  advanced split
+end note
+Val --> Agent : ValidationReport
+deactivate Val
+
+alt draft complete
+  Agent --> Ctrl : AgentResult(ProfileDraft)
+  deactivate Agent
+  Ctrl --> UI : draft profile for review
+  UI --> Lifter : here is what I understood
+  Lifter -> UI : confirm or correct
+  UI -> Ctrl : saveProfile(draft.toProfile())
+  Ctrl -> Repo : save(profile)
+  Ctrl -> Bus : publish(PROFILE_UPDATED)
+  Ctrl -> Start : needsCalibration(history, lift)
+  alt no training history
+    Start --> Ctrl : true
+    Ctrl --> UI : offer stated maxes or a calibration week
+    UI --> Lifter : concrete first step
+  else history already imported
+    Start --> Ctrl : false
+    Ctrl --> UI : ready to generate a block
+  end
+else required answers missing after maxQuestions
+  Agent --> Ctrl : AgentResult(draft, missingRequired)
+  Ctrl --> UI : fall back to the profile form,\nprefilled with what was answered
+  UI --> Lifter : finish the remaining fields
+end
+deactivate Ctrl
+@enduml

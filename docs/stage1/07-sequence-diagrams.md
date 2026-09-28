@@ -1,6 +1,6 @@
 # 7. Sequence Diagrams
 
-Ten sequence diagrams cover every important behaviour in the system. Each one uses the classes and method names defined in the class diagram, shows the initiating actor, the boundary object, the controller, domain objects, agent components, and external services, and includes the alternative and error flows described in the matching use case.
+Twelve sequence diagrams cover every important behaviour in the system. Each one uses the classes and method names defined in the class diagram, shows the initiating actor, the boundary object, the controller, domain objects, agent components, and external services, and includes the alternative and error flows described in the matching use case.
 
 | Diagram | Covers | Use Case(s) | Source |
 |---|---|---|---|
@@ -14,6 +14,8 @@ Ten sequence diagrams cover every important behaviour in the system. Each one us
 | SD08 Chat with Coach | F11 | UC13 | `SD08-coach-chat.puml` |
 | SD09 Save Profile and Log Intake | F01, F09 | UC01, UC11 | `SD09-profile-and-macros.puml` |
 | SD10 Review Adherence and Progress the Plan | F12 | UC16, UC07 | `SD10-adherence-progression.puml` |
+| SD11 Complete Guided Onboarding | F13 | UC18 | `SD11-onboarding.puml` |
+| SD12 Adopt an Existing Programme | F14 | UC19 | `SD12-adopt-programme.puml` |
 
 SD03 is the reference diagram for the agent loop. Because all six AI features share that loop (the Template Method in `CoachAgent.run()`), the other agent diagrams use a UML `ref` fragment pointing back to SD03 rather than repeating the same twelve messages, and show only the parts that differ: which tools are called, what is validated, and what happens to the result.
 
@@ -90,6 +92,18 @@ Two short deterministic interactions in one diagram. Profile saving shows valida
 Split into a deterministic half and an agent half, which is the point of the feature. `PlanAdherence.compare()` matches each prescription to the logged sets and assigns a verdict, and that comparison is useful on its own: the lifter sees prescribed against actual per exercise whether or not the agent runs. Only when there is a shortfall, or the lifter asks, does `ProgressionAgent` propose revised remaining weeks, reading the comparison through `AdherenceTool` rather than re deriving it.
 
 `PlanValidator.validateProgression()` is stricter than the other validators because this is the path that changes future training: loads may advance only where the verdict permits it, week over week increases are capped, and competition lifts cannot be dropped. An accepted revision is applied as an `ApplyProgressionCommand`, so a progression the lifter dislikes is one Undo away, exactly like a manual edit.
+
+## SD11 — Complete Guided Onboarding
+
+![SD11](../../diagrams/sequence/SD11-onboarding.png)
+
+The loop is the interesting part: the agent asks one question at a time and adapts to the answers, rather than reading a script, and each answer lands in a `ProfileDraft`. Two deterministic guards surround it. `validateProfileDraft()` catches contradictions before a profile is created, and the question limit means onboarding can never trap someone in an endless interview; when it expires, the ordinary form opens prefilled with whatever was answered. The diagram ends on `StartingStrength`, because the point of onboarding is not a filled form but knowing what to do first.
+
+## SD12 — Adopt an Existing Programme
+
+![SD12](../../diagrams/sequence/SD12-adopt-programme.png)
+
+Three routes in, one route out. Manual entry and CSV import are deterministic, and only pasted free text involves the agent, which is the right split: interpreting a coach's message is a language problem, while building a block from structured rows is not. All three converge on `validateAdoptedBlock()`, which is a different check from the generated path, because an adopted block was never produced by a progression strategy and so cannot be validated against one. What it checks instead is that the exercises exist, the week fits the lifter's available days, and the loads are plausible against current strength.
 
 ## 7.1 Consistency with the Class Diagram
 

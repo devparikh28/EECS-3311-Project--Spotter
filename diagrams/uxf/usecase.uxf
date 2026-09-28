@@ -7,7 +7,7 @@
       <x>300</x>
       <y>40</y>
       <w>830</w>
-      <h>1220</h>
+      <h>1380</h>
     </coordinates>
     <panel_attributes>Spotter (GUI and CLI)
 --</panel_attributes>
@@ -170,6 +170,28 @@
   <element>
     <id>UMLUseCase</id>
     <coordinates>
+      <x>340</x>
+      <y>1200</y>
+      <w>310</w>
+      <h>50</h>
+    </coordinates>
+    <panel_attributes>UC18 Complete Guided Onboarding</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>UMLUseCase</id>
+    <coordinates>
+      <x>340</x>
+      <y>1280</y>
+      <w>310</w>
+      <h>50</h>
+    </coordinates>
+    <panel_attributes>UC19 Adopt an Existing Programme</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>UMLUseCase</id>
+    <coordinates>
       <x>760</x>
       <y>640</y>
       <w>310</w>
@@ -204,7 +226,7 @@
     <id>UMLActor</id>
     <coordinates>
       <x>60</x>
-      <y>640</y>
+      <y>720</y>
       <w>80</w>
       <h>100</h>
     </coordinates>
@@ -252,6 +274,17 @@
     <coordinates>
       <x>120</x>
       <y>120</y>
+      <w>370</w>
+      <h>610</h>
+    </coordinates>
+    <panel_attributes>lt=-</panel_attributes>
+    <additional_attributes>9.7;600.0;360.2;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>120</x>
+      <y>200</y>
       <w>360</w>
       <h>530</h>
     </coordinates>
@@ -262,7 +295,7 @@
     <id>Relation</id>
     <coordinates>
       <x>130</x>
-      <y>200</y>
+      <y>280</y>
       <w>360</w>
       <h>450</h>
     </coordinates>
@@ -273,7 +306,7 @@
     <id>Relation</id>
     <coordinates>
       <x>130</x>
-      <y>280</y>
+      <y>360</y>
       <w>350</w>
       <h>380</h>
     </coordinates>
@@ -284,7 +317,7 @@
     <id>Relation</id>
     <coordinates>
       <x>130</x>
-      <y>360</y>
+      <y>440</y>
       <w>350</w>
       <h>310</h>
     </coordinates>
@@ -295,7 +328,7 @@
     <id>Relation</id>
     <coordinates>
       <x>130</x>
-      <y>440</y>
+      <y>520</y>
       <w>340</w>
       <h>230</h>
     </coordinates>
@@ -306,7 +339,7 @@
     <id>Relation</id>
     <coordinates>
       <x>130</x>
-      <y>520</y>
+      <y>600</y>
       <w>320</w>
       <h>160</h>
     </coordinates>
@@ -317,7 +350,7 @@
     <id>Relation</id>
     <coordinates>
       <x>130</x>
-      <y>600</y>
+      <y>680</y>
       <w>280</w>
       <h>90</h>
     </coordinates>
@@ -328,7 +361,7 @@
     <id>Relation</id>
     <coordinates>
       <x>130</x>
-      <y>660</y>
+      <y>740</y>
       <w>220</w>
       <h>30</h>
     </coordinates>
@@ -339,7 +372,7 @@
     <id>Relation</id>
     <coordinates>
       <x>130</x>
-      <y>690</y>
+      <y>770</y>
       <w>220</w>
       <h>50</h>
     </coordinates>
@@ -350,7 +383,7 @@
     <id>Relation</id>
     <coordinates>
       <x>130</x>
-      <y>690</y>
+      <y>770</y>
       <w>300</w>
       <h>120</h>
     </coordinates>
@@ -361,7 +394,7 @@
     <id>Relation</id>
     <coordinates>
       <x>130</x>
-      <y>700</y>
+      <y>780</y>
       <w>330</w>
       <h>190</h>
     </coordinates>
@@ -372,7 +405,7 @@
     <id>Relation</id>
     <coordinates>
       <x>130</x>
-      <y>710</y>
+      <y>790</y>
       <w>340</w>
       <h>260</h>
     </coordinates>
@@ -383,7 +416,7 @@
     <id>Relation</id>
     <coordinates>
       <x>130</x>
-      <y>720</y>
+      <y>800</y>
       <w>350</w>
       <h>330</h>
     </coordinates>
@@ -394,7 +427,7 @@
     <id>Relation</id>
     <coordinates>
       <x>130</x>
-      <y>730</y>
+      <y>810</y>
       <w>350</w>
       <h>400</h>
     </coordinates>
@@ -405,12 +438,23 @@
     <id>Relation</id>
     <coordinates>
       <x>130</x>
-      <y>360</y>
-      <w>740</w>
-      <h>320</h>
+      <y>810</y>
+      <w>360</w>
+      <h>480</h>
     </coordinates>
     <panel_attributes>lt=-</panel_attributes>
-    <additional_attributes>10.0;313.1;725.9;10.0</additional_attributes>
+    <additional_attributes>6.9;10.0;346.5;470.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>130</x>
+      <y>360</y>
+      <w>750</w>
+      <h>400</h>
+    </coordinates>
+    <panel_attributes>lt=-</panel_attributes>
+    <additional_attributes>10.0;389.1;737.1;10.0</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
@@ -530,6 +574,30 @@ CSV export</panel_attributes>
     <panel_attributes>lt=&lt;.
 &lt;&lt;include&gt;&gt;</panel_attributes>
     <additional_attributes>383.1;10.0;6.9;440.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>500</x>
+      <y>680</y>
+      <w>400</w>
+      <h>530</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;.
+&lt;&lt;include&gt;&gt;</panel_attributes>
+    <additional_attributes>396.2;10.0;13.8;520.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>500</x>
+      <y>680</y>
+      <w>410</w>
+      <h>610</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;.
+&lt;&lt;include&gt;&gt;</panel_attributes>
+    <additional_attributes>398.6;10.0;11.4;600.0</additional_attributes>
   </element>
   <element>
     <id>Relation</id>

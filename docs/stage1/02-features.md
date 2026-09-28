@@ -1,6 +1,6 @@
 # 2. Feature Specifications
 
-Twelve features, each classified as deterministic, AI, or hybrid. The system serves any strength trainee: a meet date is optional, and the training goal recorded in F01 drives planning for everyone else. That classification decides how the feature is tested in Stage 3: deterministic behaviour through automated unit and integration tests, agent behaviour through KUMA.
+Fourteen features, each classified as deterministic, AI, or hybrid. The system serves any strength trainee: a meet date is optional, and the training goal recorded in F01 drives planning for everyone else. That classification decides how the feature is tested in Stage 3: deterministic behaviour through automated unit and integration tests, agent behaviour through KUMA.
 
 | ID | Feature | Type |
 |---|---|---|
@@ -16,6 +16,8 @@ Twelve features, each classified as deterministic, AI, or hybrid. The system ser
 | F10 | Vegetarian Meal Suggestion | AI |
 | F11 | Coaching Chat with Memory | AI |
 | F12 | Plan Adherence and Progression | Hybrid |
+| F13 | Guided Onboarding | AI |
+| F14 | Adopt an Existing Programme | Hybrid |
 
 ## F01 — Lifter Profile and Constraints
 
@@ -140,3 +142,23 @@ Twelve features, each classified as deterministic, AI, or hybrid. The system ser
 - **Error and Alternative Cases:** A session with no matching log is reported as `MISSED_SESSION` rather than assumed complete. A logged set with no RPE is compared on reps alone. If the agent fails or its revision fails validation twice, the report is still shown, since the comparison is deterministic and useful on its own. The lifter can reject a revision.
 
 **Worked example.** A prescription of three reps at RPE 8 with a logged set of two reps at RPE 7 produces `MISSED_REPS` with the note that actual RPE was below target: the volume was not completed but the effort was low, which points to a stopped set or drifting RPE calibration rather than a load that was too heavy. A prescription of three reps at RPE 8 logged as three reps at RPE 6.5 produces `COMPLETED_BELOW_TARGET_RPE`, which is the signal to advance load next week.
+
+## F13 — Guided Onboarding
+
+- **Description:** An agent led intake that asks a handful of questions and fills the profile from the answers, for the many users who do not know what to enter in an empty form. It ends with a concrete first step rather than a blank plan.
+- **User Interaction:** Onboarding panel on first run, one question at a time, ending with a draft profile to confirm or correct. CLI: `spotter onboard`.
+- **Input:** Free text answers about training history, goals, available days, equipment, injuries or limitations, and preferred units.
+- **Output:** A `ProfileDraft` the lifter confirms, which becomes a `LifterProfile`, followed by a starting point: enter known maxes, or run a calibration week.
+- **AI Involvement:** AI.
+- **Expected Workflow:** `OnboardingAgent` asks at most eight questions, adapting to the answers rather than reading a fixed script, and records each into a `ProfileDraft`. `PlanValidator.validateProfileDraft()` checks required fields are present and the answers do not contradict each other. The lifter reviews the draft, corrects anything wrong, and saves. `StartingStrength.needsCalibration()` then decides whether to ask for known maxes or offer a calibration week.
+- **Error and Alternative Cases:** If required answers are still missing after the question limit, the system falls back to the ordinary profile form prefilled with what was answered, so onboarding can never trap a user. A contradiction (meet preparation with no meet date, a novice asking for an advanced split) is raised for the lifter to resolve rather than silently accepted. The lifter can skip onboarding entirely and use the form.
+
+## F14 — Adopt an Existing Programme
+
+- **Description:** Lets a lifter who already follows a programme, from a coach or a published template, bring it in rather than replacing it. Everything else then applies to that plan: adherence tracking, substitutions, recovery adjustments, analytics and coaching chat.
+- **User Interaction:** Plan tab, Adopt Programme, with three routes: enter it, import a CSV, or paste it as text. CLI: `spotter plan adopt <file>`, `spotter plan adopt text`.
+- **Input:** A programme as structured entry, a CSV with a column mapping, or free text such as a coach's message or a published template.
+- **Output:** A `TrainingBlock` with `origin = ADOPTED`, treated exactly like a generated one from that point on.
+- **AI Involvement:** Hybrid. Entry and CSV import are deterministic; only interpreting pasted free text uses the agent.
+- **Expected Workflow:** `ProgrammeImportService.fromManualEntry()` or `fromCsv()` builds the block deterministically, resolving exercise names through `ExerciseCatalog`. Pasted text goes to `ProgrammeParserAgent`, which maps movements to catalog exercises and structures weeks and sessions. Either way `PlanValidator.validateAdoptedBlock()` confirms the exercises exist, the sessions per week do not exceed the lifter's training days, and the loads are plausible against current strength before the block is saved.
+- **Error and Alternative Cases:** Unresolved exercise names are listed for mapping, reusing the same dialog as workout import. Implausible loads are flagged rather than accepted, since an adopted block is not validated by the progression strategy that generated blocks use. Free text that cannot be parsed into a structure falls back to manual entry with whatever was understood prefilled.

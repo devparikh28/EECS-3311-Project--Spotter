@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="15.1">
+  <zoom_level>10</zoom_level>
+  <element>
+    <id>UMLSequenceAllInOne</id>
+    <coordinates>
+      <x>20</x>
+      <y>20</y>
+      <w>1500</w>
+      <h>1228</h>
+    </coordinates>
+    <panel_attributes>title=SD12 Adopt an Existing Programme (F14 / UC19)
+obj=Lifter~lifter ACTOR
+obj=PlanPanel~ui
+obj=CoachController~ctrl
+obj=ProgrammeImportService~imp
+obj=ProgrammeParserAgent~agent
+obj=ClaudeClient~llm
+obj=ExerciseCatalog~cat
+obj=PlanValidator~val
+obj=BlockRepository~repo
+obj=EventBus~bus
+
+lifter-&gt;&gt;&gt;ui : onAdoptProgrammeClicked(source); on=ui
+ui-&gt;&gt;&gt;ctrl : adoptProgramme(source, kind); on=ctrl
+combinedFragment=alt~f1 ctrl cat
+ctrl:[CSV file]
+ctrl-&gt;&gt;&gt;imp : fromCsv(path, mapping); on=imp
+imp-&gt;&gt;&gt;cat : byName(exercise)
+imp.&gt;ctrl : TrainingBlock(origin = ADOPTED); off=imp
+..=f1
+ctrl:[manual entry]
+ctrl-&gt;&gt;&gt;imp : fromManualEntry(weeks)
+imp.&gt;ctrl : TrainingBlock(origin = ADOPTED)
+..=f1
+ctrl:[pasted text]
+ctrl-&gt;&gt;&gt;agent : run(AgentRequest(text)); on=agent
+ref=agent llm :UC14 agent loop, see SD03
+agent-&gt;&gt;&gt;cat : byName and closestMatches per movement
+agent.&gt;ctrl : TrainingBlock(origin = ADOPTED); off=agent
+--=f1
+ctrl-&gt;&gt;&gt;val : validateAdoptedBlock(block, profile)
+val.&gt;ctrl : exercises exist, sessions fit training days, loads plausible
+combinedFragment=alt~f2 ctrl bus
+ctrl:[valid]
+ctrl-&gt;&gt;&gt;repo : save(block)
+ctrl-&gt;&gt;&gt;bus : publish(PLAN_UPDATED)
+bus-&gt;&gt;&gt;ui : onEvent(e)
+ui.&gt;lifter : adherence, substitution and recovery adjustment now apply
+..=f2
+ctrl:[unresolved exercises or implausible loads]
+ctrl.&gt;ui : the specific problems
+ui.&gt;lifter : map the unknown movements or correct the loads
+--=f2
+off=ctrl; off=ui</panel_attributes>
+    <additional_attributes />
+  </element>
+</diagram>

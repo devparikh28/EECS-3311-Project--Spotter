@@ -495,6 +495,94 @@ ctrl.>ui : report only
 off=ctrl; off=ui
 """
 
+SD11 = """title=SD11 Complete Guided Onboarding (F13 / UC18)
+obj=Lifter~lifter ACTOR
+obj=OnboardingPanel~ui
+obj=CoachController~ctrl
+obj=OnboardingAgent~agent
+obj=ClaudeClient~llm
+obj=ProfileDraft~draft
+obj=PlanValidator~val
+obj=StartingStrength~start
+obj=ProfileRepository~repo
+
+lifter->>>ui : start onboarding; on=ui
+ui->>>ctrl : runOnboarding(); on=ctrl
+ctrl->>>agent : run(AgentRequest); on=agent
+combinedFragment=loop~l1 agent draft
+agent:[until required answers collected, at most 8]
+ref=agent llm :UC14 agent loop, see SD03
+agent.>ui : next question
+lifter->>>ui : answer
+ui->>>agent : answer
+agent->>>draft : record(answer)
+--=l1
+agent->>>val : validateProfileDraft(draft)
+val.>agent : required fields present, no contradictions
+combinedFragment=alt~f1 agent start
+agent:[draft complete]
+agent.>ctrl : AgentResult(ProfileDraft); off=agent
+ctrl.>ui : draft profile for review
+lifter->>>ui : confirm or correct
+ui->>>ctrl : saveProfile(draft.toProfile())
+ctrl->>>repo : save(profile)
+ctrl->>>start : needsCalibration(history, lift)
+start.>ctrl : stated maxes or a calibration week
+ctrl.>ui : concrete first step
+..=f1
+agent:[required answers still missing]
+agent.>ctrl : AgentResult(draft, missingRequired)
+ctrl.>ui : fall back to the prefilled profile form
+--=f1
+off=ctrl; off=ui
+"""
+
+SD12 = """title=SD12 Adopt an Existing Programme (F14 / UC19)
+obj=Lifter~lifter ACTOR
+obj=PlanPanel~ui
+obj=CoachController~ctrl
+obj=ProgrammeImportService~imp
+obj=ProgrammeParserAgent~agent
+obj=ClaudeClient~llm
+obj=ExerciseCatalog~cat
+obj=PlanValidator~val
+obj=BlockRepository~repo
+obj=EventBus~bus
+
+lifter->>>ui : onAdoptProgrammeClicked(source); on=ui
+ui->>>ctrl : adoptProgramme(source, kind); on=ctrl
+combinedFragment=alt~f1 ctrl cat
+ctrl:[CSV file]
+ctrl->>>imp : fromCsv(path, mapping); on=imp
+imp->>>cat : byName(exercise)
+imp.>ctrl : TrainingBlock(origin = ADOPTED); off=imp
+..=f1
+ctrl:[manual entry]
+ctrl->>>imp : fromManualEntry(weeks)
+imp.>ctrl : TrainingBlock(origin = ADOPTED)
+..=f1
+ctrl:[pasted text]
+ctrl->>>agent : run(AgentRequest(text)); on=agent
+ref=agent llm :UC14 agent loop, see SD03
+agent->>>cat : byName and closestMatches per movement
+agent.>ctrl : TrainingBlock(origin = ADOPTED); off=agent
+--=f1
+ctrl->>>val : validateAdoptedBlock(block, profile)
+val.>ctrl : exercises exist, sessions fit training days, loads plausible
+combinedFragment=alt~f2 ctrl bus
+ctrl:[valid]
+ctrl->>>repo : save(block)
+ctrl->>>bus : publish(PLAN_UPDATED)
+bus->>>ui : onEvent(e)
+ui.>lifter : adherence, substitution and recovery adjustment now apply
+..=f2
+ctrl:[unresolved exercises or implausible loads]
+ctrl.>ui : the specific problems
+ui.>lifter : map the unknown movements or correct the loads
+--=f2
+off=ctrl; off=ui
+"""
+
 DIAGRAMS = [
     ("SD01-import-csv", SD01),
     ("SD02-analytics", SD02),
@@ -506,6 +594,8 @@ DIAGRAMS = [
     ("SD08-coach-chat", SD08),
     ("SD09-profile-and-macros", SD09),
     ("SD10-adherence-progression", SD10),
+    ("SD11-onboarding", SD11),
+    ("SD12-adopt-programme", SD12),
 ]
 
 

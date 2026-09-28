@@ -15,7 +15,7 @@ Source: `diagrams/usecase/usecase.puml`, also available as `diagrams/uxf/usecase
 
 ## 5.2 Relationships
 
-**Include.** UC06, UC08, UC09, UC10, UC12, UC13 and UC16 all include **UC14 Run Agent Task**. UC14 captures the behaviour every AI feature shares: gather context, call Claude with tools, parse, validate, and retry once on failure. This mirrors the Template Method `CoachAgent.run()` in the class diagram.
+**Include.** UC06, UC08, UC09, UC10, UC12, UC13, UC16, UC18 and UC19 all include **UC14 Run Agent Task**. UC14 captures the behaviour every AI feature shares: gather context, call Claude with tools, parse, validate, and retry once on failure. This mirrors the Template Method `CoachAgent.run()` in the class diagram.
 
 **Extend.** **UC17 Map an Unrecognised CSV** extends UC02 and UC04 at the extension point "header matches no known format", and **UC15 Resolve Unknown Exercise** extends UC02 at the extension point "unrecognised exercise name", because it only happens when an imported name is not in the exercise catalog.
 
@@ -211,6 +211,34 @@ Every use case initiated by the lifter is available in both interfaces. The GUI 
 | Postconditions | The answer is shown and the exchange is available to later conversations. |
 | Related Feature(s) | F11 |
 
+## UC18 — Complete Guided Onboarding
+
+| Field | Description |
+|---|---|
+| Actor(s) | Lifter (primary), Claude LLM Service (secondary, via UC14) |
+| Goal | Set up a usable profile, and leave with a concrete first step, without needing to know what any of the fields mean. |
+| Interface | GUI: onboarding panel on first run. CLI: `spotter onboard` |
+| Preconditions | No profile exists, or the lifter chooses to redo onboarding. |
+| Trigger | First run, or the lifter starts onboarding from the profile tab. |
+| Main Success Scenario | 1. `CoachController.runOnboarding()` starts `OnboardingAgent`. 2. The agent asks one question at a time about training history, goal, available days, equipment and any limitations, adapting to the answers. 3. Each answer is recorded in a `ProfileDraft`. 4. `PlanValidator.validateProfileDraft()` checks the required fields and looks for contradictions. 5. The draft is shown for review. 6. The lifter confirms or corrects it and it is saved as a `LifterProfile`. 7. `StartingStrength.needsCalibration()` decides the first step: enter known maxes, or run a calibration week. |
+| Alternative / Exception Flows | 2a. The lifter skips onboarding and uses the profile form. 4a. A contradiction is found, such as meet preparation with no meet date: the lifter is asked to resolve it. 4b. Required answers are missing after the question limit: the profile form opens prefilled with whatever was answered. 7a. History was already imported: no calibration is needed and block generation is offered. |
+| Postconditions | A valid profile exists and the lifter knows exactly what to do next. |
+| Related Feature(s) | F13, and it feeds F01 and F05 |
+
+## UC19 — Adopt an Existing Programme
+
+| Field | Description |
+|---|---|
+| Actor(s) | Lifter (primary), Claude LLM Service (secondary, via UC14, only for pasted text) |
+| Goal | Keep following a programme the lifter already has, while gaining adherence tracking, substitutions and recovery adjustments. |
+| Interface | GUI: Plan tab, Adopt Programme. CLI: `spotter plan adopt <file>`, `spotter plan adopt text` |
+| Preconditions | A profile exists. The lifter has a programme as a file, as text, or in their head. |
+| Trigger | The lifter chooses Adopt Programme rather than Generate Block. |
+| Main Success Scenario | 1. `PlanPanel.onAdoptProgrammeClicked()` calls `CoachController.adoptProgramme()`. 2. For manual entry or a CSV, `ProgrammeImportService` builds the block deterministically, resolving names through `ExerciseCatalog`. 3. For pasted text, `ProgrammeParserAgent` executes **UC14** and returns the same structure. 4. `PlanValidator.validateAdoptedBlock()` checks exercises exist, sessions fit the lifter's training days and loads are plausible. 5. The block is saved with `origin = ADOPTED` and becomes the active plan. |
+| Alternative / Exception Flows | 2a. Unrecognised exercise names open the mapping dialog from UC15. 4a. Loads are implausible against current strength: they are flagged for correction rather than accepted. 3a. Free text cannot be structured: manual entry opens prefilled with whatever was understood. |
+| Postconditions | The lifter's own programme is the active block, and F06, F07, F12 and the analytics apply to it unchanged. |
+| Related Feature(s) | F14, and it substitutes for F05 for lifters who do not want a generated plan |
+
 ## UC17 — Map an Unrecognised CSV (extends UC02 and UC04)
 
 | Field | Description |
@@ -283,5 +311,7 @@ Every use case initiated by the lifter is available in both interfaces. The GUI 
 | F10 Vegetarian Meal Suggestion | UC12, UC14 |
 | F11 Coaching Chat with Memory | UC13, UC14 |
 | F12 Plan Adherence and Progression | UC16, UC07, UC14 |
+| F13 Guided Onboarding | UC18, UC14 |
+| F14 Adopt an Existing Programme | UC19, UC15, UC14 |
 
 Every feature is covered by at least one use case, and every use case maps back to at least one feature.

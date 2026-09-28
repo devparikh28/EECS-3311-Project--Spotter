@@ -19,6 +19,8 @@ actor "Recovery Source\n<<external system>>" as Whoop
 actor "Claude LLM Service\n<<external system>>" as Claude
 
 rectangle "Spotter (GUI and CLI)" {
+  usecase "UC18 Complete Guided Onboarding" as UC18
+  usecase "UC19 Adopt an Existing Programme" as UC19
   usecase "UC01 Manage Lifter Profile" as UC01
   usecase "UC02 Import Workout History" as UC02
   usecase "UC03 Log Workout Manually" as UC03
@@ -52,6 +54,8 @@ Lifter -- UC11
 Lifter -- UC12
 Lifter -- UC13
 Lifter -- UC16
+Lifter -- UC18
+Lifter -- UC19
 
 Hevy -- UC02 : CSV export
 Whoop -- UC04 : CSV export
@@ -64,6 +68,8 @@ UC10 ..> UC14 : <<include>>
 UC12 ..> UC14 : <<include>>
 UC13 ..> UC14 : <<include>>
 UC16 ..> UC14 : <<include>>
+UC18 ..> UC14 : <<include>>
+UC19 ..> UC14 : <<include>>
 UC02 <.. UC15 : <<extend>>\n[unrecognised name]
 UC02 <.. UC17 : <<extend>>\n[unknown format]
 UC04 <.. UC17 : <<extend>>\n[unknown format]
