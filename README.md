@@ -19,7 +19,7 @@ Deterministic components do all arithmetic and validation. The agent supplies ju
 
 ## Stage 1 Report
 
-Sections live under `docs/stage1/`, numbered to match the Stage 1 deliverables list.
+Sections live under [`docs/stage1/`](docs/stage1/), numbered to match the Stage 1 deliverables list, with an index in that folder.
 
 | Section | Document | State |
 |---|---|---|
