@@ -107,6 +107,10 @@ while (test_input := run.get_input()) is not None:
 
 `execute_agent` invokes the Java CLI as a subprocess and returns its output. The CLI appends one JSON object per tool call, validation result, and retry to `trace.jsonl`, which KUMA ingests as evidence. No application logic lives in Python: the harness under `tools/kuma/` only starts the Java process, passes the test input, and hands the result and trace back to KUMA.
 
+## Roadmap Beyond the Course
+
+The course deliverable is the eleven features above. The design keeps four extensions open on purpose, documented in section 1.8 of the report: comparing prescribed against logged sessions to drive automatic progression, live Hevy and Whoop sync behind the existing `DataSource` interface, a REST layer over `CoachController` for a web or mobile client, and stricter safety limits in `PlanValidator` before anyone other than the author uses it.
+
 ## Architecture
 
 ![Spotter system overview](diagrams/architecture/architecture.png)
