@@ -16,24 +16,26 @@ Every feature traces to a use case that describes the interaction, the classes t
 | F10 | Vegetarian meal suggestion | AI | UC12, UC14 | `NutritionPanel`, `CoachController`, `MacroTracker`, `MealSuggestionAgent`, `ToolManager`, `FoodDBTool`, `FoodCatalog`, `DietaryConstraints`, `ClaudeClient`, `ResponseParser`, `PlanValidator`, `MealSuggestion` | `onSuggestMealClicked()`, `suggestMeal()`, `getRemaining()`, `run()`, `search()`, `permits()`, `toMeal()`, `validateMeal()` | SD07 | Template Method, Factory Method, Facade |
 | F11 | Coaching chat with memory | AI | UC13, UC14 | `ChatPanel`, `CoachController`, `ChatAgent`, `MemoryManager`, `ConversationHistory`, `ToolManager`, `AnalyticsTool`, `PlanLookupTool`, `RecoveryLookupTool`, `ClaudeClient` | `onSendClicked()`, `chat()`, `run()`, `recall()`, `remember()`, `summarizeOlderTurns()`, `execute()`, `complete()` | SD08 | Template Method, Strategy, Factory Method, Facade |
 | F12 | Plan adherence and progression | Hybrid | UC16, UC07, UC14 | `PlanPanel`, `CoachController`, `PlanAdherence`, `AdherenceReport`, `AdherenceEntry`, `AdherenceVerdict`, `AdherenceTool`, `ProgressionAgent`, `PlanValidator`, `PlanEditHistory`, `ApplyProgressionCommand`, `BlockRepository`, `WorkoutRepository` | `onReviewWeekClicked()`, `reviewAdherence()`, `compare()`, `verdictFor()`, `hasShortfall()`, `progressPlan()`, `run()`, `validateProgression()`, `applyEdit()` | SD10 | Template Method, Command, Strategy, Facade, Observer |
+| F13 | Guided onboarding interview | AI | UC18, UC14 | `OnboardingPanel`, `CoachController`, `OnboardingAgent`, `ProfileDraft`, `PlanValidator`, `StartingStrength`, `LifterProfile`, `ProfileRepository` | `runOnboarding()`, `run()`, `record()`, `validateProfileDraft()`, `missingRequired()`, `toProfile()`, `needsCalibration()`, `calibrationSession()` | SD11 | Template Method, Facade, Strategy, Decorator |
+| F14 | Adopt an existing programme | Hybrid | UC19, UC15, UC14 | `PlanPanel`, `CoachController`, `ProgrammeImportService`, `DataSourceFactory`, `ColumnMapping`, `ProgrammeParserAgent`, `ExerciseCatalog`, `PlanValidator`, `TrainingBlock`, `BlockOrigin`, `BlockRepository`, `EventBus` | `adoptProgramme()`, `fromCsv()`, `fromManualEntry()`, `unresolvedExercises()`, `run()`, `byName()`, `validateAdoptedBlock()`, `save()`, `publish()` | SD12 | Adapter, Factory Method, Template Method, Facade, Observer |
 
 ## 8.1 Coverage Checks
 
-**Every feature has a use case and a sequence diagram.** F01 to F11 each appear in at least one use case description in section 6 and at least one diagram in section 7.
+**Every feature has a use case and a sequence diagram.** F01 to F14 each appear in at least one use case description in section 6 and at least one diagram in section 7.
 
-**Every use case belongs to a feature.** UC01 to UC13 map to features directly; UC14 (Run Agent Task) is included by the seven AI use cases and belongs to F05, F06, F07, F08, F10, F11 and F12; UC15 (Resolve Unknown Exercise) extends UC02 and belongs to F02; UC17 (Map an Unrecognised CSV) extends UC02 and UC04 and belongs to F02 and F03.
+**Every use case belongs to a feature.** UC01 to UC13 map to features directly; UC14 (Run Agent Task) is included by the nine AI use cases and belongs to F05, F06, F07, F08, F10, F11, F12, F13 and F14; UC15 (Resolve Unknown Exercise) extends UC02 and belongs to F02; UC17 (Map an Unrecognised CSV) extends UC02 and UC04 and belongs to F02 and F03.
 
 **Every pattern is used by more than one feature**, which is what distinguishes a structural decision from decoration.
 
 | Pattern | Features |
 |---|---|
-| Facade | F01 to F11 |
+| Facade | F01 to F14 |
 | Strategy | F05, F11, and every feature that reaches the model through `LLMClient` |
 | Observer | F01, F02, F03, F05, F06, F07, F09 |
 | Command | F05, F06, F07, F12 |
-| Adapter | F02, F03 (Hevy, Whoop and a mapped generic adapter for any other app) |
-| Factory Method | F02, F03, F05, F06, F10, F11 |
-| Template Method | F05, F06, F07, F08, F10, F11, F12 |
+| Adapter | F02, F03, F14 (Hevy, Whoop and a mapped generic adapter for any other app or programme file) |
+| Factory Method | F02, F03, F05, F06, F10, F11, F14 |
+| Template Method | F05 to F08, F10 to F14 |
 | Decorator | F05 to F08 and F10 to F12 (caching and recording around every model call) |
 
-**Deterministic and AI behaviour are separable for Stage 3.** The classes in the traceability table divide cleanly: `StrengthAnalytics`, `RPEChart`, `AttemptCalculator`, `MacroTracker`, `RecoveryRuleEngine`, `PlanAdherence`, `CsvImportService`, the adapters, the catalogs and the repositories are all unit testable with JUnit, while the seven `CoachAgent` subclasses and their validators are what KUMA exercises. `PlanValidator` sits on the boundary and is testable both ways, which is deliberate: it is the component that decides whether model output is acceptable.
+**Deterministic and AI behaviour are separable for Stage 3.** The classes in the traceability table divide cleanly: `StrengthAnalytics`, `RPEChart`, `AttemptCalculator`, `MacroTracker`, `RecoveryRuleEngine`, `PlanAdherence`, `StartingStrength`, `CsvImportService`, `ProgrammeImportService`, the adapters, the catalogs and the repositories are all unit testable with JUnit, while the nine `CoachAgent` subclasses and their validators are what KUMA exercises. `PlanValidator` sits on the boundary and is testable both ways, which is deliberate: it is the component that decides whether model output is acceptable.

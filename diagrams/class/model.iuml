@@ -44,6 +44,7 @@ package "presentation" $pres {
   }
   class PlanPanel $pres {
     + onGenerateClicked() : void
+    + onAdoptProgrammeClicked(src : AdoptionSource) : void
     + onSubstituteClicked(prescriptionId : int) : void
     + onAdjustClicked(sessionId : int) : void
     + onUndoClicked() : void
@@ -57,6 +58,10 @@ package "presentation" $pres {
   }
   class ChatPanel $pres {
     + onSendClicked() : void
+  }
+  class OnboardingPanel $pres {
+    + onAnswerSubmitted(answer : String) : void
+    + onConfirmProfileClicked() : void
   }
   class CoachCLI $pres {
     - controller : CoachController
@@ -93,6 +98,8 @@ package "application" $app {
     + suggestSubstitute(prescriptionId : int, reason : SubstitutionReason, note : String) : AgentResult<ExercisePrescription>
     + setStartingStrength(lift : Lift, kg : double) : void
     + startCalibrationWeek() : TrainingBlock
+    + runOnboarding() : AgentResult<ProfileDraft>
+    + adoptProgramme(source : String, kind : AdoptionSource) : AgentResult<TrainingBlock>
     + flagSessions() : List<RecoveryFlag>
     + adjustSession(sessionId : int) : AgentResult<Session>
     + calculateAttempts() : List<MeetAttempts>
@@ -127,6 +134,11 @@ package "application" $app {
     + type : EventType
     + payload : object
     + timestamp : LocalDateTime
+  }
+  enum AdoptionSource $app {
+    MANUAL_ENTRY
+    CSV_FILE
+    PASTED_TEXT
   }
   enum EventType $app {
     PROFILE_UPDATED
@@ -174,6 +186,8 @@ package "application" $app {
     + adjustment : AdjustmentAgent
     + attemptRationale : AttemptRationaleAgent
     + meal : MealSuggestionAgent
+    + onboarding : OnboardingAgent
+    + programmeParser : ProgrammeParserAgent
     + progression : ProgressionAgent
     + chat : ChatAgent
   }
@@ -197,11 +211,22 @@ package "domain" $dom {
     + weeksUntilMeet(today : LocalDate) : Optional<Integer>
     + hasEquipment(e : Equipment) : boolean
   }
+  class ProfileDraft $dom {
+    + answers : Map<String, String>
+    + unanswered : List<String>
+    + confident : boolean
+    + toProfile() : LifterProfile
+    + missingRequired() : List<String>
+  }
   class DietaryConstraints $dom {
     + vegetarian : boolean
     + allowsDairy : boolean
     + allowsEggs : boolean
     + permits(f : FoodItem) : boolean
+  }
+  enum BlockOrigin $dom {
+    GENERATED
+    ADOPTED
   }
   enum ExperienceLevel $dom {
     NOVICE
@@ -287,6 +312,7 @@ package "domain" $dom {
     + startDate : LocalDate
     + progression : String
     + splitName : String
+    + origin : BlockOrigin
     + findSession(id : int) : Session
     + findPrescription(id : int) : ExercisePrescription
   }
@@ -501,6 +527,13 @@ package "agent" $agent {
   class AdjustmentAgent $agent
   class AttemptRationaleAgent $agent
   class MealSuggestionAgent $agent
+  class OnboardingAgent $agent {
+    - questionsAsked : int
+    - maxQuestions : int = 8
+  }
+  class ProgrammeParserAgent $agent {
+    - catalog : ExerciseCatalog
+  }
   class ProgressionAgent $agent {
     - strategy : ProgressionStrategy
   }
@@ -585,6 +618,8 @@ package "agent" $agent {
   class PlanValidator $agent {
     + validateBlock(b : TrainingBlock, ctx : AgentContext, s : ProgressionStrategy) : ValidationReport
     + validateSplit(b : TrainingBlock, p : LifterProfile) : ValidationReport
+    + validateProfileDraft(d : ProfileDraft) : ValidationReport
+    + validateAdoptedBlock(b : TrainingBlock, p : LifterProfile) : ValidationReport
     + validateSubstitution(e : Exercise, allowed : List<Exercise>, r : SubstitutionReason, l : List<Limitation>) : ValidationReport
     + validateMeal(m : MealSuggestion, d : DietaryConstraints, remaining : MacroTotals) : ValidationReport
     + validateRationale(text : String, a : MeetAttempts) : ValidationReport
@@ -680,6 +715,7 @@ package "infrastructure" $infra {
   enum ImportKind $infra {
     WORKOUT
     RECOVERY
+    PROGRAMME
   }
   enum WeightUnit $infra {
     KG
@@ -700,6 +736,13 @@ package "infrastructure" $infra {
     + duplicatesSkipped : int
     + unknownExercises : List<String>
     + rowErrors : List<String>
+  }
+  class ProgrammeImportService $infra {
+    - factory : DataSourceFactory
+    - catalog : ExerciseCatalog
+    + fromCsv(path : String, m : ColumnMapping) : TrainingBlock
+    + fromManualEntry(weeks : List<Week>) : TrainingBlock
+    + unresolvedExercises() : List<String>
   }
   class CsvImportService $infra {
     - factory : DataSourceFactory
@@ -761,6 +804,7 @@ BasePanel <|-- PlanPanel
 BasePanel <|-- MeetPanel
 BasePanel <|-- NutritionPanel
 BasePanel <|-- ChatPanel
+BasePanel <|-- OnboardingPanel
 BasePanel ..|> EventListener
 BasePanel "*" --> "1" CoachController
 CoachCLI --> "1" CoachController
@@ -783,7 +827,7 @@ SwapExerciseCommand --> TrainingBlock : receiver
 ChangeLoadCommand --> TrainingBlock : receiver
 ApplyAdjustmentCommand --> TrainingBlock : receiver
 ApplyProgressionCommand --> TrainingBlock : receiver
-AgentRegistry o-- "7" CoachAgent
+AgentRegistry o-- "9" CoachAgent
 CoachController --> CsvImportService
 CoachController --> StrengthAnalytics
 CoachController --> AttemptCalculator
@@ -820,6 +864,13 @@ ProgressionStrategyFactory --> ExperienceLevel
 LifterProfile --> TrainingGoal
 LifterProfile --> SplitPreference
 LifterProfile --> ExperienceLevel
+OnboardingAgent ..> ProfileDraft : produces
+ProfileDraft ..> LifterProfile : converts to
+ProgrammeParserAgent ..> TrainingBlock : produces
+ProgrammeImportService ..> TrainingBlock : builds
+ProgrammeImportService --> DataSourceFactory
+ProgrammeImportService --> ExerciseCatalog
+TrainingBlock --> BlockOrigin
 LifterProfile "1" *-- "0..*" Limitation
 LifterProfile --> WeightUnit
 Limitation "*" --> "*" Exercise : avoids >
@@ -846,6 +897,8 @@ CoachAgent <|-- SubstitutionAgent
 CoachAgent <|-- AdjustmentAgent
 CoachAgent <|-- AttemptRationaleAgent
 CoachAgent <|-- MealSuggestionAgent
+CoachAgent <|-- OnboardingAgent
+CoachAgent <|-- ProgrammeParserAgent
 CoachAgent <|-- ProgressionAgent
 CoachAgent <|-- ChatAgent
 CoachAgent "*" o-- "1" LLMClient

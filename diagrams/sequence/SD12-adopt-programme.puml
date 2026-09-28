@@ -1,0 +1,61 @@
+@startuml SD12-adopt-programme
+!include _style.iuml
+title SD12 — Adopt an Existing Programme (F14 / UC19)
+
+actor Lifter
+boundary "PlanPanel\n<<GUI>>" as UI
+control "CoachController\n<<Facade>>" as Ctrl
+participant "ProgrammeImportService" as Imp
+participant "DataSourceFactory" as Fac
+participant "ProgrammeParserAgent" as Agent
+participant "ClaudeClient" as LLM
+participant "ExerciseCatalog" as Cat
+participant "PlanValidator" as Val
+database "BlockRepository" as Repo
+participant "EventBus" as Bus
+
+Lifter -> UI : onAdoptProgrammeClicked(source)
+UI -> Ctrl : adoptProgramme(source, kind)
+activate Ctrl
+
+alt kind = CSV_FILE
+  Ctrl -> Imp : fromCsv(path, mapping)
+  activate Imp
+  Imp -> Fac : create(mapping)
+  Imp -> Cat : byName(exercise)
+  Imp --> Ctrl : TrainingBlock(origin = ADOPTED)
+  deactivate Imp
+else kind = MANUAL_ENTRY
+  Ctrl -> Imp : fromManualEntry(weeks)
+  Imp --> Ctrl : TrainingBlock(origin = ADOPTED)
+else kind = PASTED_TEXT
+  Ctrl -> Agent : run(AgentRequest(text))
+  activate Agent
+  ref over Agent, LLM : UC14 agent loop\n(see SD03)
+  Agent -> Cat : byName and closestMatches for each movement
+  Agent --> Ctrl : TrainingBlock(origin = ADOPTED)
+  deactivate Agent
+end
+
+Ctrl -> Val : validateAdoptedBlock(block, profile)
+activate Val
+note right of Val
+  exercises exist, sessions per week do not
+  exceed the lifter's training days, loads
+  are plausible against current strength
+end note
+Val --> Ctrl : ValidationReport
+deactivate Val
+
+alt valid
+  Ctrl -> Repo : save(block)
+  Ctrl -> Bus : publish(PLAN_UPDATED)
+  Bus -> UI : onEvent(e)
+  Ctrl --> UI : adopted programme
+  UI --> Lifter : plan shown; adherence, substitution\nand recovery adjustment now apply to it
+else unresolved exercises or implausible loads
+  Ctrl --> UI : the specific problems
+  UI --> Lifter : map the unknown movements\nor correct the loads
+end
+deactivate Ctrl
+@enduml
