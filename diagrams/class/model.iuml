@@ -184,6 +184,7 @@ package "domain" $dom {
     + bodyweightKg : double
     + weightClassKg : double
     + goal : TrainingGoal
+    + splitPreference : SplitPreference = AUTO
     + meetDate : LocalDate [0..1]
     + trainingDaysPerWeek : int
     + equipment : Set<Equipment>
@@ -196,6 +197,13 @@ package "domain" $dom {
     + allowsDairy : boolean
     + allowsEggs : boolean
     + permits(f : FoodItem) : boolean
+  }
+  enum SplitPreference $dom {
+    AUTO
+    FULL_BODY
+    UPPER_LOWER
+    PUSH_PULL_LEGS
+    COMPETITION_LIFT_FOCUS
   }
   enum TrainingGoal $dom {
     MEET_PREP
@@ -255,6 +263,7 @@ package "domain" $dom {
     + id : int
     + startDate : LocalDate
     + progression : String
+    + splitName : String
     + findSession(id : int) : Session
     + findPrescription(id : int) : ExercisePrescription
   }
@@ -264,6 +273,7 @@ package "domain" $dom {
   class Session $dom {
     + id : int
     + date : LocalDate
+    + focus : String
     + adjustmentNote : String [0..1]
   }
   class ExercisePrescription $dom {
@@ -544,6 +554,7 @@ package "agent" $agent {
   }
   class PlanValidator $agent {
     + validateBlock(b : TrainingBlock, ctx : AgentContext, s : ProgressionStrategy) : ValidationReport
+    + validateSplit(b : TrainingBlock, p : LifterProfile) : ValidationReport
     + validateSubstitution(e : Exercise, allowed : List<Exercise>) : ValidationReport
     + validateMeal(m : MealSuggestion, d : DietaryConstraints, remaining : MacroTotals) : ValidationReport
     + validateRationale(text : String, a : MeetAttempts) : ValidationReport
@@ -775,6 +786,7 @@ AttemptCalculator ..> MeetAttempts : creates
 AttemptCalculator ..> TestDayPlan : creates
 ProgressionStrategyFactory ..> ProgressionStrategy : creates
 LifterProfile --> TrainingGoal
+LifterProfile --> SplitPreference
 RecoveryRuleEngine ..> RecoveryFlag : creates
 RecoveryDay --> RecoverySource
 PlanAdherence ..> AdherenceReport : creates

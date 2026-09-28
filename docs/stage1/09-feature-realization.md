@@ -12,7 +12,7 @@ Each feature is described by its use case, its sequence diagram, the classes inv
 
 - `ProfilePanel` — collects bodyweight, training goal, optional meet date and weight class, training days, equipment and dietary flags.
 - `CoachController` — validates and coordinates the save.
-- `LifterProfile` — the root entity every other feature reads; owns `DietaryConstraints` and carries a `TrainingGoal` with an optional `meetDate`.
+- `LifterProfile` — the root entity every other feature reads; owns `DietaryConstraints` and carries a `TrainingGoal`, a `SplitPreference` and an optional `meetDate`.
 - `ProfileRepository` — persists it in SQLite.
 - `EventBus` — announces the change so other panels refresh.
 
@@ -92,6 +92,7 @@ Each feature is described by its use case, its sequence diagram, the classes inv
 - `PlanPanel` — the Generate Block action and the rendered block.
 - `CoachController` — selects the progression strategy and dispatches the agent on a background thread.
 - `ProgressionStrategyFactory` and `ProgressionStrategy` — the load progression appropriate to the lifter's goal.
+- `SplitPreference` — the structure the lifter wants, or auto to let the agent choose.
 - `BlockGenerationAgent` — the concrete `CoachAgent` for this task.
 - `ToolManager`, `AnalyticsTool`, `ExerciseDBTool` — supply current e1RMs and the exercises this gym supports.
 - `PromptBuilder` — assembles instructions, context, output schema.
@@ -102,7 +103,7 @@ Each feature is described by its use case, its sequence diagram, the classes inv
 
 **Methods:** `PlanPanel.onGenerateClicked()`, `CoachController.generateBlock()`, `ProgressionStrategyFactory.forGoal()`, `CoachAgent.run()`, `createToolset()`, `gatherContext()`, `buildPrompt()`, `ClaudeClient.complete()`, `ToolManager.execute()`, `ResponseParser.toBlock()`, `PlanValidator.validateBlock()`, `BlockRepository.save()`
 
-**Execution.** The controller asks the factory for the progression strategy matching the training goal, then calls `run()` on the agent. The template method registers this agent's tools, gathers context, and builds a prompt carrying the lifter's goal, equipment, current e1RMs and a JSON schema. Claude replies asking for tools; `ToolManager` executes them and returns the results; Claude then returns the block as JSON. `ResponseParser` builds domain objects and `PlanValidator` checks loads against the progression strategy and confirms every exercise exists in the catalog. Only a valid block is saved, and `PLAN_UPDATED` refreshes the panel. An invalid block is retried once with the validation errors appended to the prompt; a second failure leaves any existing block untouched and reports the error. Because the call takes seconds, the controller runs it through `FxTaskRunner` and returns the result on the JavaFX thread.
+**Execution.** The controller asks the factory for the progression strategy matching the training goal, then calls `run()` on the agent. The template method registers this agent's tools, gathers context, and builds a prompt carrying the lifter's goal, equipment, current e1RMs and a JSON schema. Claude replies asking for tools; `ToolManager` executes them and returns the results; Claude then returns the block as JSON. `ResponseParser` builds domain objects and `PlanValidator` checks loads against the progression strategy and confirms every exercise exists in the catalog. `validateSplit()` additionally confirms the block has one session per training day and matches the chosen split, which is what stops a lifter following an upper lower programme from being handed a full body block next month. Only a valid block is saved, and `PLAN_UPDATED` refreshes the panel. An invalid block is retried once with the validation errors appended to the prompt; a second failure leaves any existing block untouched and reports the error. Because the call takes seconds, the controller runs it through `FxTaskRunner` and returns the result on the JavaFX thread.
 
 ---
 

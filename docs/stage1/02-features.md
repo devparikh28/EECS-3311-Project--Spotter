@@ -20,8 +20,8 @@ Twelve features, each classified as deterministic, AI, or hybrid. The system ser
 ## F01 — Lifter Profile and Constraints
 
 - **Description:** Stores the lifter's identity, training goal, optional competition details, training frequency, gym equipment inventory, dietary constraints, and macro targets. Every other feature reads from this record.
-- **User Interaction:** Profile tab in the GUI, with fields for bodyweight, training goal, an optional meet date and weight class, training days per week, an equipment checklist, and dietary flags. CLI: `spotter profile set`, `spotter profile show`.
-- **Input:** Bodyweight, training goal (meet prep, strength, hypertrophy, or general fitness), optional meet date and weight class, training days, equipment list, dietary constraints, macro targets.
+- **User Interaction:** Profile tab in the GUI, with fields for bodyweight, training goal, split preference, an optional meet date and weight class, training days per week, an equipment checklist, and dietary flags. CLI: `spotter profile set`, `spotter profile show`.
+- **Input:** Bodyweight, training goal (meet prep, strength, hypertrophy, or general fitness), split preference (auto, full body, upper lower, push pull legs, or competition lift focus), optional meet date and weight class, training days, equipment list, dietary constraints, macro targets.
 - **Output:** A saved `LifterProfile` record.
 - **AI Involvement:** Deterministic.
 - **Expected Workflow:** The lifter fills the form and saves; `CoachController.saveProfile()` validates required fields and persists through `ProfileRepository`; a `PROFILE_UPDATED` event refreshes dependent panels.
@@ -62,10 +62,10 @@ Twelve features, each classified as deterministic, AI, or hybrid. The system ser
 - **Description:** The agent generates a multi week training block from the profile, the training goal, recent history, current e1RMs, and, when one is set, the time remaining until the meet.
 - **User Interaction:** Plan tab, Generate Block with a week count. CLI: `spotter plan generate <weeks>`.
 - **Input:** Block length in weeks, plus the stored profile, goal, and history. With a meet date the length defaults to the weeks remaining.
-- **Output:** A `TrainingBlock` of `Week`, `Session`, and `ExercisePrescription` objects, editable in the GUI.
+- **Output:** A `TrainingBlock` of `Week`, `Session` and `ExercisePrescription` objects, editable in the GUI. The block records the split it used, and every session carries a focus label such as Upper A, Squat day or Full body, so the plan reads as a programme rather than a list of exercises.
 - **AI Involvement:** AI.
-- **Expected Workflow:** `BlockGenerationAgent` collects e1RMs through `AnalyticsTool` and available exercises through `ExerciseDBTool`, `PromptBuilder` assembles the request with an output schema, `ClaudeClient.complete()` calls Claude, `ResponseParser.toBlock()` builds domain objects, and `PlanValidator.validateBlock()` checks loads against the `ProgressionStrategy` that `ProgressionStrategyFactory.forGoal()` selected for the lifter's goal, before the block is saved.
-- **Error and Alternative Cases:** Invalid JSON or a failed validation triggers one retry with the errors appended to the prompt; a second failure shows an error and leaves any existing block unchanged. An API timeout is retried once, then reported. Thin history for a lift produces a warning and conservative loads. An existing block is replaced only after confirmation.
+- **Expected Workflow:** `BlockGenerationAgent` collects e1RMs through `AnalyticsTool` and available exercises through `ExerciseDBTool`, is told the lifter's training days and split preference, `PromptBuilder` assembles the request with an output schema, `ClaudeClient.complete()` calls Claude, `ResponseParser.toBlock()` builds domain objects, and `PlanValidator.validateBlock()` checks loads against the `ProgressionStrategy` that `ProgressionStrategyFactory.forGoal()` selected for the lifter's goal, and `validateSplit()` confirms the session count matches the lifter's training days and the structure matches the chosen split, before the block is saved.
+- **Error and Alternative Cases:** A split preference of auto imposes no structural constraint and lets the agent choose; any other value is enforced, and a block whose structure does not match is rejected with that reason. Invalid JSON or a failed validation triggers one retry with the errors appended to the prompt; a second failure shows an error and leaves any existing block unchanged. An API timeout is retried once, then reported. Thin history for a lift produces a warning and conservative loads. An existing block is replaced only after confirmation.
 
 ## F06 — Equipment Substitution
 
