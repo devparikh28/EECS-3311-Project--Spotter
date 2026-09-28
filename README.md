@@ -53,14 +53,15 @@ java -jar plantuml.jar -tsvg diagrams/**/*.puml
 
 | Concern | Choice |
 |---|---|
-| Language | Python 3.11 |
-| GUI | PyQt6, tabbed dashboard |
-| CLI | Typer, command name `liftpilot` |
-| Storage | SQLite behind a `Repository` interface |
-| LLM | Anthropic Claude through the official `anthropic` SDK, wrapped in `ClaudeClient` |
+| Language | Java 21 |
+| Build | Maven |
+| GUI | JavaFX, tabbed dashboard |
+| CLI | picocli, command name `liftpilot` |
+| Storage | SQLite through JDBC, behind a `Repository` interface |
+| LLM | Anthropic Claude through LangChain4j (`langchain4j-anthropic`), wrapped in `ClaudeClient` |
 | Data sources | Hevy and Whoop CSV exports behind a `DataSource` interface |
-| Unit testing | pytest |
-| Agent behaviour testing | KUMA |
+| Unit testing | JUnit 5 and Mockito |
+| Agent behaviour testing | KUMA, driven through the CLI by a small Python harness |
 
 ## Architecture
 
