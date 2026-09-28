@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="15.1">
+  <zoom_level>10</zoom_level>
+  <element>
+    <id>UMLSequenceAllInOne</id>
+    <coordinates>
+      <x>20</x>
+      <y>20</y>
+      <w>1200</w>
+      <h>1330</h>
+    </coordinates>
+    <panel_attributes>title=SD06 Plan a Heavy Single: Meet Attempts or Test Day (F08 / UC10)
+obj=Lifter~lifter ACTOR
+obj=MeetPanel~ui
+obj=CoachController~ctrl
+obj=StrengthAnalytics~an
+obj=AttemptCalculator~calc
+obj=AttemptRationaleAgent~agent
+obj=ClaudeClient~llm
+obj=PlanValidator~val
+
+lifter-&gt;&gt;&gt;ui : onCalculateClicked(); on=ui
+ui-&gt;&gt;&gt;ctrl : calculateAttempts(); on=ctrl
+ctrl-&gt;&gt;&gt;an : currentE1RMs(history)
+an.&gt;ctrl : Map&lt;Lift, double&gt;
+combinedFragment=loop~l1 ctrl calc
+ctrl:[for each main lift]
+combinedFragment=alt~f1 ctrl calc
+ctrl:[profile has a meet date]
+ctrl-&gt;&gt;&gt;calc : calculateMeetAttempts(lift, e1rm)
+calc.&gt;ctrl : MeetAttempts(opener, second, third)
+..=f1
+ctrl:[no meet date]
+ctrl-&gt;&gt;&gt;calc : projectTestDay(lift, e1rm)
+calc.&gt;ctrl : TestDayPlan(warmups, topSingle)
+--=f1
+--=l1
+ctrl-&gt;&gt;&gt;agent : run(AgentRequest(numbers, trend)); on=agent
+ref=agent llm :UC14 agent loop, see SD03
+agent-&gt;&gt;&gt;val : validateRationale(text, numbers)
+val.&gt;agent : every quoted number must match the calculator
+combinedFragment=alt~f2 agent ui
+agent:[rationale consistent]
+agent.&gt;ctrl : AgentResult(rationale); off=agent
+ctrl.&gt;ui : numbers and rationale
+ui.&gt;lifter : attempts or test day plan with explanation
+..=f2
+agent:[contradicts calculator or agent failed]
+agent.&gt;ctrl : AgentResult(success = false)
+ctrl.&gt;ui : numbers only
+ui.&gt;lifter : shown without a rationale
+--=f2
+lifter-&gt;&gt;&gt;ui : editAttempt(lift, value)
+ui-&gt;&gt;&gt;ctrl : saveManualAttempt(lift, value)
+ctrl.&gt;ui : stored and marked manual; off=ctrl
+off=ui</panel_attributes>
+    <additional_attributes />
+  </element>
+</diagram>

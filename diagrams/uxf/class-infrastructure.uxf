@@ -1,0 +1,525 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="15.1">
+  <zoom_level>10</zoom_level>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>90</x>
+      <y>410</y>
+      <w>270</w>
+      <h>90</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;interface&gt;&gt;
+&lt;&lt;Adapter: Target&gt;&gt;
+DataSource
+--
++ read(path : String) : ImportBatch</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>80</x>
+      <y>570</y>
+      <w>120</w>
+      <h>60</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;Adapter&gt;&gt;
+HevyCsvAdapter
+--</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>240</x>
+      <y>570</y>
+      <w>130</w>
+      <h>60</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;Adapter&gt;&gt;
+WhoopCsvAdapter
+--</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>20</x>
+      <y>690</y>
+      <w>400</w>
+      <h>90</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;Adaptee&gt;&gt;
+CsvFileReader
+--
++ rows(path : String) : Iterator&lt;Map&lt;String, Object&gt;&gt;
++ header(path : String) : List&lt;String&gt;</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>180</x>
+      <y>230</y>
+      <w>300</w>
+      <h>90</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;Factory&gt;&gt;
+DataSourceFactory
+--
++ create(kind : SourceKind) : DataSource
++ detect(path : String) : SourceKind</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>400</x>
+      <y>410</y>
+      <w>100</w>
+      <h>90</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;enum&gt;&gt;
+SourceKind
+--
+HEVY
+WHOOP</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>530</x>
+      <y>230</y>
+      <w>260</w>
+      <h>90</h>
+    </coordinates>
+    <panel_attributes>ImportBatch
+--
++ sessions : List&lt;WorkoutSession&gt;
++ recoveryDays : List&lt;RecoveryDay&gt;
++ rowErrors : List&lt;String&gt;</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>830</x>
+      <y>230</y>
+      <w>260</w>
+      <h>100</h>
+    </coordinates>
+    <panel_attributes>ImportReport
+--
++ imported : int
++ duplicatesSkipped : int
++ unknownExercises : List&lt;String&gt;
++ rowErrors : List&lt;String&gt;</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>580</x>
+      <y>20</y>
+      <w>450</w>
+      <h>130</h>
+    </coordinates>
+    <panel_attributes>CsvImportService
+--
+- factory : DataSourceFactory
+- catalog : ExerciseCatalog
+--
++ importFile(path : String, kind : SourceKind) : ImportReport
+- mapExerciseNames(b : ImportBatch) : List&lt;String&gt;
+- dedupe(b : ImportBatch) : int</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1130</x>
+      <y>220</y>
+      <w>660</w>
+      <h>120</h>
+    </coordinates>
+    <panel_attributes>ExerciseCatalog
+--
++ byName(name : String) : Exercise [0..1]
++ closestMatches(name : String, k : int) : List&lt;Exercise&gt;
++ addAlias(alias : String, e : Exercise) : void
++ add(e : Exercise) : void
++ candidates(pattern : String, muscles : Set&lt;String&gt;, eq : Set&lt;Equipment&gt;) : List&lt;Exercise&gt;</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1810</x>
+      <y>40</y>
+      <w>520</w>
+      <h>90</h>
+    </coordinates>
+    <panel_attributes>FoodCatalog
+--
++ search(d : DietaryConstraints, maxCalories : double) : List&lt;FoodItem&gt;
++ byName(name : String) : FoodItem [0..1]
++ add(f : FoodItem) : void</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>2770</x>
+      <y>30</y>
+      <w>240</w>
+      <h>120</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;interface&gt;&gt;
+Repository&lt;T&gt;
+--
++ save(item : T) : T
++ findById(id : int) : T [0..1]
++ findAll() : List&lt;T&gt;
++ delete(id : int) : void</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>2790</x>
+      <y>400</y>
+      <w>210</w>
+      <h>100</h>
+    </coordinates>
+    <panel_attributes>Database
+--
+- path : String
+--
++ connection() : Connection
++ migrate() : void</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1840</x>
+      <y>250</y>
+      <w>140</w>
+      <h>50</h>
+    </coordinates>
+    <panel_attributes>ProfileRepository
+--</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>2020</x>
+      <y>250</y>
+      <w>470</w>
+      <h>60</h>
+    </coordinates>
+    <panel_attributes>WorkoutRepository
+--
++ findByLift(l : Lift, since : LocalDate) : List&lt;WorkoutSession&gt;</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>2530</x>
+      <y>250</y>
+      <w>360</w>
+      <h>60</h>
+    </coordinates>
+    <panel_attributes>RecoveryRepository
+--
++ findByDate(d : LocalDate) : RecoveryDay [0..1]</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>2940</x>
+      <y>250</y>
+      <w>280</w>
+      <h>60</h>
+    </coordinates>
+    <panel_attributes>BlockRepository
+--
++ findActive() : TrainingBlock [0..1]</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>3260</x>
+      <y>250</y>
+      <w>140</w>
+      <h>50</h>
+    </coordinates>
+    <panel_attributes>IntakeRepository
+--</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>3440</x>
+      <y>250</y>
+      <w>360</w>
+      <h>60</h>
+    </coordinates>
+    <panel_attributes>MemoryRepository
+--
++ search(query : String, k : int) : List&lt;String&gt;</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>150</x>
+      <y>490</y>
+      <w>60</w>
+      <h>90</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>48.6;10.0;7.6;80.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>240</x>
+      <y>490</y>
+      <w>60</w>
+      <h>90</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>9.8;10.0;48.4;80.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>150</x>
+      <y>620</y>
+      <w>60</w>
+      <h>80</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+adapts</panel_attributes>
+    <additional_attributes>43.3;70.0;7.8;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>240</x>
+      <y>620</y>
+      <w>60</w>
+      <h>80</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+adapts</panel_attributes>
+    <additional_attributes>8.3;70.0;46.1;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>240</x>
+      <y>310</y>
+      <w>70</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;.
+creates</panel_attributes>
+    <additional_attributes>11.2;100.0;63.8;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>350</x>
+      <y>310</y>
+      <w>80</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>70.0;100.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>430</x>
+      <y>140</y>
+      <w>220</w>
+      <h>100</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>12.5;90.0;212.5;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1010</x>
+      <y>140</y>
+      <w>260</w>
+      <h>90</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>248.5;80.0;13.3;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>680</x>
+      <y>140</y>
+      <w>80</w>
+      <h>100</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;.</panel_attributes>
+    <additional_attributes>14.3;90.0;75.4;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>850</x>
+      <y>140</y>
+      <w>80</w>
+      <h>100</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;.</panel_attributes>
+    <additional_attributes>70.3;90.0;6.7;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1970</x>
+      <y>100</y>
+      <w>810</w>
+      <h>170</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>800.0;12.7;10.0;161.8</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>2350</x>
+      <y>120</y>
+      <w>430</w>
+      <h>140</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>420.0;5.9;5.3;130.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>2730</x>
+      <y>140</y>
+      <w>110</w>
+      <h>120</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>103.2;10.0;8.4;110.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>2940</x>
+      <y>140</y>
+      <w>120</w>
+      <h>120</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>10.0;10.0;110.0;110.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>3000</x>
+      <y>130</y>
+      <w>280</w>
+      <h>130</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>10.0;10.5;270.5;120.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>3000</x>
+      <y>110</y>
+      <w>510</w>
+      <h>150</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>10.0;11.2;504.7;140.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1970</x>
+      <y>280</y>
+      <w>830</w>
+      <h>160</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>820.0;151.3;10.0;7.4</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>2360</x>
+      <y>300</y>
+      <w>440</w>
+      <h>130</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>430.0;122.1;7.9;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>2730</x>
+      <y>300</y>
+      <w>120</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>110.6;100.0;12.6;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>2940</x>
+      <y>300</y>
+      <w>120</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>9.4;100.0;107.4;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>2990</x>
+      <y>290</y>
+      <w>290</w>
+      <h>130</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>10.0;117.8;277.9;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>2990</x>
+      <y>300</y>
+      <w>510</w>
+      <h>140</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>10.0;125.4;502.1;10.0</additional_attributes>
+  </element>
+</diagram>

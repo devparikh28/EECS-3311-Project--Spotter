@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="15.1">
+  <zoom_level>10</zoom_level>
+  <element>
+    <id>UMLSequenceAllInOne</id>
+    <coordinates>
+      <x>20</x>
+      <y>20</y>
+      <w>1350</w>
+      <h>1772</h>
+    </coordinates>
+    <panel_attributes>title=SD09 Save Profile and Log Intake (F01, F09 / UC01, UC11)
+obj=Lifter~lifter ACTOR
+obj=ProfilePanel~pui
+obj=NutritionPanel~nui
+obj=CoachController~ctrl
+obj=ProfileRepository~prepo
+obj=FoodCatalog~cat
+obj=MacroTracker~macros
+obj=IntakeRepository~irepo
+obj=EventBus~bus
+
+lifter-&gt;&gt;&gt;pui : onSaveClicked(); on=pui
+pui-&gt;&gt;&gt;ctrl : saveProfile(profile); on=ctrl
+ctrl-&gt;&gt;&gt;ctrl : validate(required fields, goal, meet date if given)
+combinedFragment=alt~f1 ctrl bus
+ctrl:[valid]
+ctrl-&gt;&gt;&gt;prepo : save(profile)
+prepo.&gt;ctrl : LifterProfile
+ctrl-&gt;&gt;&gt;bus : publish(PROFILE_UPDATED)
+bus-&gt;&gt;&gt;nui : onEvent(e)
+ctrl.&gt;pui : saved
+pui.&gt;lifter : confirmation
+..=f1
+ctrl:[missing field or past meet date]
+ctrl.&gt;pui : ValidationReport(errors)
+pui.&gt;lifter : fields highlighted, nothing saved
+--=f1
+off=pui
+lifter-&gt;&gt;&gt;nui : onLogIntakeClicked(food, grams); on=nui
+nui-&gt;&gt;&gt;ctrl : logIntake(FoodEntry)
+ctrl-&gt;&gt;&gt;cat : byName(food)
+combinedFragment=alt~f2 ctrl irepo
+ctrl:[known food]
+cat.&gt;ctrl : FoodItem
+..=f2
+ctrl:[unknown food]
+ctrl.&gt;nui : request macros per 100 g
+lifter-&gt;&gt;&gt;nui : enter values
+nui-&gt;&gt;&gt;ctrl : addFood(FoodItem)
+ctrl-&gt;&gt;&gt;cat : add(item)
+--=f2
+combinedFragment=alt~f3 ctrl bus
+ctrl:[grams within range]
+ctrl-&gt;&gt;&gt;macros : recordIntake(today, entry); on=macros
+macros-&gt;&gt;&gt;irepo : save(intake)
+macros.&gt;ctrl : MacroTotals(consumed)
+ctrl-&gt;&gt;&gt;macros : getRemaining(today)
+macros.&gt;ctrl : MacroTotals(remaining)
+ctrl-&gt;&gt;&gt;macros : weeklyAdherence(weekStart)
+macros.&gt;ctrl : percentage, days with no entries excluded; off=macros
+ctrl-&gt;&gt;&gt;bus : publish(INTAKE_LOGGED)
+ctrl.&gt;nui : remaining macros and adherence
+nui.&gt;lifter : updated totals
+..=f3
+ctrl:[grams zero, negative or implausible]
+ctrl.&gt;nui : rejected with message
+nui.&gt;lifter : entry not saved
+--=f3
+off=ctrl; off=nui</panel_attributes>
+    <additional_attributes />
+  </element>
+</diagram>

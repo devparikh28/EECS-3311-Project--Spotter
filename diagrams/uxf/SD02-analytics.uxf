@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="15.1">
+  <zoom_level>10</zoom_level>
+  <element>
+    <id>UMLSequenceAllInOne</id>
+    <coordinates>
+      <x>20</x>
+      <y>20</y>
+      <w>900</w>
+      <h>990</h>
+    </coordinates>
+    <panel_attributes>title=SD02 View Strength Analytics (F04 / UC05)
+obj=Lifter~lifter ACTOR
+obj=AnalyticsPanel~ui
+obj=CoachController~ctrl
+obj=WorkoutRepository~repo
+obj=StrengthAnalytics~an
+obj=RPEChart~chart
+
+lifter-&gt;&gt;&gt;ui : onLiftSelected(SQUAT); on=ui
+ui-&gt;&gt;&gt;ctrl : getAnalytics(SQUAT); on=ctrl
+ctrl-&gt;&gt;&gt;repo : findByLift(SQUAT, since)
+repo.&gt;ctrl : List&lt;WorkoutSession&gt;
+combinedFragment=alt~f1 ctrl chart
+ctrl:[history empty]
+ctrl.&gt;ui : AnalyticsSummary.empty()
+ui.&gt;lifter : empty state, prompt to import
+..=f1
+ctrl:[history exists]
+ctrl-&gt;&gt;&gt;an : e1rmSeries(SQUAT, history); on=an
+combinedFragment=loop~l1 an chart
+an:[for each SetEntry]
+an-&gt;&gt;&gt;chart : percentOf1RM(reps, rpe)
+chart.&gt;an : percentage
+an-&gt;&gt;&gt;an : computeE1RM(set) or exclude invalid RPE
+--=l1
+an.&gt;ctrl : List&lt;Point&gt;; off=an
+ctrl-&gt;&gt;&gt;an : weeklyTonnage(SQUAT, history)
+an.&gt;ctrl : List&lt;Point&gt;
+ctrl-&gt;&gt;&gt;an : bestSet(SQUAT, history)
+an.&gt;ctrl : SetEntry
+ctrl.&gt;ui : AnalyticsSummary
+ui.&gt;lifter : chart, figures, data quality warnings
+--=f1</panel_attributes>
+    <additional_attributes />
+  </element>
+</diagram>

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="15.1">
+  <zoom_level>10</zoom_level>
+  <element>
+    <id>UMLSequenceAllInOne</id>
+    <coordinates>
+      <x>20</x>
+      <y>20</y>
+      <w>1500</w>
+      <h>1126</h>
+    </coordinates>
+    <panel_attributes>title=SD04 Substitute Unavailable Exercise (F06 / UC08, UC07)
+obj=Lifter~lifter ACTOR
+obj=PlanPanel~ui
+obj=CoachController~ctrl
+obj=SubstitutionAgent~agent
+obj=ExerciseDBTool~tool
+obj=ClaudeClient~llm
+obj=PlanValidator~val
+obj=PlanEditHistory~hist
+obj=SwapExerciseCommand~cmd
+obj=TrainingBlock~block
+
+lifter-&gt;&gt;&gt;ui : onSubstituteClicked(prescriptionId); on=ui
+ui-&gt;&gt;&gt;ctrl : suggestSubstitute(id); on=ctrl
+ctrl-&gt;&gt;&gt;agent : run(AgentRequest); on=agent
+agent-&gt;&gt;&gt;tool : execute(pattern, muscles, equipment)
+tool.&gt;agent : candidate exercises
+combinedFragment=alt~f1 agent block
+agent:[no candidates]
+agent.&gt;ctrl : AgentResult(success = false)
+ctrl.&gt;ui : no automatic substitute
+ui.&gt;lifter : swap manually through UC07
+..=f1
+agent:[candidates exist]
+ref=agent llm :UC14 agent loop, see SD03
+agent-&gt;&gt;&gt;val : validateSubstitution(chosen, candidates)
+val.&gt;agent : ValidationReport
+agent.&gt;ctrl : AgentResult(exercise, rationale); off=agent
+ctrl.&gt;ui : suggestion and rationale
+ui.&gt;lifter : proposed substitute
+lifter-&gt;&gt;&gt;ui : accept()
+ui-&gt;&gt;&gt;ctrl : applyEdit(SwapExerciseCommand)
+ctrl-&gt;&gt;&gt;hist : execute(cmd); on=hist
+hist-&gt;&gt;&gt;cmd : execute(); on=cmd
+cmd-&gt;&gt;&gt;block : setExercise(prescriptionId, newExercise)
+cmd-&gt;&gt;&gt;cmd : store previous exercise for undo; off=cmd
+hist-&gt;&gt;&gt;hist : push(cmd); off=hist
+ctrl.&gt;ui : plan updated
+ui.&gt;lifter : Undo available
+--=f1
+off=ctrl; off=ui</panel_attributes>
+    <additional_attributes />
+  </element>
+</diagram>
