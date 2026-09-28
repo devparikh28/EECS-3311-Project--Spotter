@@ -33,5 +33,6 @@ Every feature traces to a use case that describes the interaction, the classes t
 | Adapter | F02, F03 |
 | Factory Method | F02, F03, F05, F06, F10, F11 |
 | Template Method | F05, F06, F07, F08, F10, F11 |
+| Decorator | F05, F06, F07, F08, F10, F11 (caching and recording around every model call) |
 
 **Deterministic and AI behaviour are separable for Stage 3.** The classes in the traceability table divide cleanly: `StrengthAnalytics`, `RPEChart`, `AttemptCalculator`, `MacroTracker`, `RecoveryRuleEngine`, `CsvImportService`, the adapters, the catalogs and the repositories are all unit testable with JUnit, while the six `CoachAgent` subclasses and their validators are what KUMA exercises. `PlanValidator` sits on the boundary and is testable both ways, which is deliberate: it is the component that decides whether model output is acceptable.

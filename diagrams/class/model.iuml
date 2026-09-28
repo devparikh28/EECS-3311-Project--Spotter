@@ -366,6 +366,15 @@ package "domain" $dom {
 
 ' ---------------- Agent ----------------
 package "agent" $agent {
+  note as N_COST
+    Cost and latency are design concerns here:
+    each agent declares a ModelTier, so simple tasks
+    (substitution, rationale, meal) use the fast model
+    and only block generation uses the stronger one.
+    CachingLLMClient returns a stored reply for an
+    identical request, which matters most when the
+    Stage 3 suites rerun the same scenarios.
+  end note
   note as N_LC4J
     ClaudeClient and ConversationHistory wrap
     LangChain4j types (AnthropicChatModel,
@@ -380,6 +389,7 @@ package "agent" $agent {
     # prompts : PromptBuilder
     # parser : ResponseParser
     # validator : PlanValidator
+    # tier : ModelTier
     # maxRetries : int = 1
     # maxToolRounds : int = 5
     + run(req : AgentRequest) : AgentResult {final}
@@ -415,6 +425,14 @@ package "agent" $agent {
     + attempts : int
   }
 
+  enum ModelTier $agent {
+    FAST
+    STANDARD
+  }
+  class LLMClientProvider $agent {
+    - clients : Map<ModelTier, LLMClient>
+    + forTier(t : ModelTier) : LLMClient
+  }
   interface LLMClient <<Strategy>> $agent {
     + complete(msgs : List<Message>, tools : List<ToolSchema>, system : String) : LLMResponse
   }
@@ -428,6 +446,21 @@ package "agent" $agent {
   }
   class ScriptedLLMClient $agent {
     - responses : List<LLMResponse>
+  }
+  abstract class LLMClientDecorator <<Decorator>> $agent {
+    # delegate : LLMClient
+    + complete(msgs : List<Message>, tools : List<ToolSchema>, system : String) : LLMResponse
+  }
+  class CachingLLMClient $agent {
+    - cache : Map<String, LLMResponse>
+    - hits : int
+    - misses : int
+    - key(msgs : List<Message>, tools : List<ToolSchema>) : String
+    + statistics() : String
+  }
+  class RecordingLLMClient $agent {
+    - fixtureDir : Path
+    - record(key : String, r : LLMResponse) : void
   }
   class LLMResponse $agent {
     + content : String [0..1]
@@ -680,6 +713,13 @@ PlanValidator ..> ValidationReport
 ChatAgent --> "1" MemoryManager
 LLMClient <|.. ClaudeClient
 LLMClient <|.. ScriptedLLMClient
+LLMClient <|.. LLMClientDecorator
+LLMClientDecorator <|-- CachingLLMClient
+LLMClientDecorator <|-- RecordingLLMClient
+LLMClientDecorator "1" o-- "1" LLMClient : wraps >
+LLMClientProvider ..> LLMClient : creates
+LLMClientProvider --> ModelTier
+CoachAgent --> ModelTier
 LLMClient ..> LLMResponse
 LLMClient ..> Message
 LLMResponse "1" *-- "0..*" ToolCall
