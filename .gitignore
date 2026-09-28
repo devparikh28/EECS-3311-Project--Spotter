@@ -3,18 +3,25 @@
 *.key
 config.local.*
 
-# python
+# java / maven
+target/
+*.class
+*.jar
+!plantuml.jar.keep
+
+# python harness
 __pycache__/
 *.py[cod]
 .venv/
-venv/
-.pytest_cache/
 
 # data and db
 *.db
 *.sqlite3
 data/local/
+trace.jsonl
 
-# tooling
-plantuml.jar
+# ide and os
+.idea/
+*.iml
+.vscode/
 .DS_Store

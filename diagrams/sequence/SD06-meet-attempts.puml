@@ -1,6 +1,6 @@
 @startuml SD06-meet-attempts
 !include _style.iuml
-title SD06 — Select Meet Attempts (F08 / UC10)
+title SD06 — Plan a Heavy Single: Meet Attempts or Test Day (F08 / UC10)
 
 actor Lifter
 boundary "MeetPanel\n<<GUI>>" as UI
@@ -19,15 +19,15 @@ activate Analytics
 Analytics --> Ctrl : Map<Lift, float>
 deactivate Analytics
 
-loop for each competition lift
-  alt sufficient recent data
-    Ctrl -> Calc : calculate(lift, e1rm)
-  else thin data
-    Ctrl -> Calc : calculate(lift, e1rm, conservative = true)
+loop for each main lift
+  alt profile has a meet date
+    Ctrl -> Calc : calculateMeetAttempts(lift, e1rm)
+  else no meet date
+    Ctrl -> Calc : projectTestDay(lift, e1rm)
   end
   activate Calc
   Calc -> Calc : roundToPlate(kg)
-  Calc --> Ctrl : MeetAttempts(opener, second, third)
+  Calc --> Ctrl : MeetAttempts or TestDayPlan
   deactivate Calc
 end
 
@@ -47,7 +47,7 @@ deactivate Validator
 alt rationale consistent
   Agent --> Ctrl : AgentResult(rationale)
   Ctrl --> UI : attempts and rationale
-  UI --> Lifter : nine attempts with explanation
+  UI --> Lifter : attempts or test day plan with explanation
 else rationale contradicts calculator, or agent failed
   Agent --> Ctrl : AgentResult(success = false)
   Ctrl --> UI : attempts only

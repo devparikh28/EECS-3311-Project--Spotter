@@ -9,7 +9,7 @@ Nine sequence diagrams cover every important behaviour in the system. Each one u
 | SD03 Generate Training Block | F05 | UC06, UC14 | `SD03-generate-block.puml` |
 | SD04 Substitute Unavailable Exercise | F06 | UC08, UC07 | `SD04-substitute-exercise.puml` |
 | SD05 Adjust Session for Poor Recovery | F07 | UC09, UC07 | `SD05-recovery-adjustment.puml` |
-| SD06 Select Meet Attempts | F08 | UC10 | `SD06-meet-attempts.puml` |
+| SD06 Plan a Heavy Single | F08 | UC10 | `SD06-meet-attempts.puml` |
 | SD07 Get Meal Suggestion | F10 | UC12 | `SD07-meal-suggestion.puml` |
 | SD08 Chat with Coach | F11 | UC13 | `SD08-coach-chat.puml` |
 | SD09 Save Profile and Log Intake | F01, F09 | UC01, UC11 | `SD09-profile-and-macros.puml` |
@@ -56,11 +56,11 @@ Split into two phases. Flagging is deterministic: `RecoveryRuleEngine.evaluate()
 
 The validator here enforces direction: an adjustment may not raise loads or remove a competition lift. The diagram also shows the deterministic fallback, `RecoveryRuleEngine.fallbackAdjustment()`, which reduces sets by one third when the agent or the API fails, so the feature still works without Claude.
 
-## SD06 — Select Meet Attempts
+## SD06 — Plan a Heavy Single
 
 ![SD06](../../diagrams/sequence/SD06-meet-attempts.png)
 
-The numbers come from `AttemptCalculator` before the agent is involved at all, including the plate rounding. The agent only writes the rationale, and `PlanValidator.validateRationale()` confirms every number quoted in that text matches the calculator. If the rationale contradicts the calculator or the agent fails, the attempts are still shown without a rationale. The diagram also covers thin data (a conservative percentage plus a warning) and a manual override by the lifter.
+The numbers come from `AttemptCalculator` before the agent is involved at all, including the plate rounding. Which method runs depends on the profile: `calculateMeetAttempts()` when a meet date is set, `projectTestDay()` when it is not, so a lifter who never competes still gets a planned heavy single. The agent only writes the rationale, and `PlanValidator.validateRationale()` confirms every number quoted in that text matches the calculator. If the rationale contradicts the calculator or the agent fails, the attempts are still shown without a rationale. The diagram also covers thin data (a conservative percentage plus a warning) and a manual override by the lifter.
 
 ## SD07 — Get Meal Suggestion
 

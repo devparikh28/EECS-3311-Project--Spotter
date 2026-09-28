@@ -1,5 +1,5 @@
 ' ============================================================
-' LiftPilot — shared class model (included by every view)
+' Spotter — shared class model (included by every view)
 ' ============================================================
 skinparam classAttributeIconSize 0
 skinparam packageStyle rectangle
@@ -96,6 +96,16 @@ package "application" $app {
     + applyEdit(cmd : PlanEditCommand) : void
     + undoLastEdit() : void
   }
+  class FxTaskRunner $app {
+    + run(work : Supplier<T>, onDone : Consumer<T>, onError : Consumer<Throwable>) : void
+  }
+  note as N_FX
+    Agent calls take seconds, so CoachController
+    runs them through FxTaskRunner on a background
+    thread. Results and events reach the panels on
+    the JavaFX Application Thread via Platform.runLater,
+    so the window never blocks.
+  end note
   class EventBus <<Observer: Subject>> $app {
     - listeners : Map<EventType, List<EventListener>>
     + subscribe(t : EventType, l : EventListener) : void
@@ -161,10 +171,12 @@ package "domain" $dom {
     + id : int
     + bodyweightKg : double
     + weightClassKg : double
-    + meetDate : LocalDate
+    + goal : TrainingGoal
+    + meetDate : LocalDate [0..1]
     + trainingDaysPerWeek : int
     + equipment : Set<Equipment>
-    + weeksUntilMeet(today : LocalDate) : int
+    + hasMeetDate() : boolean
+    + weeksUntilMeet(today : LocalDate) : Optional<Integer>
     + hasEquipment(e : Equipment) : boolean
   }
   class DietaryConstraints $dom {
@@ -172,6 +184,12 @@ package "domain" $dom {
     + allowsDairy : boolean
     + allowsEggs : boolean
     + permits(f : FoodItem) : boolean
+  }
+  enum TrainingGoal $dom {
+    MEET_PREP
+    STRENGTH
+    HYPERTROPHY
+    GENERAL_FITNESS
   }
   enum Lift $dom {
     SQUAT
@@ -308,8 +326,15 @@ package "domain" $dom {
     - openerPct : double = 0.91
     - secondPct : double = 0.96
     - thirdPct : double = 1.01
-    + calculate(lift : Lift, e1rm : double) : MeetAttempts
+    + calculateMeetAttempts(lift : Lift, e1rm : double) : MeetAttempts
+    + projectTestDay(lift : Lift, e1rm : double) : TestDayPlan
     - roundToPlate(kg : double) : double
+  }
+  class TestDayPlan $dom {
+    + lift : Lift
+    + topSingle : double
+    + warmups : List<Double>
+    + rationale : String
   }
   class MacroTracker $dom {
     - target : MacroTarget
@@ -326,6 +351,9 @@ package "domain" $dom {
   class RecoveryFlag $dom {
     + date : LocalDate
     + reasons : List<String>
+  }
+  class ProgressionStrategyFactory <<Factory>> $dom {
+    + forGoal(g : TrainingGoal) : ProgressionStrategy
   }
   interface ProgressionStrategy <<Strategy>> $dom {
     + loadRange(e1rm : double, reps : int, rpe : double, week : int) : Range
@@ -580,6 +608,8 @@ CoachCLI --> "1" CoachController
 CoachController *-- "1" EventBus
 CoachController *-- "1" PlanEditHistory
 CoachController *-- "1" AgentRegistry
+CoachController --> "1" FxTaskRunner
+CoachController --> ProgressionStrategyFactory
 EventBus "1" o-- "*" EventListener : notifies >
 EventBus ..> DomainEvent
 DomainEvent --> EventType
@@ -621,6 +651,9 @@ Tool ..> ToolSchema
 MacroTracker --> "1" MacroTarget
 MacroTracker ..> DailyIntake
 AttemptCalculator ..> MeetAttempts : creates
+AttemptCalculator ..> TestDayPlan : creates
+ProgressionStrategyFactory ..> ProgressionStrategy : creates
+LifterProfile --> TrainingGoal
 RecoveryRuleEngine ..> RecoveryFlag : creates
 ProgressionStrategy <|.. RPEProgression
 ProgressionStrategy <|.. LinearProgression

@@ -1,11 +1,13 @@
-# LiftPilot — EECS 3311 Course Project
+# Spotter — EECS 3311 Course Project
 
-An AI agent that plans and adapts powerlifting training and nutrition.
+An AI agent that plans and adapts strength training and nutrition.
 
 **Course:** EECS 3311 Software Design, York University, Fall 2026
 **Author:** Dev Parikh
 
-LiftPilot imports a lifter's training history and recovery data, computes strength metrics deterministically, and uses an LLM agent to plan training blocks, adapt sessions to recovery, substitute unavailable exercises, select meet attempts, and answer coaching questions. Deterministic components do all arithmetic and validation; the agent handles judgement, and no model output reaches the domain model without passing a parser and a validator.
+Spotter imports a lifter's training history and recovery data, computes strength metrics deterministically, and uses an LLM agent to plan training blocks, adapt sessions to recovery, substitute unavailable exercises, plan a heavy single, and answer coaching questions. It serves any strength trainee: the profile carries a training goal (meet prep, strength, hypertrophy, or general fitness) and a meet date is optional.
+
+Deterministic components do all arithmetic and validation. The agent supplies judgement, and no model output reaches the domain model without passing a parser and a validator.
 
 ## Status
 
@@ -17,7 +19,7 @@ LiftPilot imports a lifter's training history and recovery data, computes streng
 
 ## Stage 1 Report
 
-The report is written as sections under `docs/stage1/`, numbered to match the Stage 1 deliverables list.
+Sections live under `docs/stage1/`, numbered to match the Stage 1 deliverables list.
 
 | Section | Document | State |
 |---|---|---|
@@ -33,46 +35,80 @@ The report is written as sections under `docs/stage1/`, numbered to match the St
 
 ## Diagrams
 
-All diagrams are written as PlantUML source and rendered to PNG and SVG. The class diagram uses one shared model (`diagrams/class/model.iuml`) rendered into five views, so the views cannot disagree with each other.
+All diagrams are PlantUML source rendered to PNG and SVG. The class diagram uses one shared model (`diagrams/class/model.iuml`) rendered into five views, so the views cannot disagree with each other.
 
 ```
 diagrams/
-  class/      model.iuml, five views (full, presentation and application, domain, agent, infrastructure)
+  class/      model.iuml plus five views (full, presentation and application, domain, agent, infrastructure)
   usecase/    usecase.puml
   sequence/   SD01 to SD09
 ```
 
-To regenerate after editing a source file:
+Regenerate after editing a source file:
 
 ```
 java -jar plantuml.jar -tpng diagrams/**/*.puml
 java -jar plantuml.jar -tsvg diagrams/**/*.puml
 ```
 
-## Planned Technology (Stage 2)
+## Technology (Stage 2)
 
 | Concern | Choice |
 |---|---|
 | Language | Java 21 |
 | Build | Maven |
-| GUI | JavaFX, tabbed dashboard |
-| CLI | picocli, command name `liftpilot` |
-| Storage | SQLite through JDBC, behind a `Repository` interface |
-| LLM | Anthropic Claude through LangChain4j (`langchain4j-anthropic`), wrapped in `ClaudeClient` |
+| GUI | JavaFX 21, tabbed dashboard, built in LineChart and BarChart for analytics |
+| CLI | picocli, command name `spotter` |
+| Storage | SQLite through `sqlite-jdbc`, behind a `Repository<T>` interface |
+| LLM | Anthropic Claude through LangChain4j (`langchain4j`, `langchain4j-anthropic`), wrapped in `ClaudeClient` |
+| JSON | Jackson, for parsing model output into domain objects |
 | Data sources | Hevy and Whoop CSV exports behind a `DataSource` interface |
-| Unit testing | JUnit 5 and Mockito |
-| Agent behaviour testing | KUMA, driven through the CLI by a small Python harness |
+| Unit testing | JUnit 5, Mockito, AssertJ |
+| Agent behaviour testing | KUMA (Python SDK) driving the Java CLI through a small harness |
+
+## Planned Source Layout (Stage 2)
+
+```
+pom.xml
+src/main/java/ca/yorku/eecs3311/spotter/
+  presentation/     DashboardApp, BasePanel and 7 panels, CoachCLI commands
+  application/      CoachController, EventBus, PlanEditHistory, FxTaskRunner, AgentRegistry
+  domain/           entities, StrengthAnalytics, AttemptCalculator, MacroTracker,
+                    RecoveryRuleEngine, ProgressionStrategy and implementations
+  agent/            CoachAgent and 6 agents, LLMClient, ClaudeClient, ScriptedLLMClient,
+                    ToolManager, 5 tools, PromptBuilder, ResponseParser, PlanValidator,
+                    MemoryManager, ConversationHistory
+  infrastructure/   DataSource adapters, CsvImportService, catalogs, SQLite repositories
+src/main/resources/ FXML layouts, exercise and food catalog seed data
+src/test/java/      JUnit 5 tests mirroring the package structure
+tools/kuma/         Python harness for Stage 3 agent behaviour tests
+```
+
+## Why a Small Amount of Python
+
+KUMA is a Python SDK and its protocol is a loop the caller owns:
+
+```python
+while (test_input := run.get_input()) is not None:
+    report = run.submit(execute_agent(test_input), logs=["trace.jsonl"])
+```
+
+`execute_agent` invokes the Java CLI as a subprocess and returns its output. The CLI appends one JSON object per tool call, validation result, and retry to `trace.jsonl`, which KUMA ingests as evidence. The application itself is entirely Java; the harness under `tools/kuma/` exists only to run Stage 3 behavioural tests.
 
 ## Architecture
 
 Five layers, each depending only on the layer beneath it or on an interface.
 
 ```
-Presentation    DashboardGUI (7 panels), CoachCLI
-Application     CoachController (Facade), EventBus, PlanEditHistory
-Domain          entities, StrengthAnalytics, AttemptCalculator, MacroTracker, RecoveryRuleEngine
-Agent           CoachAgent (Template Method) and 6 agents, ClaudeClient, ToolManager, 5 tools, MemoryManager
+Presentation    DashboardApp (7 panels), CoachCLI
+Application     CoachController (Facade), EventBus, PlanEditHistory, FxTaskRunner
+Domain          entities, StrengthAnalytics, AttemptCalculator, MacroTracker,
+                RecoveryRuleEngine, ProgressionStrategy
+Agent           CoachAgent (Template Method) and 6 agents, ClaudeClient, ToolManager,
+                5 tools, MemoryManager
 Infrastructure  CSV adapters, catalogs, SQLite repositories
 ```
+
+Agent calls take seconds, so `CoachController` runs them on a background thread through `FxTaskRunner` and delivers results to the panels with `Platform.runLater()`, keeping the JavaFX Application Thread free. The CLI calls the same controller methods and blocks, having no UI thread to protect.
 
 Design patterns applied: Facade, Strategy, Observer, Command, Adapter, Factory Method, Template Method. Builder and Repository appear as supporting patterns.

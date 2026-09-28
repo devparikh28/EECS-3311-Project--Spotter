@@ -1,5 +1,5 @@
 @startuml usecase
-title LiftPilot — Use Case Diagram
+title Spotter — Use Case Diagram
 left to right direction
 skinparam shadowing false
 skinparam packageStyle rectangle
@@ -18,7 +18,7 @@ actor "Hevy App\n<<external system>>" as Hevy
 actor "Whoop App\n<<external system>>" as Whoop
 actor "Claude LLM Service\n<<external system>>" as Claude
 
-rectangle "LiftPilot (GUI and CLI)" {
+rectangle "Spotter (GUI and CLI)" {
   usecase "UC01 Manage Lifter Profile" as UC01
   usecase "UC02 Import Workout History" as UC02
   usecase "UC03 Log Workout Manually" as UC03
@@ -28,7 +28,7 @@ rectangle "LiftPilot (GUI and CLI)" {
   usecase "UC07 Edit Training Plan" as UC07
   usecase "UC08 Substitute Unavailable Exercise" as UC08
   usecase "UC09 Adjust Session for Poor Recovery" as UC09
-  usecase "UC10 Select Meet Attempts" as UC10
+  usecase "UC10 Plan a Heavy Single" as UC10
   usecase "UC11 Track Macros" as UC11
   usecase "UC12 Get Meal Suggestion" as UC12
   usecase "UC13 Chat with Coach" as UC13

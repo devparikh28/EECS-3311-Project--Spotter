@@ -1,6 +1,6 @@
 # 2. Feature Specifications
 
-Eleven features, each classified as deterministic, AI, or hybrid. That classification decides how the feature is tested in Stage 3: deterministic behaviour through automated unit and integration tests, agent behaviour through KUMA.
+Eleven features, each classified as deterministic, AI, or hybrid. The system serves any strength trainee: a meet date is optional, and the training goal recorded in F01 drives planning for everyone else. That classification decides how the feature is tested in Stage 3: deterministic behaviour through automated unit and integration tests, agent behaviour through KUMA.
 
 | ID | Feature | Type |
 |---|---|---|
@@ -11,25 +11,25 @@ Eleven features, each classified as deterministic, AI, or hybrid. That classific
 | F05 | Training Block Generation | AI |
 | F06 | Equipment Substitution | AI |
 | F07 | Recovery Aware Session Adjustment | Hybrid |
-| F08 | Meet Attempt Selection | Hybrid |
+| F08 | Max Testing and Attempt Planning | Hybrid |
 | F09 | Macro Targets and Adherence Tracking | Deterministic |
 | F10 | Vegetarian Meal Suggestion | AI |
 | F11 | Coaching Chat with Memory | AI |
 
 ## F01 — Lifter Profile and Constraints
 
-- **Description:** Stores the lifter's identity, competition class, meet date, training frequency, gym equipment inventory, dietary constraints, and macro targets. Every other feature reads from this record.
-- **User Interaction:** Profile tab in the GUI, with fields for bodyweight, weight class, meet date, training days per week, an equipment checklist, and dietary flags. CLI: `liftpilot profile set`, `liftpilot profile show`.
-- **Input:** Bodyweight, weight class, meet date, training days, equipment list, dietary constraints, macro targets.
+- **Description:** Stores the lifter's identity, training goal, optional competition details, training frequency, gym equipment inventory, dietary constraints, and macro targets. Every other feature reads from this record.
+- **User Interaction:** Profile tab in the GUI, with fields for bodyweight, training goal, an optional meet date and weight class, training days per week, an equipment checklist, and dietary flags. CLI: `spotter profile set`, `spotter profile show`.
+- **Input:** Bodyweight, training goal (meet prep, strength, hypertrophy, or general fitness), optional meet date and weight class, training days, equipment list, dietary constraints, macro targets.
 - **Output:** A saved `LifterProfile` record.
 - **AI Involvement:** Deterministic.
 - **Expected Workflow:** The lifter fills the form and saves; `CoachController.saveProfile()` validates required fields and persists through `ProfileRepository`; a `PROFILE_UPDATED` event refreshes dependent panels.
-- **Error and Alternative Cases:** A missing required field blocks the save with an inline message. A meet date in the past is rejected. An empty equipment list is allowed and defaults to bodyweight only, with a warning that plan generation will be limited.
+- **Error and Alternative Cases:** A missing required field blocks the save with an inline message. A meet date is optional; if given it must be in the future. Selecting the meet prep goal without a meet date prompts for one, while every other goal ignores the field entirely. An empty equipment list is allowed and defaults to bodyweight only, with a warning that plan generation will be limited.
 
 ## F02 — Workout Import
 
 - **Description:** Imports a Hevy CSV export, or accepts manual entry, to build the training history.
-- **User Interaction:** Log tab, Import Hevy CSV button and a manual entry form. CLI: `liftpilot import hevy <file>`, `liftpilot log add`.
+- **User Interaction:** Log tab, Import Hevy CSV button and a manual entry form. CLI: `spotter import hevy <file>`, `spotter log add`.
 - **Input:** A Hevy export CSV file, or a manually typed exercise with sets, reps, weight, and RPE.
 - **Output:** `WorkoutSession` and `SetEntry` records in the database.
 - **AI Involvement:** Deterministic.
@@ -39,7 +39,7 @@ Eleven features, each classified as deterministic, AI, or hybrid. That classific
 ## F03 — Recovery Import
 
 - **Description:** Imports a Whoop CSV export containing daily sleep, HRV, and recovery score data.
-- **User Interaction:** Log tab, Import Whoop CSV button. CLI: `liftpilot import whoop <file>`.
+- **User Interaction:** Log tab, Import Whoop CSV button. CLI: `spotter import whoop <file>`.
 - **Input:** A Whoop export CSV file.
 - **Output:** `RecoveryDay` records in the database, and recovery flags on upcoming sessions.
 - **AI Involvement:** Deterministic.
@@ -49,7 +49,7 @@ Eleven features, each classified as deterministic, AI, or hybrid. That classific
 ## F04 — Strength Analytics
 
 - **Description:** Computes an estimated one rep max per lift from RPE based sets, weekly tonnage, and progression trends over time.
-- **User Interaction:** Analytics tab with a lift selector, chart, and summary figures. CLI: `liftpilot analytics <lift>`.
+- **User Interaction:** Analytics tab with a lift selector, chart, and summary figures. CLI: `spotter analytics <lift>`.
 - **Input:** Stored `WorkoutSession` and `SetEntry` history for the selected lift.
 - **Output:** An `AnalyticsSummary` with an e1RM series, weekly tonnage, best set, and data quality warnings.
 - **AI Involvement:** Deterministic.
@@ -58,18 +58,18 @@ Eleven features, each classified as deterministic, AI, or hybrid. That classific
 
 ## F05 — Training Block Generation
 
-- **Description:** The agent generates a multi week training block from the profile, recent history, current e1RMs, and the time remaining until the meet.
-- **User Interaction:** Plan tab, Generate Block with a week count. CLI: `liftpilot plan generate <weeks>`.
-- **Input:** Block length in weeks, plus the stored profile and history.
+- **Description:** The agent generates a multi week training block from the profile, the training goal, recent history, current e1RMs, and, when one is set, the time remaining until the meet.
+- **User Interaction:** Plan tab, Generate Block with a week count. CLI: `spotter plan generate <weeks>`.
+- **Input:** Block length in weeks, plus the stored profile, goal, and history. With a meet date the length defaults to the weeks remaining.
 - **Output:** A `TrainingBlock` of `Week`, `Session`, and `ExercisePrescription` objects, editable in the GUI.
 - **AI Involvement:** AI.
-- **Expected Workflow:** `BlockGenerationAgent` collects e1RMs through `AnalyticsTool` and available exercises through `ExerciseDBTool`, `PromptBuilder` assembles the request with an output schema, `ClaudeClient.complete()` calls Claude, `ResponseParser.toBlock()` builds domain objects, and `PlanValidator.validateBlock()` checks loads against the active `ProgressionStrategy` before the block is saved.
+- **Expected Workflow:** `BlockGenerationAgent` collects e1RMs through `AnalyticsTool` and available exercises through `ExerciseDBTool`, `PromptBuilder` assembles the request with an output schema, `ClaudeClient.complete()` calls Claude, `ResponseParser.toBlock()` builds domain objects, and `PlanValidator.validateBlock()` checks loads against the `ProgressionStrategy` that `ProgressionStrategyFactory.forGoal()` selected for the lifter's goal, before the block is saved.
 - **Error and Alternative Cases:** Invalid JSON or a failed validation triggers one retry with the errors appended to the prompt; a second failure shows an error and leaves any existing block unchanged. An API timeout is retried once, then reported. Thin history for a lift produces a warning and conservative loads. An existing block is replaced only after confirmation.
 
 ## F06 — Equipment Substitution
 
 - **Description:** When a prescribed exercise needs equipment the lifter's gym does not have, the agent proposes a substitute with a matching movement pattern and muscle groups.
-- **User Interaction:** Plan tab, warning icon on the affected exercise, Suggest Substitute. CLI: `liftpilot plan substitute <prescriptionId>`.
+- **User Interaction:** Plan tab, warning icon on the affected exercise, Suggest Substitute. CLI: `spotter plan substitute <prescriptionId>`.
 - **Input:** The unavailable exercise and the lifter's equipment list.
 - **Output:** A replacement exercise with a short rationale, applied as an undoable plan edit once accepted.
 - **AI Involvement:** AI.
@@ -79,27 +79,27 @@ Eleven features, each classified as deterministic, AI, or hybrid. That classific
 ## F07 — Recovery Aware Session Adjustment
 
 - **Description:** Flags training days that follow poor recovery and lets the agent rewrite that session's volume or intensity.
-- **User Interaction:** Plan tab, recovery badge on the session, Adjust Session. CLI: `liftpilot plan flags`, `liftpilot plan adjust <sessionId>`.
+- **User Interaction:** Plan tab, recovery badge on the session, Adjust Session. CLI: `spotter plan flags`, `spotter plan adjust <sessionId>`.
 - **Input:** The flagged session and the matching `RecoveryDay` data.
 - **Output:** A revised `Session` with an adjustment note explaining what changed and why.
 - **AI Involvement:** Hybrid. `RecoveryRuleEngine` flags deterministically; the agent rewrites only when asked.
 - **Expected Workflow:** The rule engine compares recovery score and sleep hours against thresholds, `AdjustmentAgent` proposes a lighter session, `PlanValidator` confirms nothing was made heavier and no competition lift was removed, and acceptance applies an `ApplyAdjustmentCommand`.
 - **Error and Alternative Cases:** Missing recovery data means no flag rather than an assumed bad day. If the agent or the API fails, `RecoveryRuleEngine.fallbackAdjustment()` offers a deterministic reduction instead. The lifter can reject the adjustment.
 
-## F08 — Meet Attempt Selection
+## F08 — Max Testing and Attempt Planning
 
-- **Description:** Calculates opener, second, and third attempts for each competition lift, with reasoning based on how the block went.
-- **User Interaction:** Meet tab, Calculate Attempts. CLI: `liftpilot meet attempts`.
-- **Input:** Current e1RMs for squat, bench, and deadlift, plus the recent training trend.
-- **Output:** Three attempts per lift, rounded to 2.5 kg, with a written rationale.
+- **Description:** Plans a heavy single for each main lift, with reasoning based on how the block went. With a meet date set, it produces competition attempts (opener, second, third); without one, it produces a test day plan (warm up progression and a top single) for a lifter who simply wants to see where their strength is.
+- **User Interaction:** Meet tab, Plan Test Day or Calculate Attempts depending on the goal. CLI: `spotter meet attempts`, `spotter test plan`.
+- **Input:** Current e1RMs for the main lifts, the recent training trend, and whether a meet date is set.
+- **Output:** With a meet date, three attempts per lift rounded to 2.5 kg. Without one, a `TestDayPlan` with warm up sets and a top single. Both carry a written rationale.
 - **AI Involvement:** Hybrid. The numbers are deterministic; only the explanation comes from the model.
-- **Expected Workflow:** `AttemptCalculator.calculate()` produces attempts at fixed percentages of e1RM and rounds to plate increments, then `AttemptRationaleAgent` writes the rationale, which `PlanValidator.validateRationale()` checks against those numbers.
-- **Error and Alternative Cases:** Thin recent data uses a conservative percentage with a warning. A rationale that contradicts the calculator, or an agent failure, results in the attempts being shown without a rationale. The lifter can override any attempt manually.
+- **Expected Workflow:** `AttemptCalculator.calculateMeetAttempts()` or `AttemptCalculator.projectTestDay()` produces the numbers at fixed percentages of e1RM, rounded to plate increments, then `AttemptRationaleAgent` writes the rationale, which `PlanValidator.validateRationale()` checks against those numbers.
+- **Error and Alternative Cases:** Thin recent data uses a conservative percentage with a warning. A rationale that contradicts the calculator, or an agent failure, results in the numbers being shown without a rationale. The lifter can override any value manually.
 
 ## F09 — Macro Targets and Adherence Tracking
 
 - **Description:** Stores daily calorie and macro targets and tracks adherence against logged intake.
-- **User Interaction:** Nutrition tab with an intake form and daily totals. CLI: `liftpilot macros log <food> <grams>`, `liftpilot macros today`, `liftpilot macros week`.
+- **User Interaction:** Nutrition tab with an intake form and daily totals. CLI: `spotter macros log <food> <grams>`, `spotter macros today`, `spotter macros week`.
 - **Input:** Macro targets from the profile and daily food entries.
 - **Output:** Remaining macros for the day and weekly adherence.
 - **AI Involvement:** Deterministic.
@@ -109,7 +109,7 @@ Eleven features, each classified as deterministic, AI, or hybrid. That classific
 ## F10 — Vegetarian Meal Suggestion
 
 - **Description:** Given the macros remaining for the day and the lifter's dietary constraints, the agent proposes a meal.
-- **User Interaction:** Nutrition tab, Suggest a Meal. CLI: `liftpilot meal suggest`.
+- **User Interaction:** Nutrition tab, Suggest a Meal. CLI: `spotter meal suggest`.
 - **Input:** Remaining macros and the dietary constraints stored in the profile.
 - **Output:** A `MealSuggestion` with items, gram amounts, and a full nutrition breakdown.
 - **AI Involvement:** AI.
@@ -119,7 +119,7 @@ Eleven features, each classified as deterministic, AI, or hybrid. That classific
 ## F11 — Coaching Chat with Memory
 
 - **Description:** A conversational interface for coaching questions, grounded in the lifter's own data and in earlier conversations.
-- **User Interaction:** Coach Chat tab. CLI: `liftpilot chat "<question>"` or an interactive session.
+- **User Interaction:** Coach Chat tab. CLI: `spotter chat "<question>"` or an interactive session.
 - **Input:** A natural language question.
 - **Output:** An answer, usually citing figures retrieved through tools.
 - **AI Involvement:** AI.
