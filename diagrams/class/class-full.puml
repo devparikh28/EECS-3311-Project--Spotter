@@ -1,0 +1,7 @@
+@startuml class-full
+!include model.iuml
+title LiftPilot — Complete Class Diagram
+DashboardGUI -[hidden]down- CoachController
+CoachController -[hidden]down- CoachAgent
+CoachAgent -[hidden]down- LifterProfile
+@enduml

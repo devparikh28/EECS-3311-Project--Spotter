@@ -1,0 +1,44 @@
+@startuml SD02-analytics
+!include _style.iuml
+title SD02 — View Strength Analytics (F04 / UC05)
+
+actor Lifter
+boundary "AnalyticsPanel\n<<GUI>>" as UI
+control "CoachController\n<<Facade>>" as Ctrl
+database "WorkoutRepository" as Repo
+participant "StrengthAnalytics" as Analytics
+participant "RPEChart" as Chart
+
+Lifter -> UI : onLiftSelected(SQUAT)
+UI -> Ctrl : getAnalytics(SQUAT)
+activate Ctrl
+Ctrl -> Repo : findByLift(SQUAT, since)
+Repo --> Ctrl : List<WorkoutSession>
+
+alt history is empty
+  Ctrl --> UI : AnalyticsSummary.empty()
+  UI --> Lifter : empty state with prompt to import data
+else history exists
+  Ctrl -> Analytics : e1rmSeries(SQUAT, history)
+  activate Analytics
+  loop for each SetEntry
+    alt rpe is valid and reps are consistent
+      Analytics -> Chart : percentOf1RM(reps, rpe)
+      Chart --> Analytics : percentage
+      Analytics -> Analytics : computeE1RM(set)
+    else invalid rpe or RPE 10 above 1 rep
+      Analytics -> Analytics : excludeSet(set, reason)
+    end
+  end
+  Analytics --> Ctrl : List<Point>
+  deactivate Analytics
+
+  Ctrl -> Analytics : weeklyTonnage(SQUAT, history)
+  Analytics --> Ctrl : List<Point>
+  Ctrl -> Analytics : bestSet(SQUAT, history)
+  Analytics --> Ctrl : SetEntry
+  Ctrl --> UI : AnalyticsSummary(series, tonnage, bestSet, warnings)
+  UI --> Lifter : chart, summary figures, data quality warnings
+end
+deactivate Ctrl
+@enduml

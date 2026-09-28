@@ -1,0 +1,8 @@
+<map id="SD08-coach-chat_map" name="SD08-coach-chat_map">
+<area shape="rect" id="id1" href="tool" title="tool" alt="" coords="539,733,566,746"/>
+<area shape="rect" id="id2" href="question" title="question" alt="" coords="367,981,449,994"/>
+<area shape="rect" id="id3" href="needs" title="needs" alt="" coords="614,527,710,540"/>
+<area shape="rect" id="id4" href="needs" title="needs" alt="" coords="539,631,640,643"/>
+<area shape="rect" id="id5" href="history" title="history" alt="" coords="831,1107,933,1120"/>
+<area shape="rect" id="id6" href="answer" title="answer" alt="" coords="292,1026,427,1039"/>
+</map>

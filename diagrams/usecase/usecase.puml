@@ -1,0 +1,64 @@
+@startuml usecase
+title LiftPilot — Use Case Diagram
+left to right direction
+skinparam shadowing false
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor #FFFFFF
+  BorderColor #444444
+}
+skinparam rectangle {
+  BackgroundColor #F7F7F7
+  BorderColor #999999
+}
+skinparam actorStyle awesome
+
+actor "Lifter" as Lifter
+actor "Hevy App\n<<external system>>" as Hevy
+actor "Whoop App\n<<external system>>" as Whoop
+actor "Claude LLM Service\n<<external system>>" as Claude
+
+rectangle "LiftPilot (GUI and CLI)" {
+  usecase "UC01 Manage Lifter Profile" as UC01
+  usecase "UC02 Import Workout History" as UC02
+  usecase "UC03 Log Workout Manually" as UC03
+  usecase "UC04 Import Recovery Data" as UC04
+  usecase "UC05 View Strength Analytics" as UC05
+  usecase "UC06 Generate Training Block" as UC06
+  usecase "UC07 Edit Training Plan" as UC07
+  usecase "UC08 Substitute Unavailable Exercise" as UC08
+  usecase "UC09 Adjust Session for Poor Recovery" as UC09
+  usecase "UC10 Select Meet Attempts" as UC10
+  usecase "UC11 Track Macros" as UC11
+  usecase "UC12 Get Meal Suggestion" as UC12
+  usecase "UC13 Chat with Coach" as UC13
+  usecase "UC14 Run Agent Task" as UC14
+  usecase "UC15 Resolve Unknown Exercise" as UC15
+}
+
+Lifter -- UC01
+Lifter -- UC02
+Lifter -- UC03
+Lifter -- UC04
+Lifter -- UC05
+Lifter -- UC06
+Lifter -- UC07
+Lifter -- UC08
+Lifter -- UC09
+Lifter -- UC10
+Lifter -- UC11
+Lifter -- UC12
+Lifter -- UC13
+
+Hevy -- UC02 : CSV export
+Whoop -- UC04 : CSV export
+UC14 -- Claude
+
+UC06 ..> UC14 : <<include>>
+UC08 ..> UC14 : <<include>>
+UC09 ..> UC14 : <<include>>
+UC10 ..> UC14 : <<include>>
+UC12 ..> UC14 : <<include>>
+UC13 ..> UC14 : <<include>>
+UC02 <.. UC15 : <<extend>>\n[unrecognised name]
+@enduml

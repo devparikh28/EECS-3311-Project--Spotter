@@ -1,0 +1,8 @@
+@startuml class-agent
+!include model.iuml
+title LiftPilot — Agent Layer
+remove $pres
+remove $app
+remove $dom
+remove $infra
+@enduml

@@ -1,0 +1,70 @@
+@startuml SD08-coach-chat
+!include _style.iuml
+title SD08 — Chat with Coach (F11 / UC13)
+
+actor Lifter
+boundary "ChatPanel\n<<GUI>>" as UI
+control "CoachController\n<<Facade>>" as Ctrl
+participant "ChatAgent" as Agent
+participant "MemoryManager" as Memory
+participant "ConversationHistory" as History
+participant "ToolManager" as Tools
+participant "AnalyticsTool" as ATool
+participant "PlanLookupTool" as PTool
+participant "ClaudeClient" as LLM
+actor "Claude API\n<<external>>" as Claude
+
+Lifter -> UI : onSendClicked("how did last week go?")
+UI -> Ctrl : chat(message)
+activate Ctrl
+Ctrl -> Agent : run(AgentRequest(message))
+activate Agent
+
+Agent -> Memory : recall(message, k = 5)
+activate Memory
+Memory -> History : recent(20)
+History --> Memory : List<Message>
+Memory --> Agent : relevant snippets
+deactivate Memory
+
+group toolLoop [at most maxToolRounds]
+  Agent -> LLM : complete(msgs, schemas, system)
+  LLM -> Claude : messages.create(...)
+  Claude --> LLM : tool_use request
+  LLM --> Agent : LLMResponse(toolCalls)
+
+  alt needs training figures
+    Agent -> Tools : execute(ToolCall("weekly_tonnage"))
+    Tools -> ATool : execute(args)
+    ATool --> Tools : ToolResult(data)
+  else needs the current plan
+    Agent -> Tools : execute(ToolCall("current_block"))
+    Tools -> PTool : execute(args)
+    PTool --> Tools : ToolResult(block summary)
+  else tool fails
+    Tools --> Tools : ToolResult(ok = false, error)
+    note right : the error is returned to Claude,\nwhich reports the data as unavailable
+  end
+  Tools --> Agent : ToolResult
+end
+
+Agent -> LLM : complete(msgs + results, schemas, system)
+LLM -> Claude : messages.create(...)
+Claude --> LLM : final answer
+LLM --> Agent : LLMResponse(content)
+
+alt question is ambiguous
+  Agent --> Ctrl : AgentResult(clarifying question)
+else answer grounded in tool data
+  Agent -> Memory : remember(userMessage, reply)
+  Memory -> History : append(m)
+  opt history above maxTurns
+    Memory -> Memory : summarizeOlderTurns()
+  end
+  Agent --> Ctrl : AgentResult(answer)
+end
+deactivate Agent
+Ctrl --> UI : answer
+deactivate Ctrl
+UI --> Lifter : reply shown in chat
+@enduml

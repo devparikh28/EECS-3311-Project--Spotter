@@ -1,0 +1,73 @@
+@startuml SD09-profile-and-macros
+!include _style.iuml
+title SD09 — Save Profile and Log Intake (F01, F09 / UC01, UC11)
+
+actor Lifter
+boundary "ProfilePanel\n<<GUI>>" as PUI
+boundary "NutritionPanel\n<<GUI>>" as NUI
+control "CoachController\n<<Facade>>" as Ctrl
+entity "LifterProfile" as Profile
+database "ProfileRepository" as PRepo
+participant "FoodCatalog" as Catalog
+participant "MacroTracker" as Macros
+entity "DailyIntake" as Intake
+database "IntakeRepository" as IRepo
+participant "EventBus" as Bus
+
+== UC01 Save profile ==
+Lifter -> PUI : onSaveClicked()
+PUI -> Profile : new LifterProfile(fields)
+PUI -> Ctrl : saveProfile(profile)
+activate Ctrl
+Ctrl -> Ctrl : validate(required fields, weight class, meet date)
+alt valid
+  Ctrl -> PRepo : save(profile)
+  PRepo --> Ctrl : LifterProfile
+  Ctrl -> Bus : publish(DomainEvent(PROFILE_UPDATED))
+  Bus -> NUI : onEvent(e)
+  NUI -> NUI : refresh()
+  Ctrl --> PUI : saved
+  PUI --> Lifter : confirmation
+else missing field or past meet date
+  Ctrl --> PUI : ValidationReport(errors)
+  PUI --> Lifter : fields highlighted, nothing saved
+end
+deactivate Ctrl
+
+== UC11 Log intake ==
+Lifter -> NUI : onLogIntakeClicked(food, grams)
+NUI -> Ctrl : logIntake(FoodEntry)
+activate Ctrl
+Ctrl -> Catalog : byName(food)
+alt known food
+  Catalog --> Ctrl : FoodItem
+else unknown food
+  Catalog --> Ctrl : null
+  Ctrl --> NUI : request macros per 100 g
+  Lifter -> NUI : enter values
+  NUI -> Ctrl : addFood(FoodItem)
+  Ctrl -> Catalog : add(item)
+end
+
+alt grams within valid range
+  Ctrl -> Macros : recordIntake(today, entry)
+  activate Macros
+  Macros -> Intake : addEntry(entry)
+  Macros -> IRepo : save(intake)
+  Macros --> Ctrl : MacroTotals(consumed)
+  deactivate Macros
+  Ctrl -> Macros : getRemaining(today)
+  Macros --> Ctrl : MacroTotals(remaining)
+  Ctrl -> Macros : weeklyAdherence(weekStart)
+  note right of Macros : days with no entries\nare excluded from the average
+  Macros --> Ctrl : percentage
+  Ctrl -> Bus : publish(DomainEvent(INTAKE_LOGGED))
+  Bus -> NUI : onEvent(e)
+  Ctrl --> NUI : remaining macros and adherence
+  NUI --> Lifter : updated totals
+else grams zero, negative, or above sanity limit
+  Ctrl --> NUI : rejected with message
+  NUI --> Lifter : entry not saved
+end
+deactivate Ctrl
+@enduml

@@ -1,0 +1,8 @@
+<map id="SD05-recovery-adjustment_map" name="SD05-recovery-adjustment_map">
+<area shape="rect" id="id1" href="valid" title="valid" alt="" coords="569,786,599,798"/>
+<area shape="rect" id="id2" href="Lifter" title="Lifter" alt="" coords="15,1301,57,1314"/>
+<area shape="rect" id="id3" href="Lifter" title="Lifter" alt="" coords="89,1037,137,1049"/>
+<area shape="rect" id="id4" href="agent" title="agent" alt="" coords="495,846,577,859"/>
+<area shape="rect" id="id5" href="recoveryScore" title="recoveryScore" alt="" coords="89,267,244,279"/>
+<area shape="rect" id="id6" href="data" title="data" alt="" coords="15,399,191,412"/>
+</map>

@@ -1,0 +1,14 @@
+skinparam shadowing false
+skinparam sequenceMessageAlign left
+skinparam maxMessageSize 220
+skinparam ParticipantPadding 12
+skinparam BoxPadding 8
+skinparam sequence {
+  ArrowColor #444444
+  LifeLineBorderColor #999999
+  LifeLineBackgroundColor #EFEFEF
+  ParticipantBorderColor #444444
+  ParticipantBackgroundColor #FFFFFF
+  ActorBorderColor #444444
+  ActorBackgroundColor #FFFFFF
+}
