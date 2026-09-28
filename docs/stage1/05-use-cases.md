@@ -2,7 +2,7 @@
 
 ![Use case diagram](../../diagrams/usecase/usecase.png)
 
-Source: `diagrams/usecase/usecase.puml`
+Source: `diagrams/usecase/usecase.puml`, also available as `diagrams/uxf/usecase.uxf` for UMLet
 
 ## 5.1 Actors
 
