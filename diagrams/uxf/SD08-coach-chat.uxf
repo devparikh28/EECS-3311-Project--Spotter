@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="15.1">
+  <zoom_level>10</zoom_level>
+  <element>
+    <id>UMLSequenceAllInOne</id>
+    <coordinates>
+      <x>20</x>
+      <y>20</y>
+      <w>1350</w>
+      <h>1228</h>
+    </coordinates>
+    <panel_attributes>title=SD08 Chat with Coach (F11 / UC13)
+obj=Lifter~lifter ACTOR
+obj=ChatPanel~ui
+obj=CoachController~ctrl
+obj=ChatAgent~agent
+obj=MemoryManager~mem
+obj=ConversationHistory~hist
+obj=ToolManager~tools
+obj=ClaudeClient~llm
+obj=Claude API~api ACTOR
+
+lifter-&gt;&gt;&gt;ui : onSendClicked(question); on=ui
+ui-&gt;&gt;&gt;ctrl : chat(message); on=ctrl
+ctrl-&gt;&gt;&gt;agent : run(AgentRequest(message)); on=agent
+agent-&gt;&gt;&gt;mem : recall(message, k = 5); on=mem
+mem-&gt;&gt;&gt;hist : recent(20)
+hist.&gt;mem : List&lt;Message&gt;
+mem.&gt;agent : relevant snippets; off=mem
+combinedFragment=loop~l1 agent api
+agent:[at most maxToolRounds]
+agent-&gt;&gt;&gt;llm : complete(msgs, tools, system)
+llm-&gt;&gt;&gt;api : messages.create(...)
+api.&gt;llm : tool_use request
+llm.&gt;agent : LLMResponse(toolCalls)
+agent-&gt;&gt;&gt;tools : execute(call)
+tools.&gt;agent : ToolResult from AnalyticsTool, PlanLookupTool or RecoveryLookupTool
+--=l1
+agent-&gt;&gt;&gt;llm : complete(msgs + results, tools, system)
+llm-&gt;&gt;&gt;api : messages.create(...)
+api.&gt;llm : final answer
+llm.&gt;agent : LLMResponse(content)
+combinedFragment=alt~f1 agent ui
+agent:[question ambiguous or data unavailable]
+agent.&gt;ctrl : AgentResult(clarifying question or honest gap)
+..=f1
+agent:[answer grounded in tool data]
+agent-&gt;&gt;&gt;mem : remember(userMessage, reply)
+mem-&gt;&gt;&gt;hist : append(m)
+mem-&gt;&gt;&gt;mem : summarizeOlderTurns() if above maxTurns
+agent.&gt;ctrl : AgentResult(answer); off=agent
+--=f1
+ctrl.&gt;ui : answer; off=ctrl
+ui.&gt;lifter : reply shown in chat; off=ui</panel_attributes>
+    <additional_attributes />
+  </element>
+</diagram>

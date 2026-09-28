@@ -35,13 +35,21 @@ Sections live under `docs/stage1/`, numbered to match the Stage 1 deliverables l
 
 ## Diagrams
 
-All diagrams are PlantUML source rendered to PNG and SVG. The class diagram uses one shared model (`diagrams/class/model.iuml`) rendered into five views, so the views cannot disagree with each other.
+Every diagram exists in two forms. PlantUML source is the working format, rendered to PNG and SVG for reading in this repository, and the same diagrams are also generated as UMLet `.uxf` files so they can be opened and edited in UMLet. The class diagram uses one shared model (`diagrams/class/model.iuml`) rendered into five views, so the views cannot disagree with each other.
 
 ```
 diagrams/
   class/      model.iuml plus five views (full, presentation and application, domain, agent, infrastructure)
   usecase/    usecase.puml
   sequence/   SD01 to SD09
+  uxf/        the same diagrams as UMLet .uxf files
+tools/uxf/    generators that produce the .uxf files from the PlantUML model
+```
+
+UMLet has no PlantUML import, so the `.uxf` files are generated rather than redrawn: `tools/uxf/puml_to_uxf.py` parses `model.iuml`, lays the classes out with Graphviz, and writes UMLet XML; `make_usecase_uxf.py` and `make_sequence_uxf.py` produce the use case and sequence diagrams, the latter as UMLet `UMLSequenceAllInOne` elements whose text stays editable. Regenerate with:
+
+```
+cd tools/uxf && python3 puml_to_uxf.py && python3 make_usecase_uxf.py && python3 make_sequence_uxf.py
 ```
 
 Regenerate after editing a source file:

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="15.1">
+  <zoom_level>10</zoom_level>
+  <element>
+    <id>UMLSequenceAllInOne</id>
+    <coordinates>
+      <x>20</x>
+      <y>20</y>
+      <w>1500</w>
+      <h>1466</h>
+    </coordinates>
+    <panel_attributes>title=SD07 Get Meal Suggestion (F10 / UC12)
+obj=Lifter~lifter ACTOR
+obj=NutritionPanel~ui
+obj=CoachController~ctrl
+obj=MacroTracker~macros
+obj=MealSuggestionAgent~agent
+obj=FoodDBTool~tool
+obj=FoodCatalog~cat
+obj=ClaudeClient~llm
+obj=ResponseParser~parser
+obj=PlanValidator~val
+
+lifter-&gt;&gt;&gt;ui : onSuggestMealClicked(); on=ui
+ui-&gt;&gt;&gt;ctrl : suggestMeal(); on=ctrl
+ctrl-&gt;&gt;&gt;macros : getRemaining(today)
+macros.&gt;ctrl : MacroTotals(remaining)
+combinedFragment=alt~f1 ctrl val
+ctrl:[remaining calories near zero]
+ctrl.&gt;ui : targets already met
+ui.&gt;lifter : no meal needed
+..=f1
+ctrl:[macros remain]
+ctrl-&gt;&gt;&gt;agent : run(AgentRequest(remaining, constraints)); on=agent
+agent-&gt;&gt;&gt;tool : execute(constraints, maxCalories)
+tool-&gt;&gt;&gt;cat : search(dietaryConstraints, maxCalories)
+cat.&gt;tool : permitted FoodItems
+tool.&gt;agent : ToolResult(foods)
+ref=agent llm :UC14 agent loop, see SD03
+agent-&gt;&gt;&gt;parser : toMeal(json, foodCatalog)
+parser.&gt;agent : MealSuggestion, nutrition from the catalog
+agent-&gt;&gt;&gt;val : validateMeal(meal, constraints, remaining)
+val.&gt;agent : ValidationReport
+combinedFragment=alt~f2 agent ui
+agent:[valid]
+agent.&gt;ctrl : AgentResult(meal); off=agent
+ctrl.&gt;ui : meal with full nutrition breakdown
+ui.&gt;lifter : suggestion shown
+lifter-&gt;&gt;&gt;ui : logThisMeal()
+ui-&gt;&gt;&gt;ctrl : logIntake(entries)
+..=f2
+agent:[non permitted item or totals exceed remaining]
+agent-&gt;&gt;&gt;llm : retry with validation errors
+llm.&gt;agent : corrected meal
+..=f2
+agent:[no foods fit]
+agent.&gt;ctrl : AgentResult(success = false, explanation)
+ctrl.&gt;ui : explanation of the shortfall
+ui.&gt;lifter : no meal invented
+--=f2
+--=f1
+off=ctrl; off=ui</panel_attributes>
+    <additional_attributes />
+  </element>
+</diagram>

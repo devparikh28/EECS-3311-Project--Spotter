@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="15.1">
+  <zoom_level>10</zoom_level>
+  <element>
+    <id>UMLSequenceAllInOne</id>
+    <coordinates>
+      <x>20</x>
+      <y>20</y>
+      <w>1650</w>
+      <h>1568</h>
+    </coordinates>
+    <panel_attributes>title=SD03 Generate Training Block (F05 / UC06, including the UC14 agent loop)
+obj=Lifter~lifter ACTOR
+obj=PlanPanel~ui
+obj=CoachController~ctrl
+obj=BlockGenerationAgent~agent
+obj=ToolManager~tools
+obj=PromptBuilder~prompt
+obj=ClaudeClient~llm
+obj=ResponseParser~parser
+obj=PlanValidator~val
+obj=BlockRepository~repo
+obj=Claude API~api ACTOR
+
+lifter-&gt;&gt;&gt;ui : onGenerateClicked(weeks = 6); on=ui
+ui-&gt;&gt;&gt;ctrl : generateBlock(6); on=ctrl
+ctrl-&gt;&gt;&gt;agent : run(AgentRequest); on=agent
+agent-&gt;&gt;&gt;agent : createToolset() Factory Method
+agent-&gt;&gt;&gt;agent : gatherContext(req)
+agent-&gt;&gt;&gt;prompt : system, context, schema, build()
+prompt.&gt;agent : List&lt;Message&gt;
+combinedFragment=loop~l1 agent api
+agent:[at most maxToolRounds]
+agent-&gt;&gt;&gt;llm : complete(msgs, tools, system); on=llm
+llm-&gt;&gt;&gt;api : messages.create(...)
+api.&gt;llm : response with tool_use
+llm.&gt;agent : LLMResponse(toolCalls); off=llm
+agent-&gt;&gt;&gt;tools : execute(call); on=tools
+tools.&gt;agent : ToolResult (e1rms, exercises, or error); off=tools
+--=l1
+agent-&gt;&gt;&gt;llm : complete(msgs + results, tools, system)
+llm-&gt;&gt;&gt;api : messages.create(...)
+api.&gt;llm : final JSON block
+llm.&gt;agent : LLMResponse(content)
+agent-&gt;&gt;&gt;parser : toBlock(json, catalog)
+parser.&gt;agent : TrainingBlock
+agent-&gt;&gt;&gt;val : validateBlock(block, ctx, strategy)
+val.&gt;agent : ValidationReport
+combinedFragment=alt~f1 agent repo
+agent:[report valid]
+agent.&gt;ctrl : AgentResult(success, block); off=agent
+ctrl-&gt;&gt;&gt;repo : save(block)
+ctrl.&gt;ui : AgentResult(success)
+ui.&gt;lifter : block displayed week by week
+..=f1
+agent:[invalid, one retry]
+agent-&gt;&gt;&gt;llm : complete(retry with validation errors)
+llm.&gt;agent : corrected JSON
+agent-&gt;&gt;&gt;val : validateBlock(...)
+..=f1
+agent:[still invalid or API timeout]
+agent.&gt;ctrl : AgentResult(success = false, errors)
+ctrl.&gt;ui : errors
+ui.&gt;lifter : error banner, previous block unchanged
+--=f1
+off=ctrl; off=ui</panel_attributes>
+    <additional_attributes />
+  </element>
+</diagram>

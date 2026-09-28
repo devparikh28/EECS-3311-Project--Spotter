@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="15.1">
+  <zoom_level>10</zoom_level>
+  <element>
+    <id>UMLSequenceAllInOne</id>
+    <coordinates>
+      <x>20</x>
+      <y>20</y>
+      <w>1350</w>
+      <h>1126</h>
+    </coordinates>
+    <panel_attributes>title=SD01 Import CSV Data (F02, F03 / UC02, UC04, UC15)
+obj=Lifter~lifter ACTOR
+obj=LogPanel~ui
+obj=CoachController~ctrl
+obj=CsvImportService~imp
+obj=DataSourceFactory~fac
+obj=HevyCsvAdapter~ad
+obj=ExerciseCatalog~cat
+obj=WorkoutRepository~repo
+obj=EventBus~bus
+
+lifter-&gt;&gt;&gt;ui : onImportHevyClicked(path); on=ui
+ui-&gt;&gt;&gt;ctrl : importWorkouts(path); on=ctrl
+ctrl-&gt;&gt;&gt;imp : importFile(path, HEVY); on=imp
+imp-&gt;&gt;&gt;fac : detect(path)
+fac.&gt;imp : SourceKind.HEVY
+imp-&gt;&gt;&gt;fac : create(HEVY)
+fac.&gt;imp : HevyCsvAdapter
+imp-&gt;&gt;&gt;ad : read(path); on=ad
+ad.&gt;imp : ImportBatch; off=ad
+combinedFragment=alt~f1 imp cat
+imp:[exercise name known]
+imp-&gt;&gt;&gt;cat : byName(name)
+cat.&gt;imp : Exercise
+..=f1
+imp:[unknown name, UC15]
+imp-&gt;&gt;&gt;cat : closestMatches(name, 3)
+cat.&gt;imp : candidates
+imp-&gt;&gt;&gt;ui : promptMapping(name, candidates)
+ui.&gt;imp : chosen mapping
+imp-&gt;&gt;&gt;cat : addAlias(name, exercise)
+--=f1
+imp-&gt;&gt;&gt;imp : dedupe(batch)
+imp-&gt;&gt;&gt;repo : save(sessions)
+repo.&gt;imp : saved count
+imp.&gt;ctrl : ImportReport; off=imp
+ctrl-&gt;&gt;&gt;bus : publish(DATA_IMPORTED)
+bus-&gt;&gt;&gt;ui : onEvent(e)
+ctrl.&gt;ui : ImportReport; off=ctrl
+ui.&gt;lifter : imported, skipped and failed rows; off=ui</panel_attributes>
+    <additional_attributes />
+  </element>
+</diagram>
