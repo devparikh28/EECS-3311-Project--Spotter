@@ -43,10 +43,11 @@ diagrams/
   usecase/    usecase.puml
   sequence/   SD01 to SD09
   uxf/        the same diagrams as UMLet .uxf files
+  uxf/png/    UMLet's own PNG exports of those .uxf files
 tools/uxf/    generators that produce the .uxf files from the PlantUML model
 ```
 
-UMLet has no PlantUML import, so the `.uxf` files are generated rather than redrawn: `tools/uxf/puml_to_uxf.py` parses `model.iuml`, lays the classes out with Graphviz, and writes UMLet XML; `make_usecase_uxf.py` and `make_sequence_uxf.py` produce the use case and sequence diagrams, the latter as UMLet `UMLSequenceAllInOne` elements whose text stays editable. Regenerate with:
+UMLet has no PlantUML import, so the `.uxf` files are generated rather than redrawn: `tools/uxf/puml_to_uxf.py` parses `model.iuml`, lays the classes out with Graphviz, and writes UMLet XML; `make_usecase_uxf.py` and `make_sequence_uxf.py` produce the use case and sequence diagrams, the latter as UMLet `UMLSequenceAllInOne` elements whose text stays editable. Every .uxf was opened and rendered with UMLet 15.1 to verify it loads cleanly; those renders are committed under `diagrams/uxf/png/`. Regenerate with:
 
 ```
 cd tools/uxf && python3 puml_to_uxf.py && python3 make_usecase_uxf.py && python3 make_sequence_uxf.py
