@@ -34,7 +34,7 @@ Every use case initiated by the lifter is available in both interfaces. The GUI 
 | Field | Description |
 |---|---|
 | Actor(s) | Lifter |
-| Goal | Create or update the profile that every other feature depends on: bodyweight, training goal, optional meet date and weight class, training days, equipment, dietary constraints, and macro targets. |
+| Goal | Create or update the profile that every other feature depends on: bodyweight, training goal, split preference, optional meet date and weight class, training days, equipment, dietary constraints, and macro targets. |
 | Interface | GUI: Profile tab, Save. CLI: `spotter profile set`, `spotter profile show` |
 | Preconditions | The application is running and the database is initialised. |
 | Trigger | The lifter opens the Profile tab and clicks Save, or runs `spotter profile set`. |
@@ -108,7 +108,7 @@ Every use case initiated by the lifter is available in both interfaces. The GUI 
 | Interface | GUI: Plan tab, Generate Block. CLI: `spotter plan generate <weeks>` |
 | Preconditions | A profile exists with a training goal. At least some workout history exists for each main lift. A meet date is not required. |
 | Trigger | The lifter clicks Generate Block or runs the CLI command. |
-| Main Success Scenario | 1. `PlanPanel.onGenerateClicked()` calls `CoachController.generateBlock(weeks)`. 2. The controller asks `ProgressionStrategyFactory.forGoal()` for the strategy matching the training goal, builds an `AgentRequest`, and calls `BlockGenerationAgent.run()`. 3. **UC14** runs: the agent gathers current e1RMs through `AnalyticsTool` and available exercises through `ExerciseDBTool`, asks Claude for a block as JSON, parses it with `ResponseParser.toBlock()`, and validates it with `PlanValidator.validateBlock()` against the active `ProgressionStrategy`. 4. The validated `TrainingBlock` is saved through `BlockRepository`. 5. `PLAN_UPDATED` is published. 6. The Plan tab displays the block week by week. |
+| Main Success Scenario | 1. `PlanPanel.onGenerateClicked()` calls `CoachController.generateBlock(weeks)`. 2. The controller asks `ProgressionStrategyFactory.forGoal()` for the strategy matching the training goal, builds an `AgentRequest` carrying the training days and split preference, and calls `BlockGenerationAgent.run()`. 3. **UC14** runs: the agent gathers current e1RMs through `AnalyticsTool` and available exercises through `ExerciseDBTool`, asks Claude for a block as JSON with a focus label per session, parses it with `ResponseParser.toBlock()`, and validates it with `PlanValidator.validateBlock()` against the active `ProgressionStrategy` and with `validateSplit()` against the lifter's training days and split preference. 4. The validated `TrainingBlock` is saved through `BlockRepository`. 5. `PLAN_UPDATED` is published. 6. The Plan tab displays the block week by week. |
 | Alternative / Exception Flows | 1a. Not enough history for a lift: the lifter is warned and may continue, in which case the agent is told to use conservative loads. 3a. UC14 fails after its retry: an error is shown and any existing block is left unchanged. 4a. A block already exists: the lifter confirms replacement before saving. |
 | Postconditions | A new validated block is active and visible. The previous block, if any, is kept in history. |
 | Related Feature(s) | F05 |

@@ -355,13 +355,14 @@ PromptBuilder
     <id>UMLClass</id>
     <coordinates>
       <x>3150</x>
-      <y>390</y>
+      <y>380</y>
       <w>930</w>
-      <h>120</h>
+      <h>130</h>
     </coordinates>
     <panel_attributes>PlanValidator
 --
 + validateBlock(b : TrainingBlock, ctx : AgentContext, s : ProgressionStrategy) : ValidationReport
++ validateSplit(b : TrainingBlock, p : LifterProfile) : ValidationReport
 + validateSubstitution(e : Exercise, allowed : List&lt;Exercise&gt;) : ValidationReport
 + validateMeal(m : MealSuggestion, d : DietaryConstraints, remaining : MacroTotals) : ValidationReport
 + validateRationale(text : String, a : MeetAttempts) : ValidationReport
@@ -707,13 +708,13 @@ m2=1</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>3400</x>
+      <x>3410</x>
       <y>300</y>
-      <w>140</w>
-      <h>100</h>
+      <w>120</w>
+      <h>90</h>
     </coordinates>
     <panel_attributes>lt=&lt;-</panel_attributes>
-    <additional_attributes>128.7;90.0;13.6;10.0</additional_attributes>
+    <additional_attributes>109.8;80.0;7.3;10.0</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
