@@ -10,6 +10,24 @@ The class diagram is maintained as PlantUML source in `diagrams/class/`. One sha
 | Agent | `class-agent.png` | Agent template, agent subclasses, LLM client, tools, prompt and validation pipeline, memory |
 | Infrastructure | `class-infrastructure.png` | CSV adapters, import service, catalogs, repositories, database |
 
+The complete diagram is best read as `diagrams/class/class-full.svg`, which zooms without losing detail. The four layer views below are the readable form.
+
+### Presentation and Application
+
+![Presentation and application layers](../../diagrams/class/class-presentation-application.png)
+
+### Domain
+
+![Domain model and domain services](../../diagrams/class/class-domain.png)
+
+### Agent
+
+![Agent layer](../../diagrams/class/class-agent.png)
+
+### Infrastructure
+
+![Infrastructure layer](../../diagrams/class/class-infrastructure.png)
+
 ## 3.1 Architecture Overview
 
 The system is organised in five layers. Each layer depends only on the layer beneath it or on interfaces, never on a concrete class above it.
