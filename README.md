@@ -72,7 +72,7 @@ java -jar plantuml.jar -tsvg diagrams/**/*.puml
 | Storage | SQLite through `sqlite-jdbc`, behind a `Repository<T>` interface |
 | LLM | Anthropic Claude through LangChain4j (`langchain4j`, `langchain4j-anthropic`), wrapped in `ClaudeClient` |
 | JSON | Jackson, for parsing model output into domain objects |
-| Data sources | Hevy and Whoop CSV exports behind a `DataSource` interface |
+| Data sources | CSV from any workout or recovery app behind a `DataSource` interface, plus direct logging and daily check ins |
 | Unit testing | JUnit 5, Mockito, AssertJ |
 | Agent behaviour testing | KUMA (Python SDK) driving the Java CLI through a small harness |
 

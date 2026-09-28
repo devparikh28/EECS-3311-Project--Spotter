@@ -5,8 +5,8 @@ Every feature traces to a use case that describes the interaction, the classes t
 | Feature | Description | Type | Use Case | Classes | Key Methods | Sequence Diagram | Design Pattern(s) |
 |---|---|---|---|---|---|---|---|
 | F01 | Lifter profile, training goal, constraints and macro targets | Deterministic | UC01 | `ProfilePanel`, `CoachController`, `LifterProfile`, `DietaryConstraints`, `TrainingGoal`, `ProfileRepository`, `EventBus` | `onSaveClicked()`, `saveProfile()`, `hasMeetDate()`, `weeksUntilMeet()`, `save()`, `publish()` | SD09 | Facade, Observer, Repository |
-| F02 | Workout import from Hevy CSV or manual entry | Deterministic | UC02, UC03, UC15 | `LogPanel`, `CoachController`, `CsvImportService`, `DataSourceFactory`, `HevyCsvAdapter`, `CsvFileReader`, `ExerciseCatalog`, `WorkoutSession`, `SetEntry`, `WorkoutRepository` | `onImportHevyClicked()`, `importWorkouts()`, `importFile()`, `detect()`, `create()`, `read()`, `byName()`, `closestMatches()`, `addAlias()`, `dedupe()`, `save()` | SD01 | Adapter, Factory Method, Facade, Observer, Repository |
-| F03 | Recovery import from Whoop CSV | Deterministic | UC04 | `LogPanel`, `CoachController`, `CsvImportService`, `DataSourceFactory`, `WhoopCsvAdapter`, `RecoveryDay`, `RecoveryRepository`, `RecoveryRuleEngine`, `EventBus` | `onImportWhoopClicked()`, `importRecovery()`, `read()`, `save()`, `evaluate()`, `publish()` | SD01 | Adapter, Factory Method, Observer, Repository |
+| F02 | Workout logging and import from any app | Deterministic | UC02, UC03, UC15, UC17 | `LogPanel`, `PlanPanel`, `CoachController`, `CsvImportService`, `DataSourceFactory`, `HevyCsvAdapter`, `GenericCsvAdapter`, `ColumnMapping`, `ImportProfileRepository`, `CsvFileReader`, `ExerciseCatalog`, `WorkoutSession`, `SetEntry`, `WorkoutRepository` | `onImportHevyClicked()`, `importWorkouts()`, `importWithMapping()`, `importFile()`, `detect()`, `suggestMapping()`, `create()`, `validate()`, `toKg()`, `read()`, `byName()`, `closestMatches()`, `addAlias()`, `dedupe()`, `logSessionAsPrescribed()`, `save()` | SD01 | Adapter, Factory Method, Facade, Observer, Repository |
+| F03 | Recovery input from any wearable export or a manual check in | Deterministic | UC04, UC17 | `LogPanel`, `CoachController`, `CsvImportService`, `DataSourceFactory`, `WhoopCsvAdapter`, `GenericCsvAdapter`, `ColumnMapping`, `RecoveryDay`, `RecoverySource`, `RecoveryRepository`, `RecoveryRuleEngine`, `EventBus` | `onImportWhoopClicked()`, `importRecovery()`, `importWithMapping()`, `recordCheckIn()`, `read()`, `save()`, `hasObjectiveScore()`, `evaluate()`, `publish()` | SD01 | Adapter, Factory Method, Observer, Repository |
 | F04 | Strength analytics: e1RM, tonnage, trends | Deterministic | UC05 | `AnalyticsPanel`, `CoachController`, `WorkoutRepository`, `StrengthAnalytics`, `RPEChart`, `AnalyticsSummary`, `Point` | `onLiftSelected()`, `getAnalytics()`, `findByLift()`, `computeE1RM()`, `percentOf1RM()`, `e1rmSeries()`, `weeklyTonnage()`, `bestSet()` | SD02 | Facade, Repository |
 | F05 | Training block generation | AI | UC06, UC14 | `PlanPanel`, `CoachController`, `ProgressionStrategyFactory`, `ProgressionStrategy`, `BlockGenerationAgent`, `ToolManager`, `AnalyticsTool`, `ExerciseDBTool`, `PromptBuilder`, `ClaudeClient`, `ResponseParser`, `PlanValidator`, `TrainingBlock`, `BlockRepository` | `onGenerateClicked()`, `generateBlock()`, `forGoal()`, `run()`, `createToolset()`, `gatherContext()`, `buildPrompt()`, `complete()`, `execute()`, `toBlock()`, `validateBlock()`, `save()` | SD03 | Template Method, Strategy, Factory Method, Facade, Observer, Builder |
 | F06 | Equipment substitution | AI | UC08, UC07, UC14 | `PlanPanel`, `CoachController`, `SubstitutionAgent`, `ExerciseDBTool`, `ExerciseCatalog`, `ClaudeClient`, `PlanValidator`, `PlanEditHistory`, `SwapExerciseCommand`, `TrainingBlock` | `onSubstituteClicked()`, `suggestSubstitute()`, `run()`, `candidates()`, `validateSubstitution()`, `applyEdit()`, `execute()`, `undo()` | SD04 | Template Method, Command, Factory Method, Facade |
@@ -21,7 +21,7 @@ Every feature traces to a use case that describes the interaction, the classes t
 
 **Every feature has a use case and a sequence diagram.** F01 to F11 each appear in at least one use case description in section 6 and at least one diagram in section 7.
 
-**Every use case belongs to a feature.** UC01 to UC13 map to features directly; UC14 (Run Agent Task) is included by the seven AI use cases and belongs to F05, F06, F07, F08, F10, F11 and F12; UC15 (Resolve Unknown Exercise) extends UC02 and belongs to F02.
+**Every use case belongs to a feature.** UC01 to UC13 map to features directly; UC14 (Run Agent Task) is included by the seven AI use cases and belongs to F05, F06, F07, F08, F10, F11 and F12; UC15 (Resolve Unknown Exercise) extends UC02 and belongs to F02; UC17 (Map an Unrecognised CSV) extends UC02 and UC04 and belongs to F02 and F03.
 
 **Every pattern is used by more than one feature**, which is what distinguishes a structural decision from decoration.
 
@@ -31,7 +31,7 @@ Every feature traces to a use case that describes the interaction, the classes t
 | Strategy | F05, F11, and every feature that reaches the model through `LLMClient` |
 | Observer | F01, F02, F03, F05, F06, F07, F09 |
 | Command | F05, F06, F07, F12 |
-| Adapter | F02, F03 |
+| Adapter | F02, F03 (Hevy, Whoop and a mapped generic adapter for any other app) |
 | Factory Method | F02, F03, F05, F06, F10, F11 |
 | Template Method | F05, F06, F07, F08, F10, F11, F12 |
 | Decorator | F05 to F08 and F10 to F12 (caching and recording around every model call) |

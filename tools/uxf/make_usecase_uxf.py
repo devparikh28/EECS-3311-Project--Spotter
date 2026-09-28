@@ -30,7 +30,7 @@ USE_CASES = [
     ("UC16 Review Adherence and Progress Plan", COL_X),
 ]
 
-INCLUDED = [("UC14 Run Agent Task", 7), ("UC15 Resolve Unknown Exercise", 1)]
+INCLUDED = [("UC14 Run Agent Task", 7), ("UC15 Resolve Unknown Exercise", 1), ("UC17 Map an Unrecognised CSV", 3)]
 
 INCLUDES = ["UC06", "UC08", "UC09", "UC10", "UC12", "UC13", "UC16"]
 
@@ -64,11 +64,11 @@ def main():
 
     positions["Hevy"] = (60, TOP + 40, 100, 100)
     elements.append(("UMLActor", (60, TOP + 40, 100, 100),
-                     "Hevy App\n<<external system>>", ""))
+                     "Workout App\n<<external system>>", ""))
 
     positions["Whoop"] = (60, TOP + 3 * STEP + 20, 100, 100)
     elements.append(("UMLActor", (60, TOP + 3 * STEP + 20, 100, 100),
-                     "Whoop App\n<<external system>>", ""))
+                     "Recovery Source\n<<external system>>", ""))
 
     claude_y = TOP + 5 * STEP
     positions["Claude"] = (1180, claude_y, 110, 100)
@@ -109,6 +109,8 @@ def main():
     for uc in INCLUDES:
         relation("UC14", uc, "lt=<.", "<<include>>")
     relation("UC02", "UC15", "lt=<.", "<<extend>>\n[unrecognised name]")
+    relation("UC02", "UC17", "lt=<.", "<<extend>>\n[unknown format]")
+    relation("UC04", "UC17", "lt=<.", "<<extend>>\n[unknown format]")
 
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     write_uxf(OUT, elements)

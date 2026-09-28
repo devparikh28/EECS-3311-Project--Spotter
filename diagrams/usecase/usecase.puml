@@ -14,8 +14,8 @@ skinparam rectangle {
 skinparam actorStyle awesome
 
 actor "Lifter" as Lifter
-actor "Hevy App\n<<external system>>" as Hevy
-actor "Whoop App\n<<external system>>" as Whoop
+actor "Workout App\n<<external system>>" as Hevy
+actor "Recovery Source\n<<external system>>" as Whoop
 actor "Claude LLM Service\n<<external system>>" as Claude
 
 rectangle "Spotter (GUI and CLI)" {
@@ -35,6 +35,7 @@ rectangle "Spotter (GUI and CLI)" {
   usecase "UC16 Review Adherence and Progress Plan" as UC16
   usecase "UC14 Run Agent Task" as UC14
   usecase "UC15 Resolve Unknown Exercise" as UC15
+  usecase "UC17 Map an Unrecognised CSV" as UC17
 }
 
 Lifter -- UC01
@@ -64,4 +65,6 @@ UC12 ..> UC14 : <<include>>
 UC13 ..> UC14 : <<include>>
 UC16 ..> UC14 : <<include>>
 UC02 <.. UC15 : <<extend>>\n[unrecognised name]
+UC02 <.. UC17 : <<extend>>\n[unknown format]
+UC04 <.. UC17 : <<extend>>\n[unknown format]
 @enduml

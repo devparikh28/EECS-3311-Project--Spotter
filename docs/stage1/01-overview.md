@@ -94,7 +94,7 @@ Live Hevy and Whoop APIs are deliberately out of scope. Both require account aut
 
 Spotter is built to outlive the course, so several boundaries exist specifically to let it grow without being rewritten. None of the work below is in scope for Stages 2 and 3; it is recorded here because the design accommodates it on purpose rather than by accident.
 
-**Live data sources.** CSV export is deliberate for now, because account authentication would consume implementation time without demonstrating additional design. `DataSource` is the seam: a `HevyApiAdapter` or `WhoopApiAdapter` implements the same interface and `DataSourceFactory` returns it, with nothing above the interface changing.
+**Live data sources.** CSV is deliberate for now, because account authentication would consume implementation time without demonstrating additional design. The system is not tied to particular apps: Hevy and Whoop exports are recognised automatically, any other app's export is read through a column mapping the lifter confirms once, and a lifter who tracks nothing can log sessions as prescribed and complete a daily check in. `DataSource` remains the seam for live sync: a `HevyApiAdapter` would implement the same interface with nothing above it changing.
 
 **Other front ends.** `CoachController` has no knowledge of what is calling it, which is why the same methods serve both the JavaFX dashboard and the CLI. A REST layer over the same controller would let a web or mobile client reuse every layer beneath it, which matters because the realistic place to read a training plan is a phone in a gym. The discipline that keeps this possible is simple and is worth stating: no business logic in the panels.
 

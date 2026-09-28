@@ -84,6 +84,10 @@ package "application" $app {
     + importWorkouts(path : String) : ImportReport
     + importRecovery(path : String) : ImportReport
     + logWorkout(s : WorkoutSession) : void
+    + logSessionAsPrescribed(sessionId : int, deviations : List<SetEntry>) : WorkoutSession
+    + recordCheckIn(d : RecoveryDay) : RecoveryFlag [0..1]
+    + importWithMapping(path : String, m : ColumnMapping) : ImportReport
+    + saveImportProfile(m : ColumnMapping) : void
     + getAnalytics(lift : Lift) : AnalyticsSummary
     + generateBlock(weeks : int) : AgentResult<TrainingBlock>
     + suggestSubstitute(prescriptionId : int) : AgentResult<ExercisePrescription>
@@ -235,9 +239,17 @@ package "domain" $dom {
   }
   class RecoveryDay $dom {
     + date : LocalDate
+    + source : RecoverySource
     + recoveryScore : int [0..1]
     + hrvMs : double [0..1]
     + sleepHours : double [0..1]
+    + soreness : int [0..1]
+    + energy : int [0..1]
+    + hasObjectiveScore() : boolean
+  }
+  enum RecoverySource $dom {
+    WEARABLE_CSV
+    MANUAL_CHECK_IN
   }
   class TrainingBlock $dom {
     + id : int
@@ -385,6 +397,8 @@ package "domain" $dom {
   class RecoveryRuleEngine $dom {
     - minRecoveryScore : int = 33
     - minSleepHours : double = 6.0
+    - maxSoreness : int = 4
+    - minEnergy : int = 2
     + evaluate(d : RecoveryDay) : RecoveryFlag [0..1]
     + fallbackAdjustment(s : Session) : Session
   }
@@ -602,11 +616,38 @@ package "infrastructure" $infra {
   }
   class DataSourceFactory <<Factory>> $infra {
     + create(kind : SourceKind) : DataSource
+    + create(mapping : ColumnMapping) : DataSource
     + detect(path : String) : SourceKind
+    + suggestMapping(path : String, k : ImportKind) : ColumnMapping
+  }
+  class GenericCsvAdapter <<Adapter>> $infra {
+    - mapping : ColumnMapping
+  }
+  class ColumnMapping $infra {
+    + name : String
+    + kind : ImportKind
+    + columns : Map<String, String>
+    + dateFormat : String
+    + weightUnit : WeightUnit
+    + validate() : ValidationReport
+    + toKg(value : double) : double
+  }
+  class ImportProfileRepository $infra {
+    + findByName(n : String) : ColumnMapping [0..1]
+    + all() : List<ColumnMapping>
+  }
+  enum ImportKind $infra {
+    WORKOUT
+    RECOVERY
+  }
+  enum WeightUnit $infra {
+    KG
+    LB
   }
   enum SourceKind $infra {
     HEVY
     WHOOP
+    GENERIC
   }
   class ImportBatch $infra {
     + sessions : List<WorkoutSession>
@@ -735,6 +776,7 @@ AttemptCalculator ..> TestDayPlan : creates
 ProgressionStrategyFactory ..> ProgressionStrategy : creates
 LifterProfile --> TrainingGoal
 RecoveryRuleEngine ..> RecoveryFlag : creates
+RecoveryDay --> RecoverySource
 PlanAdherence ..> AdherenceReport : creates
 AdherenceReport "1" *-- "1..*" AdherenceEntry
 AdherenceEntry --> AdherenceVerdict
@@ -802,10 +844,20 @@ MemoryManager --> MemoryRepository
 ' infrastructure
 DataSource <|.. HevyCsvAdapter
 DataSource <|.. WhoopCsvAdapter
+DataSource <|.. GenericCsvAdapter
 HevyCsvAdapter --> CsvFileReader : adapts
 WhoopCsvAdapter --> CsvFileReader : adapts
+GenericCsvAdapter --> CsvFileReader : adapts
+GenericCsvAdapter --> "1" ColumnMapping
 DataSourceFactory ..> DataSource : creates
 DataSourceFactory --> SourceKind
+DataSourceFactory ..> ColumnMapping
+ColumnMapping --> ImportKind
+ColumnMapping --> WeightUnit
+ColumnMapping ..> ValidationReport
+Repository <|.. ImportProfileRepository
+ImportProfileRepository --> Database
+ImportProfileRepository ..> ColumnMapping
 CsvImportService --> DataSourceFactory
 CsvImportService --> ExerciseCatalog
 CsvImportService ..> ImportBatch

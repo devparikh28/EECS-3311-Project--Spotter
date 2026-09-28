@@ -9,15 +9,15 @@ Source: `diagrams/usecase/usecase.puml`, also available as `diagrams/uxf/usecase
 | Actor | Type | Role |
 |---|---|---|
 | Lifter | Primary, human | The powerlifter using Spotter through either the GUI or the CLI. Initiates every use case. |
-| Hevy App | Secondary, external system | Produces the workout history CSV export consumed by UC02. Spotter never calls Hevy directly. |
-| Whoop App | Secondary, external system | Produces the recovery CSV export consumed by UC04. |
+| Workout App | Secondary, external system | Produces the workout history CSV consumed by UC02. Hevy is recognised automatically; any other app is read through a confirmed column mapping (UC17). Spotter never calls these apps directly. |
+| Recovery Source | Secondary, external system | Produces the recovery CSV consumed by UC04. Whoop is recognised automatically, other wearables through a mapping. A lifter with no wearable uses the check in in UC04 instead, so this actor is optional. |
 | Claude LLM Service | Secondary, external system | Anthropic's Claude model, reached through `ClaudeClient`. Participates only through UC14, so every AI feature reaches the model through one controlled path. |
 
 ## 5.2 Relationships
 
 **Include.** UC06, UC08, UC09, UC10, UC12, UC13 and UC16 all include **UC14 Run Agent Task**. UC14 captures the behaviour every AI feature shares: gather context, call Claude with tools, parse, validate, and retry once on failure. This mirrors the Template Method `CoachAgent.run()` in the class diagram.
 
-**Extend.** **UC15 Resolve Unknown Exercise** extends UC02 at the extension point "unrecognised exercise name", because it only happens when an imported name is not in the exercise catalog.
+**Extend.** **UC17 Map an Unrecognised CSV** extends UC02 and UC04 at the extension point "header matches no known format", and **UC15 Resolve Unknown Exercise** extends UC02 at the extension point "unrecognised exercise name", because it only happens when an imported name is not in the exercise catalog.
 
 UC08 and UC09 end with the lifter accepting a change. That acceptance is carried out through the same plan edit mechanism as UC07 (a `PlanEditCommand`), which is why accepted substitutions and adjustments can be undone from UC07. This is described in the flows below rather than drawn as an extend relationship, to keep the diagram readable.
 
@@ -62,11 +62,11 @@ Every use case initiated by the lifter is available in both interfaces. The GUI 
 | Field | Description |
 |---|---|
 | Actor(s) | Lifter |
-| Goal | Record a session that was not tracked in Hevy. |
-| Interface | GUI: Log tab, manual entry form. CLI: `spotter log add` (interactive prompts) |
+| Goal | Record a session directly, either by confirming the prescribed session was completed or by typing it in. |
+| Interface | GUI: Plan tab, Log as Prescribed on a session, or Log tab manual entry form. CLI: `spotter log prescribed <sessionId>`, `spotter log add` |
 | Preconditions | A profile exists. |
 | Trigger | The lifter submits the manual entry form. |
-| Main Success Scenario | 1. Lifter enters date, exercise, and one or more sets (weight, reps, optional RPE). 2. `LogPanel.onManualEntrySubmitted()` calls `CoachController.logWorkout()`. 3. The controller validates ranges (reps at least 1, RPE between 6 and 10, weight above zero). 4. `WorkoutRepository.save()` stores the session. 5. `DATA_IMPORTED` is published and the Log and Analytics tabs refresh. |
+| Main Success Scenario | 1. The lifter either clicks Log as Prescribed, which calls `CoachController.logSessionAsPrescribed()` and turns the prescription into a logged session with only the deviations entered, or types a session in, calling `CoachController.logWorkout()`. 2. Either path produces a `WorkoutSession`. 3. The controller validates ranges (reps at least 1, RPE between 6 and 10, weight above zero). 4. `WorkoutRepository.save()` stores the session. 5. `DATA_IMPORTED` is published and the Log and Analytics tabs refresh. |
 | Alternative / Exception Flows | 3a. A value is out of range: the specific field is highlighted and nothing is saved. 1a. The exercise is not in the catalog: the lifter is offered the same mapping choice as UC15. |
 | Postconditions | The session is stored and included in analytics. |
 | Related Feature(s) | F02 |
@@ -76,9 +76,9 @@ Every use case initiated by the lifter is available in both interfaces. The GUI 
 | Field | Description |
 |---|---|
 | Actor(s) | Lifter (primary), Whoop App (secondary, source of the file) |
-| Goal | Load daily recovery, HRV, and sleep data so the system can flag poor recovery days. |
-| Interface | GUI: Log tab, Import Whoop CSV. CLI: `spotter import whoop <file>` |
-| Preconditions | A profile exists. The lifter has a Whoop CSV export. |
+| Goal | Give the system something to judge recovery by, from a wearable export or a direct check in. |
+| Interface | GUI: Log tab, Import CSV, or the Check In panel. CLI: `spotter import whoop <file>`, `spotter import csv <file> <profile>`, `spotter checkin` |
+| Preconditions | A profile exists. The lifter has a recovery export, or is completing a check in. No wearable is required. |
 | Trigger | The lifter selects a Whoop file or runs the CLI command. |
 | Main Success Scenario | 1. `LogPanel.onImportWhoopClicked()` calls `CoachController.importRecovery(path)`. 2. `DataSourceFactory` detects the Whoop header and returns a `WhoopCsvAdapter`. 3. The adapter converts rows into `RecoveryDay` objects. 4. `RecoveryRepository` saves them. 5. The controller runs `RecoveryRuleEngine.evaluate()` on upcoming training days. 6. `DATA_IMPORTED` and, if any days were flagged, `RECOVERY_FLAGGED` are published. 7. The Plan tab shows warning badges on flagged sessions. |
 | Alternative / Exception Flows | 3a. A day is missing some fields: it is stored with those fields empty rather than rejected. 4a. Dates overlap an earlier import: the lifter confirms, and newer values replace older ones. 2a. Unrecognised format: same as UC02 2a. |
@@ -211,6 +211,20 @@ Every use case initiated by the lifter is available in both interfaces. The GUI 
 | Postconditions | The answer is shown and the exchange is available to later conversations. |
 | Related Feature(s) | F11 |
 
+## UC17 — Map an Unrecognised CSV (extends UC02 and UC04)
+
+| Field | Description |
+|---|---|
+| Actor(s) | Lifter |
+| Goal | Import from an app Spotter does not recognise, by describing its columns once. |
+| Interface | GUI: mapping dialog opened automatically during import. CLI: `spotter import csv <file> <profile>` |
+| Preconditions | An import is in progress and `DataSourceFactory.detect()` returned `GENERIC`. |
+| Trigger | Extension point "header matches no known format" in UC02 or UC04. |
+| Main Success Scenario | 1. `DataSourceFactory.suggestMapping()` proposes a `ColumnMapping` by matching header names against known synonyms. 2. The lifter confirms or corrects which column holds each field, the date format, and whether weights are kilograms or pounds. 3. `ColumnMapping.validate()` checks the required fields for the import kind are mapped. 4. The mapping is saved as a named import profile through `ImportProfileRepository`. 5. `GenericCsvAdapter` reads the file through it, converting units and dates. 6. The calling use case continues as normal. |
+| Alternative / Exception Flows | 3a. A required column is not mapped: validation names the missing field and the import does not proceed. 2a. The lifter recognises the profile from a previous import and selects it, skipping the dialog. 5a. Rows fail to parse under the mapping: they are reported per row, as in any other import. |
+| Postconditions | The file is imported and the mapping is stored, so future exports from that app import in one step. |
+| Related Feature(s) | F02, F03 |
+
 ## UC16 — Review Adherence and Progress the Plan
 
 | Field | Description |
@@ -258,8 +272,8 @@ Every use case initiated by the lifter is available in both interfaces. The GUI 
 | Feature | Use Case(s) |
 |---|---|
 | F01 Lifter Profile and Constraints | UC01 |
-| F02 Workout Import | UC02, UC03, UC15 |
-| F03 Recovery Import | UC04 |
+| F02 Workout Logging and Import | UC02, UC03, UC15, UC17 |
+| F03 Recovery Input | UC04, UC17 |
 | F04 Strength Analytics | UC05 |
 | F05 Training Block Generation | UC06, UC07, UC14 |
 | F06 Equipment Substitution | UC08, UC07, UC14 |
