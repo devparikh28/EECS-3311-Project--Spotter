@@ -8,8 +8,8 @@ Source: `diagrams/usecase/usecase.puml`
 
 | Actor | Type | Role |
 |---|---|---|
-| Lifter | Primary, human | The powerlifter using LiftPilot through either the GUI or the CLI. Initiates every use case. |
-| Hevy App | Secondary, external system | Produces the workout history CSV export consumed by UC02. LiftPilot never calls Hevy directly. |
+| Lifter | Primary, human | The powerlifter using Spotter through either the GUI or the CLI. Initiates every use case. |
+| Hevy App | Secondary, external system | Produces the workout history CSV export consumed by UC02. Spotter never calls Hevy directly. |
 | Whoop App | Secondary, external system | Produces the recovery CSV export consumed by UC04. |
 | Claude LLM Service | Secondary, external system | Anthropic's Claude model, reached through `ClaudeClient`. Participates only through UC14, so every AI feature reaches the model through one controlled path. |
 
@@ -34,12 +34,12 @@ Every use case initiated by the lifter is available in both interfaces. The GUI 
 | Field | Description |
 |---|---|
 | Actor(s) | Lifter |
-| Goal | Create or update the profile that every other feature depends on: bodyweight, weight class, meet date, training days, equipment, dietary constraints, and macro targets. |
-| Interface | GUI: Profile tab, Save. CLI: `liftpilot profile set`, `liftpilot profile show` |
+| Goal | Create or update the profile that every other feature depends on: bodyweight, training goal, optional meet date and weight class, training days, equipment, dietary constraints, and macro targets. |
+| Interface | GUI: Profile tab, Save. CLI: `spotter profile set`, `spotter profile show` |
 | Preconditions | The application is running and the database is initialised. |
-| Trigger | The lifter opens the Profile tab and clicks Save, or runs `liftpilot profile set`. |
+| Trigger | The lifter opens the Profile tab and clicks Save, or runs `spotter profile set`. |
 | Main Success Scenario | 1. Lifter enters or edits profile fields. 2. `ProfilePanel.onSaveClicked()` builds a `LifterProfile` and calls `CoachController.saveProfile()`. 3. The controller validates required fields, weight class, and meet date. 4. `ProfileRepository.save()` persists the profile. 5. The controller publishes `PROFILE_UPDATED` on the `EventBus`. 6. Subscribed panels refresh and a confirmation is shown. |
-| Alternative / Exception Flows | 3a. A required field is missing: the save is blocked and the field is highlighted. 3b. The meet date is in the past: the save is rejected with a message. 3c. No equipment is selected: the profile is saved with bodyweight only equipment and a warning that plan generation will be limited. |
+| Alternative / Exception Flows | 3a. A required field is missing: the save is blocked and the field is highlighted. 3b. A meet date is given but is in the past: the save is rejected with a message. 3d. The meet prep goal is selected with no meet date: the lifter is asked for one; every other goal leaves the field empty and unused. 3c. No equipment is selected: the profile is saved with bodyweight only equipment and a warning that plan generation will be limited. |
 | Postconditions | A valid `LifterProfile` is stored and all panels show current values. |
 | Related Feature(s) | F01, and macro targets for F09 |
 
@@ -49,7 +49,7 @@ Every use case initiated by the lifter is available in both interfaces. The GUI 
 |---|---|
 | Actor(s) | Lifter (primary), Hevy App (secondary, source of the file) |
 | Goal | Load training history from a Hevy CSV export so analytics and planning have data. |
-| Interface | GUI: Log tab, Import Hevy CSV. CLI: `liftpilot import hevy <file>` |
+| Interface | GUI: Log tab, Import Hevy CSV. CLI: `spotter import hevy <file>` |
 | Preconditions | A profile exists. The lifter has exported a CSV from Hevy. |
 | Trigger | The lifter selects a file in the file picker, or runs the CLI command with a file path. |
 | Main Success Scenario | 1. `LogPanel.onImportHevyClicked()` calls `CoachController.importWorkouts(path)`. 2. `CsvImportService.importFile()` asks `DataSourceFactory` for the correct adapter, which detects the Hevy header and returns a `HevyCsvAdapter`. 3. The adapter reads rows through `CsvFileReader` and converts them to `WorkoutSession` and `SetEntry` objects in an `ImportBatch`. 4. The service maps each exercise name through `ExerciseCatalog.byName()`. 5. Duplicate sessions (same date and exercises) are removed. 6. New sessions are saved through `WorkoutRepository`. 7. The controller publishes `DATA_IMPORTED`. 8. An `ImportReport` is shown with counts of imported sessions, skipped duplicates, and row errors. |
@@ -63,7 +63,7 @@ Every use case initiated by the lifter is available in both interfaces. The GUI 
 |---|---|
 | Actor(s) | Lifter |
 | Goal | Record a session that was not tracked in Hevy. |
-| Interface | GUI: Log tab, manual entry form. CLI: `liftpilot log add` (interactive prompts) |
+| Interface | GUI: Log tab, manual entry form. CLI: `spotter log add` (interactive prompts) |
 | Preconditions | A profile exists. |
 | Trigger | The lifter submits the manual entry form. |
 | Main Success Scenario | 1. Lifter enters date, exercise, and one or more sets (weight, reps, optional RPE). 2. `LogPanel.onManualEntrySubmitted()` calls `CoachController.logWorkout()`. 3. The controller validates ranges (reps at least 1, RPE between 6 and 10, weight above zero). 4. `WorkoutRepository.save()` stores the session. 5. `DATA_IMPORTED` is published and the Log and Analytics tabs refresh. |
@@ -77,7 +77,7 @@ Every use case initiated by the lifter is available in both interfaces. The GUI 
 |---|---|
 | Actor(s) | Lifter (primary), Whoop App (secondary, source of the file) |
 | Goal | Load daily recovery, HRV, and sleep data so the system can flag poor recovery days. |
-| Interface | GUI: Log tab, Import Whoop CSV. CLI: `liftpilot import whoop <file>` |
+| Interface | GUI: Log tab, Import Whoop CSV. CLI: `spotter import whoop <file>` |
 | Preconditions | A profile exists. The lifter has a Whoop CSV export. |
 | Trigger | The lifter selects a Whoop file or runs the CLI command. |
 | Main Success Scenario | 1. `LogPanel.onImportWhoopClicked()` calls `CoachController.importRecovery(path)`. 2. `DataSourceFactory` detects the Whoop header and returns a `WhoopCsvAdapter`. 3. The adapter converts rows into `RecoveryDay` objects. 4. `RecoveryRepository` saves them. 5. The controller runs `RecoveryRuleEngine.evaluate()` on upcoming training days. 6. `DATA_IMPORTED` and, if any days were flagged, `RECOVERY_FLAGGED` are published. 7. The Plan tab shows warning badges on flagged sessions. |
@@ -91,7 +91,7 @@ Every use case initiated by the lifter is available in both interfaces. The GUI 
 |---|---|
 | Actor(s) | Lifter |
 | Goal | See estimated one rep max trends, weekly tonnage, and best sets for a competition lift. |
-| Interface | GUI: Analytics tab, lift dropdown. CLI: `liftpilot analytics <squat or bench or deadlift>` |
+| Interface | GUI: Analytics tab, lift dropdown. CLI: `spotter analytics <squat or bench or deadlift>` |
 | Preconditions | A profile exists. |
 | Trigger | The lifter selects a lift, or runs the CLI command. |
 | Main Success Scenario | 1. `AnalyticsPanel.onLiftSelected()` calls `CoachController.getAnalytics(lift)`. 2. The controller loads history through `WorkoutRepository.findByLift()`. 3. `StrengthAnalytics` computes an e1RM for each set using `RPEChart`, then builds the e1RM series, weekly tonnage, and best set. 4. An `AnalyticsSummary` is returned. 5. The GUI draws a chart and summary figures; the CLI prints a table. |
@@ -105,10 +105,10 @@ Every use case initiated by the lifter is available in both interfaces. The GUI 
 |---|---|
 | Actor(s) | Lifter (primary), Claude LLM Service (secondary, via UC14) |
 | Goal | Produce a multi week training block toward the meet date that respects the lifter's strength levels, equipment, and chosen progression scheme. |
-| Interface | GUI: Plan tab, Generate Block. CLI: `liftpilot plan generate <weeks>` |
-| Preconditions | A profile exists with a future meet date. At least some workout history exists for each competition lift. |
+| Interface | GUI: Plan tab, Generate Block. CLI: `spotter plan generate <weeks>` |
+| Preconditions | A profile exists with a training goal. At least some workout history exists for each main lift. A meet date is not required. |
 | Trigger | The lifter clicks Generate Block or runs the CLI command. |
-| Main Success Scenario | 1. `PlanPanel.onGenerateClicked()` calls `CoachController.generateBlock(weeks)`. 2. The controller builds an `AgentRequest` and calls `BlockGenerationAgent.run()`. 3. **UC14** runs: the agent gathers current e1RMs through `AnalyticsTool` and available exercises through `ExerciseDBTool`, asks Claude for a block as JSON, parses it with `ResponseParser.toBlock()`, and validates it with `PlanValidator.validateBlock()` against the active `ProgressionStrategy`. 4. The validated `TrainingBlock` is saved through `BlockRepository`. 5. `PLAN_UPDATED` is published. 6. The Plan tab displays the block week by week. |
+| Main Success Scenario | 1. `PlanPanel.onGenerateClicked()` calls `CoachController.generateBlock(weeks)`. 2. The controller asks `ProgressionStrategyFactory.forGoal()` for the strategy matching the training goal, builds an `AgentRequest`, and calls `BlockGenerationAgent.run()`. 3. **UC14** runs: the agent gathers current e1RMs through `AnalyticsTool` and available exercises through `ExerciseDBTool`, asks Claude for a block as JSON, parses it with `ResponseParser.toBlock()`, and validates it with `PlanValidator.validateBlock()` against the active `ProgressionStrategy`. 4. The validated `TrainingBlock` is saved through `BlockRepository`. 5. `PLAN_UPDATED` is published. 6. The Plan tab displays the block week by week. |
 | Alternative / Exception Flows | 1a. Not enough history for a lift: the lifter is warned and may continue, in which case the agent is told to use conservative loads. 3a. UC14 fails after its retry: an error is shown and any existing block is left unchanged. 4a. A block already exists: the lifter confirms replacement before saving. |
 | Postconditions | A new validated block is active and visible. The previous block, if any, is kept in history. |
 | Related Feature(s) | F05 |
@@ -119,7 +119,7 @@ Every use case initiated by the lifter is available in both interfaces. The GUI 
 |---|---|
 | Actor(s) | Lifter |
 | Goal | Make manual changes to the active block (swap an exercise, change a load) and undo any change, including changes that came from the agent. |
-| Interface | GUI: Plan tab, inline edits and Undo. CLI: `liftpilot plan edit load <prescriptionId> <kg>`, `liftpilot plan edit swap <prescriptionId> <exercise>`, `liftpilot plan undo` |
+| Interface | GUI: Plan tab, inline edits and Undo. CLI: `spotter plan edit load <prescriptionId> <kg>`, `spotter plan edit swap <prescriptionId> <exercise>`, `spotter plan undo` |
 | Preconditions | An active training block exists. |
 | Trigger | The lifter edits a value in the plan, or clicks Undo. |
 | Main Success Scenario | 1. The lifter changes a load. 2. `PlanPanel` creates a `ChangeLoadCommand` and calls `CoachController.applyEdit(cmd)`. 3. `PlanEditHistory.execute()` runs the command, which records the old value and updates the `TrainingBlock`. 4. `BlockRepository.save()` persists the block. 5. `PLAN_UPDATED` is published and the tab refreshes. |
@@ -133,7 +133,7 @@ Every use case initiated by the lifter is available in both interfaces. The GUI 
 |---|---|
 | Actor(s) | Lifter (primary), Claude LLM Service (secondary, via UC14) |
 | Goal | Replace an exercise the lifter's gym cannot support with the closest suitable alternative. |
-| Interface | GUI: Plan tab, warning icon, Suggest Substitute. CLI: `liftpilot plan substitute <prescriptionId>` |
+| Interface | GUI: Plan tab, warning icon, Suggest Substitute. CLI: `spotter plan substitute <prescriptionId>` |
 | Preconditions | An active block exists and at least one prescription requires equipment not in the profile. |
 | Trigger | The lifter clicks Suggest Substitute on a flagged exercise. |
 | Main Success Scenario | 1. `PlanPanel.onSubstituteClicked()` calls `CoachController.suggestSubstitute(id)`. 2. `SubstitutionAgent.run()` executes **UC14**: `ExerciseDBTool` returns candidates with the same movement pattern and muscle groups that use only available equipment; Claude picks one and explains why. 3. `PlanValidator.validateSubstitution()` confirms the choice is one of the candidates. 4. The suggestion and rationale are shown. 5. The lifter accepts. 6. The controller applies a `SwapExerciseCommand` through `PlanEditHistory`, as in UC07. |
@@ -147,7 +147,7 @@ Every use case initiated by the lifter is available in both interfaces. The GUI 
 |---|---|
 | Actor(s) | Lifter (primary), Claude LLM Service (secondary, via UC14) |
 | Goal | Reduce the demand of a planned session when recovery data shows the lifter is under recovered. |
-| Interface | GUI: Plan tab, recovery badge, Adjust Session. CLI: `liftpilot plan flags`, `liftpilot plan adjust <sessionId>` |
+| Interface | GUI: Plan tab, recovery badge, Adjust Session. CLI: `spotter plan flags`, `spotter plan adjust <sessionId>` |
 | Preconditions | An active block exists and recovery data exists for the session date or the day before. |
 | Trigger | The lifter clicks Adjust Session on a flagged session. |
 | Main Success Scenario | 1. `RecoveryRuleEngine.evaluate()` has already flagged the session (recovery score below 33 or sleep below 6 hours). 2. `PlanPanel.onAdjustClicked()` calls `CoachController.adjustSession(id)`. 3. `AdjustmentAgent.run()` executes **UC14** with the session, the `RecoveryFlag` reasons, and recent recovery trend; Claude returns a revised session and rationale. 4. `PlanValidator` confirms loads are not increased and competition lifts are not removed. 5. The original and adjusted sessions are shown side by side. 6. The lifter accepts, and an `ApplyAdjustmentCommand` is applied through `PlanEditHistory`. |
@@ -155,16 +155,16 @@ Every use case initiated by the lifter is available in both interfaces. The GUI 
 | Postconditions | If accepted, the session is lighter, carries an adjustment note, and can be undone. |
 | Related Feature(s) | F07 |
 
-## UC10 — Select Meet Attempts
+## UC10 — Plan a Heavy Single (Meet Attempts or Test Day)
 
 | Field | Description |
 |---|---|
 | Actor(s) | Lifter (primary), Claude LLM Service (secondary, via UC14) |
-| Goal | Get opener, second, and third attempts for squat, bench, and deadlift with an explanation grounded in recent training. |
-| Interface | GUI: Meet tab, Calculate Attempts. CLI: `liftpilot meet attempts` |
+| Goal | Get either competition attempts (when a meet date is set) or a test day plan (when it is not), with an explanation grounded in recent training. |
+| Interface | GUI: Meet tab, Calculate Attempts. CLI: `spotter meet attempts` |
 | Preconditions | A profile exists and recent history exists for the competition lifts. |
 | Trigger | The lifter clicks Calculate Attempts or runs the CLI command. |
-| Main Success Scenario | 1. `MeetPanel.onCalculateClicked()` calls `CoachController.calculateAttempts()`. 2. The controller gets current e1RMs from `StrengthAnalytics.currentE1RMs()`. 3. `AttemptCalculator.calculate()` produces `MeetAttempts` for each lift, rounded to 2.5 kg. 4. `AttemptRationaleAgent.run()` executes **UC14** to write a rationale referencing the recent trend. 5. `PlanValidator.validateRationale()` confirms every number in the rationale matches the calculator. 6. Attempts and rationale are displayed. |
+| Main Success Scenario | 1. `MeetPanel.onCalculateClicked()` calls `CoachController.calculateAttempts()`. 2. The controller gets current e1RMs from `StrengthAnalytics.currentE1RMs()`. 3. `AttemptCalculator.calculateMeetAttempts()` produces `MeetAttempts` for each lift when a meet date is set, or `projectTestDay()` produces a `TestDayPlan` with warm ups and a top single when it is not. Both round to 2.5 kg. 4. `AttemptRationaleAgent.run()` executes **UC14** to write a rationale referencing the recent trend. 5. `PlanValidator.validateRationale()` confirms every number in the rationale matches the calculator. 6. Attempts and rationale are displayed. |
 | Alternative / Exception Flows | 2a. Too little recent data for a lift: a conservative percentage is used and a warning shown. 4a. UC14 fails or the rationale contradicts the calculator: the attempts are still shown, without a rationale, and a note explains why. 6a. The lifter overrides an attempt manually: the override is stored and marked as manual. |
 | Postconditions | Attempts are displayed and stored. The numbers always come from the deterministic calculator. |
 | Related Feature(s) | F08 |
@@ -175,7 +175,7 @@ Every use case initiated by the lifter is available in both interfaces. The GUI 
 |---|---|
 | Actor(s) | Lifter |
 | Goal | Log daily food intake and see remaining macros and weekly adherence against targets. |
-| Interface | GUI: Nutrition tab. CLI: `liftpilot macros log <food> <grams>`, `liftpilot macros today`, `liftpilot macros week` |
+| Interface | GUI: Nutrition tab. CLI: `spotter macros log <food> <grams>`, `spotter macros today`, `spotter macros week` |
 | Preconditions | Macro targets are set in the profile (UC01). |
 | Trigger | The lifter logs a food entry or opens the Nutrition tab. |
 | Main Success Scenario | 1. `NutritionPanel.onLogIntakeClicked()` calls `CoachController.logIntake(entry)`. 2. The food is looked up in `FoodCatalog` and a `FoodEntry` is created with its gram amount. 3. `MacroTracker.recordIntake()` adds it to the day's `DailyIntake`. 4. `IntakeRepository` saves it. 5. `MacroTracker.getRemaining()` and `weeklyAdherence()` are computed. 6. `INTAKE_LOGGED` is published and the tab shows remaining macros and adherence. |
@@ -189,7 +189,7 @@ Every use case initiated by the lifter is available in both interfaces. The GUI 
 |---|---|
 | Actor(s) | Lifter (primary), Claude LLM Service (secondary, via UC14) |
 | Goal | Receive a vegetarian meal that fits the macros remaining for the day. |
-| Interface | GUI: Nutrition tab, Suggest a Meal. CLI: `liftpilot meal suggest` |
+| Interface | GUI: Nutrition tab, Suggest a Meal. CLI: `spotter meal suggest` |
 | Preconditions | Macro targets exist. Dietary constraints are set in the profile. |
 | Trigger | The lifter clicks Suggest a Meal. |
 | Main Success Scenario | 1. `NutritionPanel.onSuggestMealClicked()` calls `CoachController.suggestMeal()`. 2. The controller gets remaining macros from `MacroTracker.getRemaining()`. 3. `MealSuggestionAgent.run()` executes **UC14**: `FoodDBTool` returns foods permitted by `DietaryConstraints`; Claude composes a meal from those foods with gram amounts. 4. `ResponseParser.toMeal()` builds the `MealSuggestion` using catalog nutrition values, not model generated values. 5. `PlanValidator.validateMeal()` confirms every item is permitted and the totals do not exceed remaining calories by more than a tolerance. 6. The meal and its full nutrition breakdown are shown, with an option to log it through UC11. |
@@ -203,7 +203,7 @@ Every use case initiated by the lifter is available in both interfaces. The GUI 
 |---|---|
 | Actor(s) | Lifter (primary), Claude LLM Service (secondary, via UC14) |
 | Goal | Ask free form coaching questions and receive answers grounded in the lifter's own data and earlier conversations. |
-| Interface | GUI: Coach Chat tab. CLI: `liftpilot chat "<question>"` or interactive `liftpilot chat` |
+| Interface | GUI: Coach Chat tab. CLI: `spotter chat "<question>"` or interactive `spotter chat` |
 | Preconditions | A profile exists. |
 | Trigger | The lifter sends a message. |
 | Main Success Scenario | 1. `ChatPanel.onSendClicked()` calls `CoachController.chat(message)`. 2. `ChatAgent.run()` executes **UC14**: `MemoryManager.recall()` retrieves relevant earlier conversation summaries; Claude decides which tools to call (`AnalyticsTool`, `PlanLookupTool`, `RecoveryLookupTool`), receives their results, and writes an answer. 3. `MemoryManager.remember()` stores the exchange in `ConversationHistory`. 4. The answer is displayed. |
@@ -250,7 +250,7 @@ Every use case initiated by the lifter is available in both interfaces. The GUI 
 | F05 Training Block Generation | UC06, UC07, UC14 |
 | F06 Equipment Substitution | UC08, UC07, UC14 |
 | F07 Recovery Aware Session Adjustment | UC04, UC09, UC07, UC14 |
-| F08 Meet Attempt Selection | UC10, UC14 |
+| F08 Max Testing and Attempt Planning | UC10, UC14 |
 | F09 Macro Targets and Adherence | UC01, UC11 |
 | F10 Vegetarian Meal Suggestion | UC12, UC14 |
 | F11 Coaching Chat with Memory | UC13, UC14 |

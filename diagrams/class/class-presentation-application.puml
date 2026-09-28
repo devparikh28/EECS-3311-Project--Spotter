@@ -1,6 +1,6 @@
 @startuml class-presentation-application
 !include model.iuml
-title LiftPilot — Presentation and Application Layers
+title Spotter — Presentation and Application Layers
 remove $dom
 remove $agent
 remove $infra

@@ -16,7 +16,7 @@ The system is organised in five layers. Each layer depends only on the layer ben
 
 **Presentation** holds `DashboardGUI` with seven tab panels (all subclasses of `BasePanel`) and `CoachCLI`. Neither contains business logic. Both call exactly one class, `CoachController`.
 
-**Application** holds `CoachController`, the single entry point for every feature, together with the `EventBus` that notifies the GUI of changes and the `PlanEditHistory` that records undoable plan edits.
+**Application** holds `CoachController`, the single entry point for every feature, together with the `EventBus` that notifies the GUI of changes, the `PlanEditHistory` that records undoable plan edits, and `FxTaskRunner`, which keeps long running work off the JavaFX Application Thread.
 
 **Domain** holds the data model (`LifterProfile`, `WorkoutSession`, `SetEntry`, `RecoveryDay`, `TrainingBlock` → `Week` → `Session` → `ExercisePrescription`, `DailyIntake`, `FoodEntry`, `MeetAttempts`) and the deterministic services (`StrengthAnalytics`, `AttemptCalculator`, `MacroTracker`, `RecoveryRuleEngine`). Nothing in this layer knows an LLM exists.
 
@@ -25,6 +25,8 @@ The system is organised in five layers. Each layer depends only on the layer ben
 **Infrastructure** holds the CSV adapters behind `DataSource`, `CsvImportService`, the exercise and food catalogs, and the SQLite repositories behind a generic `Repository<T>` interface.
 
 The LLM is Anthropic Claude, reached through LangChain4j's `AnthropicChatModel` inside `ClaudeClient`. The model name, token limit, and timeout are read from configuration rather than hard coded, so the model can be changed without code changes. Tools are passed to Claude as LangChain4j `ToolSpecification` objects built from our own `ToolSchema`, and structured outputs (training blocks, meal suggestions) are requested as JSON matching a schema supplied by `PromptBuilder`.
+
+An agent call takes seconds, and JavaFX has a single UI thread, so `CoachController` dispatches agent work through `FxTaskRunner` on a background thread and delivers results and events back through `Platform.runLater()`. The GUI therefore stays responsive while Claude is working, and the panels still receive events on the thread that is allowed to touch them. The CLI calls the same controller methods and simply blocks, since it has no UI thread to protect.
 
 The key principle is that **the LLM never writes directly to the domain**. Every model response passes through `ResponseParser` (structure) and `PlanValidator` (rules) before a domain object is created, and every number the agent reports (e1RM, attempts, macros) comes from a deterministic service or tool rather than from the model. This makes the deterministic layer fully unit testable and gives the agent layer clear behavioural contracts to test with KUMA.
 
@@ -51,7 +53,7 @@ Inheritance appears in `BasePanel` (7 panels), `CoachAgent` (6 agents), and inte
 
 ## 3.3 Design Changes Since the Initial Outline
 
-Three refinements were made while drawing the diagram. A separate `Planner` class was removed because tool selection is handled inside the agent loop (`CoachAgent.toolLoop()`) through Claude tool use, and a separate class would have had no responsibility of its own. `ScriptedLLMClient` was added as a second `LLMClient` implementation that replays fixed responses, so agent orchestration can be unit tested without network calls. The Factory Method pattern was moved from a standalone `ToolFactory` to `CoachAgent.createToolset()`, which is the textbook form of the pattern and removes a class.
+Several refinements were made while drawing the diagram. A separate `Planner` class was removed because tool selection is handled inside the agent loop (`CoachAgent.toolLoop()`) through Claude tool use, and a separate class would have had no responsibility of its own. `ScriptedLLMClient` was added as a second `LLMClient` implementation that replays fixed responses, so agent orchestration can be unit tested without network calls. The Factory Method pattern was moved from a standalone `ToolFactory` to `CoachAgent.createToolset()`, which is the textbook form of the pattern and removes a class. Finally, the meet date became optional and a `TrainingGoal` was added to `LifterProfile`, because not every lifter competes: the goal now selects the progression strategy, and F08 serves non competing lifters as a test day planner.
 
 ---
 
@@ -73,7 +75,7 @@ Seven patterns are applied. Each one solves a problem that exists in this system
 
 **Problem.** Two parts of the system have interchangeable algorithms. The LLM provider must be swappable, both for testing (a scripted fake) and so a cheaper or newer model can be tried without touching agent code. The progression scheme used to plan a block (RPE based, linear, or percentage based) changes which loads are valid, and both the prompt and the validator need to follow whichever scheme was chosen.
 
-**Participants.** For the LLM: `LLMClient` is the strategy interface, `ClaudeClient` (which wraps LangChain4j) and `ScriptedLLMClient` are concrete strategies, and `CoachAgent` is the context. For progression: `ProgressionStrategy` is the interface, `RPEProgression`, `LinearProgression`, and `PercentageProgression` are concrete strategies, and `BlockGenerationAgent` and `PlanValidator` are the contexts.
+**Participants.** For the LLM: `LLMClient` is the strategy interface, `ClaudeClient` (which wraps LangChain4j) and `ScriptedLLMClient` are concrete strategies, and `CoachAgent` is the context. For progression: `ProgressionStrategy` is the interface, `RPEProgression`, `LinearProgression`, and `PercentageProgression` are concrete strategies, `ProgressionStrategyFactory.forGoal()` selects one from the lifter's `TrainingGoal`, and `BlockGenerationAgent` and `PlanValidator` are the contexts. A lifter preparing for a meet, one building general strength, and one training for fun need different load progressions, and this is what keeps that difference out of the planning code.
 
 **Why it fits.** The contexts only need one operation each (`complete()` and `loadRange()`), and the choice is made once at configuration time.
 
@@ -113,7 +115,7 @@ Seven patterns are applied. Each one solves a problem that exists in this system
 
 **Problem.** Each agent needs a different set of tools. The block generator needs analytics and the exercise database; the meal agent needs only the food database; the chat agent needs analytics, plan lookup, and recovery lookup. The common agent loop in `CoachAgent` must register tools without knowing which concrete tools a given agent uses.
 
-**Participants.** `CoachAgent` is the creator and declares the abstract factory method `createToolset()`. Each concrete agent is a concrete creator that returns its own tools. `Tool` is the product interface and the five tool classes are concrete products. `DataSourceFactory` applies the related parameterised factory idea on the import side, choosing `HevyCsvAdapter` or `WhoopCsvAdapter` from the file header.
+**Participants.** `CoachAgent` is the creator and declares the abstract factory method `createToolset()`. Each concrete agent is a concrete creator that returns its own tools. `Tool` is the product interface and the five tool classes are concrete products. `DataSourceFactory` applies the related parameterised factory idea on the import side, choosing `HevyCsvAdapter` or `WhoopCsvAdapter` from the file header, and `ProgressionStrategyFactory` does the same for progression schemes, choosing one from the lifter's training goal.
 
 **Why it fits.** Tool selection varies with exactly the same axis as the agent subclass, so letting the subclass decide keeps each agent's capabilities defined in one place.
 
@@ -142,5 +144,5 @@ Seven patterns are applied. Each one solves a problem that exists in this system
 | Observer | `EventBus`, `EventListener`, `BasePanel` subclasses | F01 to F03, F05 to F07, F09 |
 | Command | `PlanEditCommand`, `PlanEditHistory`, three concrete commands | F05, F06, F07 |
 | Adapter | `DataSource`, `HevyCsvAdapter`, `WhoopCsvAdapter`, `CsvFileReader` | F02, F03 |
-| Factory Method | `CoachAgent.createToolset()`, concrete agents, `Tool`; `DataSourceFactory` | F02, F03, F05, F06, F10, F11 |
+| Factory Method | `CoachAgent.createToolset()`, concrete agents, `Tool`; `DataSourceFactory`; `ProgressionStrategyFactory` | F02, F03, F05, F06, F10, F11 |
 | Template Method | `CoachAgent.run()`, six concrete agents | F05 to F08, F10, F11 |
