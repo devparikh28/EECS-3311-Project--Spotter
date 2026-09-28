@@ -1,0 +1,98 @@
+@startuml SD03-generate-block
+!include _style.iuml
+title SD03 — Generate Training Block (F05 / UC06, including the UC14 agent loop)
+
+actor Lifter
+boundary "PlanPanel\n<<GUI>>" as UI
+control "CoachController\n<<Facade>>" as Ctrl
+participant "BlockGenerationAgent\n<<Template Method>>" as Agent
+participant "ToolManager" as Tools
+participant "AnalyticsTool" as ATool
+participant "ExerciseDBTool" as ETool
+participant "PromptBuilder\n<<Builder>>" as Prompt
+participant "ClaudeClient\n<<Strategy>>" as LLM
+participant "ResponseParser" as Parser
+participant "PlanValidator" as Validator
+database "BlockRepository" as Repo
+participant "EventBus" as Bus
+actor "Claude API\n<<external>>" as Claude
+
+Lifter -> UI : onGenerateClicked(weeks = 6)
+UI -> Ctrl : generateBlock(6)
+activate Ctrl
+Ctrl -> Agent : run(AgentRequest)
+activate Agent
+
+Agent -> Agent : createToolset()
+note right : Factory Method — this agent\nregisters AnalyticsTool and ExerciseDBTool
+Agent -> Agent : gatherContext(req)
+Agent -> Agent : buildPrompt(ctx)
+Agent -> Prompt : system(...).context(...).schema(blockSchema).build()
+Prompt --> Agent : List<Message>
+
+group toolLoop [at most maxToolRounds]
+  Agent -> LLM : complete(msgs, schemas, system)
+  activate LLM
+  LLM -> Claude : messages.create(...)
+  Claude --> LLM : response with tool_use
+  LLM --> Agent : LLMResponse(toolCalls)
+  deactivate LLM
+
+  loop for each ToolCall
+    Agent -> Tools : execute(call)
+    activate Tools
+    alt tool = current_e1rms
+      Tools -> ATool : execute(args)
+      ATool --> Tools : ToolResult(e1rm map)
+    else tool = available_exercises
+      Tools -> ETool : execute(args)
+      ETool --> Tools : ToolResult(exercise list)
+    else unknown tool or invalid arguments
+      Tools --> Tools : ToolResult(ok = false, error)
+    end
+    Tools --> Agent : ToolResult
+    deactivate Tools
+  end
+  Agent -> LLM : complete(msgs + toolResults, schemas, system)
+  LLM -> Claude : messages.create(...)
+  Claude --> LLM : final JSON block
+  LLM --> Agent : LLMResponse(content)
+end
+
+Agent -> Parser : toBlock(json, catalog)
+Parser --> Agent : TrainingBlock
+Agent -> Validator : validateBlock(block, ctx, strategy)
+activate Validator
+Validator --> Agent : ValidationReport
+deactivate Validator
+
+alt report.valid
+  Agent --> Ctrl : AgentResult(success = true, block)
+else invalid and attempts remain
+  Agent -> Prompt : context("validationErrors", errors)
+  Agent -> LLM : complete(retry messages, schemas, system)
+  LLM -> Claude : messages.create(...)
+  Claude --> LLM : corrected JSON
+  LLM --> Agent : LLMResponse(content)
+  Agent -> Parser : toBlock(json, catalog)
+  Agent -> Validator : validateBlock(...)
+  Validator --> Agent : ValidationReport
+else still invalid, or API timeout
+  Agent --> Ctrl : AgentResult(success = false, errors)
+end
+deactivate Agent
+
+alt success
+  Ctrl -> Repo : save(block)
+  Repo --> Ctrl : TrainingBlock
+  Ctrl -> Bus : publish(DomainEvent(PLAN_UPDATED))
+  Bus -> UI : onEvent(e)
+  UI -> UI : refresh()
+  Ctrl --> UI : AgentResult(success)
+  UI --> Lifter : block displayed week by week
+else failure
+  Ctrl --> UI : AgentResult(errors)
+  UI --> Lifter : error banner; previous block unchanged
+end
+deactivate Ctrl
+@enduml

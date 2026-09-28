@@ -1,0 +1,74 @@
+@startuml SD05-recovery-adjustment
+!include _style.iuml
+title SD05 — Adjust Session for Poor Recovery (F07 / UC09)
+
+actor Lifter
+boundary "PlanPanel\n<<GUI>>" as UI
+control "CoachController\n<<Facade>>" as Ctrl
+participant "RecoveryRuleEngine" as Rules
+database "RecoveryRepository" as RRepo
+participant "AdjustmentAgent" as Agent
+participant "ClaudeClient" as LLM
+participant "PlanValidator" as Validator
+participant "PlanEditHistory" as History
+participant "ApplyAdjustmentCommand\n<<Command>>" as Cmd
+entity "TrainingBlock" as Block
+participant "EventBus" as Bus
+
+== Flagging, after recovery import ==
+Ctrl -> RRepo : findByDate(sessionDate)
+RRepo --> Ctrl : RecoveryDay
+Ctrl -> Rules : evaluate(day)
+activate Rules
+alt recoveryScore < 33 or sleepHours < 6.0
+  Rules --> Ctrl : RecoveryFlag(reasons)
+  Ctrl -> Bus : publish(DomainEvent(RECOVERY_FLAGGED))
+  Bus -> UI : onEvent(e)
+  UI --> Lifter : warning badge on session
+else data missing or within thresholds
+  Rules --> Ctrl : null
+end
+deactivate Rules
+
+== Adjustment, on request ==
+Lifter -> UI : onAdjustClicked(sessionId)
+UI -> Ctrl : adjustSession(sessionId)
+activate Ctrl
+Ctrl -> Agent : run(AgentRequest(session, flag, trend))
+activate Agent
+ref over Agent, LLM : UC14 agent loop\n(see SD03)
+Agent -> Validator : validateAdjustment(adjusted, original)
+activate Validator
+note right of Validator
+  rejects increased loads and
+  removal of competition lifts
+end note
+Validator --> Agent : ValidationReport
+deactivate Validator
+
+alt valid
+  Agent --> Ctrl : AgentResult(adjustedSession, rationale)
+else agent or API failure
+  Agent --> Ctrl : AgentResult(success = false)
+  Ctrl -> Rules : fallbackAdjustment(session)
+  Rules --> Ctrl : Session with sets reduced by one third
+end
+deactivate Agent
+
+Ctrl --> UI : original and adjusted side by side
+UI --> Lifter : review adjustment
+
+alt Lifter accepts
+  Lifter -> UI : accept()
+  UI -> Ctrl : applyEdit(ApplyAdjustmentCommand)
+  Ctrl -> History : execute(cmd)
+  History -> Cmd : execute()
+  Cmd -> Block : replaceSession(adjusted)
+  Ctrl -> Bus : publish(DomainEvent(PLAN_UPDATED))
+  Bus -> UI : onEvent(e)
+  UI --> Lifter : session updated with adjustment note
+else Lifter rejects
+  UI --> Lifter : original session kept
+end
+deactivate Ctrl
+@enduml

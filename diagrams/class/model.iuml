@@ -1,0 +1,683 @@
+' ============================================================
+' LiftPilot — shared class model (included by every view)
+' ============================================================
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam linetype ortho
+skinparam nodesep 40
+skinparam ranksep 55
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #444444
+  ArrowColor #444444
+}
+skinparam package {
+  BackgroundColor #F7F7F7
+  BorderColor #999999
+}
+skinparam stereotypeCBackgroundColor #E8EEF7
+hide empty members
+
+' ---------------- Presentation ----------------
+package "presentation" $pres {
+  class DashboardGUI $pres {
+    - controller : CoachController
+    - panels : List<BasePanel>
+    + show() : void
+  }
+  abstract class BasePanel $pres {
+    # controller : CoachController
+    + {abstract} refresh() : void
+    + onEvent(e : DomainEvent) : void
+  }
+  class ProfilePanel $pres {
+    + onSaveClicked() : void
+  }
+  class LogPanel $pres {
+    + onImportHevyClicked() : void
+    + onImportWhoopClicked() : void
+    + onManualEntrySubmitted() : void
+  }
+  class AnalyticsPanel $pres {
+    + onLiftSelected(lift : Lift) : void
+  }
+  class PlanPanel $pres {
+    + onGenerateClicked() : void
+    + onSubstituteClicked(prescriptionId : int) : void
+    + onAdjustClicked(sessionId : int) : void
+    + onUndoClicked() : void
+  }
+  class MeetPanel $pres {
+    + onCalculateClicked() : void
+  }
+  class NutritionPanel $pres {
+    + onLogIntakeClicked() : void
+    + onSuggestMealClicked() : void
+  }
+  class ChatPanel $pres {
+    + onSendClicked() : void
+  }
+  class CoachCLI $pres {
+    - controller : CoachController
+    + run(argv : List<str>) : int
+  }
+}
+
+' ---------------- Application ----------------
+package "application" $app {
+  class CoachController <<Facade>> $app {
+    - profiles : ProfileRepository
+    - workouts : WorkoutRepository
+    - recovery : RecoveryRepository
+    - blocks : BlockRepository
+    - intake : IntakeRepository
+    - importer : CsvImportService
+    - analytics : StrengthAnalytics
+    - attempts : AttemptCalculator
+    - macros : MacroTracker
+    - ruleEngine : RecoveryRuleEngine
+    - agents : AgentRegistry
+    - events : EventBus
+    - editHistory : PlanEditHistory
+    + saveProfile(p : LifterProfile) : void
+    + importWorkouts(path : str) : ImportReport
+    + importRecovery(path : str) : ImportReport
+    + logWorkout(s : WorkoutSession) : void
+    + getAnalytics(lift : Lift) : AnalyticsSummary
+    + generateBlock(weeks : int) : AgentResult<TrainingBlock>
+    + suggestSubstitute(prescriptionId : int) : AgentResult<ExercisePrescription>
+    + flagSessions() : List<RecoveryFlag>
+    + adjustSession(sessionId : int) : AgentResult<Session>
+    + calculateAttempts() : List<MeetAttempts>
+    + logIntake(e : FoodEntry) : MacroTotals
+    + suggestMeal() : AgentResult<MealSuggestion>
+    + chat(message : str) : AgentResult<str>
+    + applyEdit(cmd : PlanEditCommand) : void
+    + undoLastEdit() : void
+  }
+  class EventBus <<Observer: Subject>> $app {
+    - listeners : Map<EventType, List<EventListener>>
+    + subscribe(t : EventType, l : EventListener) : void
+    + unsubscribe(t : EventType, l : EventListener) : void
+    + publish(e : DomainEvent) : void
+  }
+  interface EventListener <<Observer>> $app {
+    + onEvent(e : DomainEvent) : void
+  }
+  class DomainEvent $app {
+    + type : EventType
+    + payload : object
+    + timestamp : datetime
+  }
+  enum EventType $app {
+    PROFILE_UPDATED
+    DATA_IMPORTED
+    PLAN_UPDATED
+    RECOVERY_FLAGGED
+    INTAKE_LOGGED
+  }
+  class PlanEditHistory <<Command: Invoker>> $app {
+    - undoStack : List<PlanEditCommand>
+    + execute(cmd : PlanEditCommand) : void
+    + undo() : void
+    + canUndo() : bool
+  }
+  interface PlanEditCommand <<Command>> $app {
+    + execute() : void
+    + undo() : void
+    + describe() : str
+  }
+  class SwapExerciseCommand $app {
+    - block : TrainingBlock
+    - prescriptionId : int
+    - newExercise : Exercise
+    - previous : Exercise
+  }
+  class ChangeLoadCommand $app {
+    - block : TrainingBlock
+    - prescriptionId : int
+    - newLoadKg : float
+    - previousLoadKg : float
+  }
+  class ApplyAdjustmentCommand $app {
+    - block : TrainingBlock
+    - adjusted : Session
+    - original : Session
+  }
+  class AgentRegistry $app {
+    + blockGen : BlockGenerationAgent
+    + substitution : SubstitutionAgent
+    + adjustment : AdjustmentAgent
+    + attemptRationale : AttemptRationaleAgent
+    + meal : MealSuggestionAgent
+    + chat : ChatAgent
+  }
+}
+
+' ---------------- Domain ----------------
+package "domain" $dom {
+  class LifterProfile $dom {
+    + id : int
+    + bodyweightKg : float
+    + weightClassKg : float
+    + meetDate : date
+    + trainingDaysPerWeek : int
+    + equipment : Set<Equipment>
+    + weeksUntilMeet(today : date) : int
+    + hasEquipment(e : Equipment) : bool
+  }
+  class DietaryConstraints $dom {
+    + vegetarian : bool
+    + allowsDairy : bool
+    + allowsEggs : bool
+    + permits(f : FoodItem) : bool
+  }
+  enum Lift $dom {
+    SQUAT
+    BENCH
+    DEADLIFT
+  }
+  enum Equipment $dom {
+    BARBELL
+    DUMBBELL
+    CABLE
+    SMITH
+    BELT_SQUAT
+    DIP_BAR
+    LEG_EXTENSION
+    ...
+  }
+  class Exercise $dom {
+    + id : int
+    + name : str
+    + muscleGroups : Set<str>
+    + movementPattern : str
+    + requiredEquipment : Set<Equipment>
+    + competitionLift : Lift [0..1]
+  }
+  class WorkoutSession $dom {
+    + id : int
+    + date : date
+    + source : str
+    + totalTonnage() : float
+  }
+  class SetEntry $dom {
+    + weightKg : float
+    + reps : int
+    + rpe : float [0..1]
+  }
+  class RecoveryDay $dom {
+    + date : date
+    + recoveryScore : int [0..1]
+    + hrvMs : float [0..1]
+    + sleepHours : float [0..1]
+  }
+  class TrainingBlock $dom {
+    + id : int
+    + startDate : date
+    + progression : str
+    + findSession(id : int) : Session
+    + findPrescription(id : int) : ExercisePrescription
+  }
+  class Week $dom {
+    + number : int
+  }
+  class Session $dom {
+    + id : int
+    + date : date
+    + adjustmentNote : str [0..1]
+  }
+  class ExercisePrescription $dom {
+    + id : int
+    + sets : int
+    + reps : int
+    + targetRpe : float
+    + loadKg : float
+  }
+  class MeetAttempts $dom {
+    + lift : Lift
+    + opener : float
+    + second : float
+    + third : float
+    + rationale : str
+  }
+  class MacroTarget $dom {
+    + calories : int
+    + proteinG : float
+    + carbsG : float
+    + fatG : float
+  }
+  class DailyIntake $dom {
+    + date : date
+    + totals() : MacroTotals
+  }
+  class FoodEntry $dom {
+    + grams : float
+    + totals() : MacroTotals
+  }
+  class FoodItem $dom {
+    + name : str
+    + per100g : MacroTotals
+    + vegetarian : bool
+    + containsDairy : bool
+    + containsEgg : bool
+  }
+  class MacroTotals $dom {
+    + calories : float
+    + proteinG : float
+    + carbsG : float
+    + fatG : float
+    + minus(o : MacroTotals) : MacroTotals
+  }
+  class AnalyticsSummary $dom {
+    + lift : Lift
+    + e1rmSeries : List<Point>
+    + tonnage : List<Point>
+    + bestSet : SetEntry [0..1]
+    + warnings : List<str>
+    + {static} empty(lift : Lift) : AnalyticsSummary
+  }
+  class Point $dom {
+    + date : date
+    + value : float
+  }
+  class Range $dom {
+    + minKg : float
+    + maxKg : float
+    + contains(kg : float) : bool
+  }
+  class MealSuggestion $dom {
+    + rationale : str
+    + totals() : MacroTotals
+  }
+
+  ' domain services
+  class StrengthAnalytics $dom {
+    - rpeChart : RPEChart
+    + computeE1RM(s : SetEntry) : float
+    + e1rmSeries(lift : Lift, h : List<WorkoutSession>) : List<Point>
+    + weeklyTonnage(lift : Lift, h : List<WorkoutSession>) : List<Point>
+    + bestSet(lift : Lift, h : List<WorkoutSession>) : SetEntry
+    + currentE1RMs(h : List<WorkoutSession>) : Map<Lift, float>
+  }
+  class RPEChart $dom {
+    + percentOf1RM(reps : int, rpe : float) : float
+  }
+  class AttemptCalculator $dom {
+    - openerPct : float = 0.91
+    - secondPct : float = 0.96
+    - thirdPct : float = 1.01
+    + calculate(lift : Lift, e1rm : float) : MeetAttempts
+    - roundToPlate(kg : float) : float
+  }
+  class MacroTracker $dom {
+    - target : MacroTarget
+    + recordIntake(date : date, e : FoodEntry) : MacroTotals
+    + getRemaining(date : date) : MacroTotals
+    + weeklyAdherence(weekStart : date) : float
+  }
+  class RecoveryRuleEngine $dom {
+    - minRecoveryScore : int = 33
+    - minSleepHours : float = 6.0
+    + evaluate(d : RecoveryDay) : RecoveryFlag [0..1]
+    + fallbackAdjustment(s : Session) : Session
+  }
+  class RecoveryFlag $dom {
+    + date : date
+    + reasons : List<str>
+  }
+  interface ProgressionStrategy <<Strategy>> $dom {
+    + loadRange(e1rm : float, reps : int, rpe : float, week : int) : Range
+    + describe() : str
+  }
+  class RPEProgression $dom
+  class LinearProgression $dom
+  class PercentageProgression $dom
+}
+
+' ---------------- Agent ----------------
+package "agent" $agent {
+  abstract class CoachAgent <<Template Method>> $agent {
+    # llm : LLMClient
+    # tools : ToolManager
+    # prompts : PromptBuilder
+    # parser : ResponseParser
+    # validator : PlanValidator
+    # maxRetries : int = 1
+    # maxToolRounds : int = 5
+    + run(req : AgentRequest) : AgentResult {final}
+    # {abstract} createToolset() : List<Tool>
+    # {abstract} gatherContext(req : AgentRequest) : AgentContext
+    # {abstract} buildPrompt(ctx : AgentContext) : List<Message>
+    # {abstract} parse(raw : str) : object
+    # {abstract} validate(result : object, ctx : AgentContext) : ValidationReport
+    - toolLoop(msgs : List<Message>) : LLMResponse
+  }
+  class BlockGenerationAgent $agent {
+    - strategy : ProgressionStrategy
+  }
+  class SubstitutionAgent $agent
+  class AdjustmentAgent $agent
+  class AttemptRationaleAgent $agent
+  class MealSuggestionAgent $agent
+  class ChatAgent $agent {
+    - memory : MemoryManager
+  }
+  class AgentRequest $agent {
+    + kind : str
+    + params : Map<str, object>
+  }
+  class AgentContext $agent {
+    + profile : LifterProfile
+    + facts : Map<str, object>
+  }
+  class "AgentResult<T>" as AgentResult $agent {
+    + success : bool
+    + value : T [0..1]
+    + errors : List<str>
+    + attempts : int
+  }
+
+  interface LLMClient <<Strategy>> $agent {
+    + complete(msgs : List<Message>, tools : List<ToolSchema>, system : str) : LLMResponse
+  }
+  class ClaudeClient $agent {
+    - client : anthropic.Anthropic
+    - model : str
+    - maxTokens : int
+    - timeoutS : int
+    - toAnthropicTools(t : List<ToolSchema>) : List<dict>
+  }
+  class ScriptedLLMClient $agent {
+    - responses : List<LLMResponse>
+  }
+  class LLMResponse $agent {
+    + content : str [0..1]
+    + toolCalls : List<ToolCall>
+    + finishReason : str
+  }
+  class Message $agent {
+    + role : str
+    + content : str
+  }
+  class PromptBuilder <<Builder>> $agent {
+    + system(text : str) : PromptBuilder
+    + context(key : str, value : object) : PromptBuilder
+    + schema(s : dict) : PromptBuilder
+    + memory(snips : List<str>) : PromptBuilder
+    + user(text : str) : PromptBuilder
+    + build() : List<Message>
+  }
+  class ResponseParser $agent {
+    + parseJson(raw : str) : dict
+    + toBlock(d : dict, catalog : ExerciseCatalog) : TrainingBlock
+    + toSession(d : dict) : Session
+    + toMeal(d : dict, foods : FoodCatalog) : MealSuggestion
+  }
+  class PlanValidator $agent {
+    + validateBlock(b : TrainingBlock, ctx : AgentContext, s : ProgressionStrategy) : ValidationReport
+    + validateSubstitution(e : Exercise, allowed : List<Exercise>) : ValidationReport
+    + validateMeal(m : MealSuggestion, d : DietaryConstraints, remaining : MacroTotals) : ValidationReport
+    + validateRationale(text : str, a : MeetAttempts) : ValidationReport
+  }
+  class ValidationReport $agent {
+    + valid : bool
+    + errors : List<str>
+  }
+
+  class ToolManager $agent {
+    - tools : Map<str, Tool>
+    - callLog : List<ToolCall>
+    + register(t : Tool) : void
+    + schemas() : List<ToolSchema>
+    + execute(call : ToolCall) : ToolResult
+  }
+  interface Tool $agent {
+    + name() : str
+    + schema() : ToolSchema
+    + execute(args : dict) : ToolResult
+  }
+  class ToolSchema $agent {
+    + name : str
+    + description : str
+    + inputSchema : dict
+  }
+  class ToolCall $agent {
+    + id : str
+    + toolName : str
+    + arguments : dict
+  }
+  class ToolResult $agent {
+    + ok : bool
+    + data : object
+    + error : str [0..1]
+  }
+  class AnalyticsTool $agent
+  class ExerciseDBTool $agent
+  class FoodDBTool $agent
+  class PlanLookupTool $agent
+  class RecoveryLookupTool $agent
+
+  class MemoryManager $agent {
+    - history : ConversationHistory
+    - store : MemoryRepository
+    + remember(user : Message, reply : Message) : void
+    + recall(query : str, k : int) : List<str>
+    + summarizeOlderTurns() : void
+  }
+  class ConversationHistory $agent {
+    - maxTurns : int = 20
+    + append(m : Message) : void
+    + recent(n : int) : List<Message>
+  }
+}
+
+' ---------------- Infrastructure ----------------
+package "infrastructure" $infra {
+  interface DataSource <<Adapter: Target>> $infra {
+    + read(path : str) : ImportBatch
+  }
+  class HevyCsvAdapter <<Adapter>> $infra
+  class WhoopCsvAdapter <<Adapter>> $infra
+  class CsvFileReader <<Adaptee>> $infra {
+    + rows(path : str) : Iterator<dict>
+    + header(path : str) : List<str>
+  }
+  class DataSourceFactory <<Factory>> $infra {
+    + create(kind : SourceKind) : DataSource
+    + detect(path : str) : SourceKind
+  }
+  enum SourceKind $infra {
+    HEVY
+    WHOOP
+  }
+  class ImportBatch $infra {
+    + sessions : List<WorkoutSession>
+    + recoveryDays : List<RecoveryDay>
+    + rowErrors : List<str>
+  }
+  class ImportReport $infra {
+    + imported : int
+    + duplicatesSkipped : int
+    + unknownExercises : List<str>
+    + rowErrors : List<str>
+  }
+  class CsvImportService $infra {
+    - factory : DataSourceFactory
+    - catalog : ExerciseCatalog
+    + importFile(path : str, kind : SourceKind) : ImportReport
+    - mapExerciseNames(b : ImportBatch) : List<str>
+    - dedupe(b : ImportBatch) : int
+  }
+  class ExerciseCatalog $infra {
+    + byName(name : str) : Exercise [0..1]
+    + closestMatches(name : str, k : int) : List<Exercise>
+    + addAlias(alias : str, e : Exercise) : void
+    + add(e : Exercise) : void
+    + candidates(pattern : str, muscles : Set<str>, eq : Set<Equipment>) : List<Exercise>
+  }
+  class FoodCatalog $infra {
+    + search(d : DietaryConstraints, maxCalories : float) : List<FoodItem>
+    + byName(name : str) : FoodItem [0..1]
+    + add(f : FoodItem) : void
+  }
+  interface "Repository<T>" as Repository $infra {
+    + save(item : T) : T
+    + findById(id : int) : T [0..1]
+    + findAll() : List<T>
+    + delete(id : int) : void
+  }
+  class Database $infra {
+    - path : str
+    + connection() : Connection
+    + migrate() : void
+  }
+  class ProfileRepository $infra
+  class WorkoutRepository $infra {
+    + findByLift(l : Lift, since : date) : List<WorkoutSession>
+  }
+  class RecoveryRepository $infra {
+    + findByDate(d : date) : RecoveryDay [0..1]
+  }
+  class BlockRepository $infra {
+    + findActive() : TrainingBlock [0..1]
+  }
+  class IntakeRepository $infra
+  class MemoryRepository $infra {
+    + search(query : str, k : int) : List<str>
+  }
+}
+
+' ============================================================
+' Relationships
+' ============================================================
+
+' presentation
+DashboardGUI "1" *-- "7" BasePanel
+BasePanel <|-- ProfilePanel
+BasePanel <|-- LogPanel
+BasePanel <|-- AnalyticsPanel
+BasePanel <|-- PlanPanel
+BasePanel <|-- MeetPanel
+BasePanel <|-- NutritionPanel
+BasePanel <|-- ChatPanel
+BasePanel ..|> EventListener
+BasePanel "*" --> "1" CoachController
+CoachCLI --> "1" CoachController
+
+' application
+CoachController *-- "1" EventBus
+CoachController *-- "1" PlanEditHistory
+CoachController *-- "1" AgentRegistry
+EventBus "1" o-- "*" EventListener : notifies >
+EventBus ..> DomainEvent
+DomainEvent --> EventType
+PlanEditHistory "1" o-- "*" PlanEditCommand
+PlanEditCommand <|.. SwapExerciseCommand
+PlanEditCommand <|.. ChangeLoadCommand
+PlanEditCommand <|.. ApplyAdjustmentCommand
+SwapExerciseCommand --> TrainingBlock : receiver
+ChangeLoadCommand --> TrainingBlock : receiver
+ApplyAdjustmentCommand --> TrainingBlock : receiver
+AgentRegistry o-- "6" CoachAgent
+CoachController --> CsvImportService
+CoachController --> StrengthAnalytics
+CoachController --> AttemptCalculator
+CoachController --> MacroTracker
+CoachController --> RecoveryRuleEngine
+CoachController --> Repository
+
+' domain structure
+LifterProfile "1" *-- "1" DietaryConstraints
+LifterProfile "1" -- "0..*" WorkoutSession : logs >
+LifterProfile "1" -- "0..*" RecoveryDay : tracks >
+LifterProfile "1" -- "0..1" TrainingBlock : follows >
+LifterProfile "1" -- "1" MacroTarget
+WorkoutSession "1" *-- "1..*" SetEntry
+SetEntry "*" --> "1" Exercise
+TrainingBlock "1" *-- "1..*" Week
+Week "1" *-- "1..*" Session
+Session "1" *-- "1..*" ExercisePrescription
+ExercisePrescription "*" --> "1" Exercise
+DailyIntake "1" *-- "0..*" FoodEntry
+FoodEntry "*" --> "1" FoodItem
+MealSuggestion "1" *-- "1..*" FoodEntry
+StrengthAnalytics *-- "1" RPEChart
+StrengthAnalytics ..> AnalyticsSummary : creates
+AnalyticsSummary "1" o-- "*" Point
+ProgressionStrategy ..> Range
+Tool ..> ToolSchema
+MacroTracker --> "1" MacroTarget
+MacroTracker ..> DailyIntake
+AttemptCalculator ..> MeetAttempts : creates
+RecoveryRuleEngine ..> RecoveryFlag : creates
+ProgressionStrategy <|.. RPEProgression
+ProgressionStrategy <|.. LinearProgression
+ProgressionStrategy <|.. PercentageProgression
+
+' agent
+CoachAgent <|-- BlockGenerationAgent
+CoachAgent <|-- SubstitutionAgent
+CoachAgent <|-- AdjustmentAgent
+CoachAgent <|-- AttemptRationaleAgent
+CoachAgent <|-- MealSuggestionAgent
+CoachAgent <|-- ChatAgent
+CoachAgent "*" o-- "1" LLMClient
+CoachAgent "1" *-- "1" ToolManager
+CoachAgent --> PromptBuilder
+CoachAgent --> ResponseParser
+CoachAgent --> PlanValidator
+CoachAgent ..> AgentRequest
+CoachAgent ..> AgentContext
+CoachAgent ..> AgentResult
+BlockGenerationAgent --> "1" ProgressionStrategy
+PlanValidator ..> ProgressionStrategy
+PlanValidator ..> ValidationReport
+ChatAgent --> "1" MemoryManager
+LLMClient <|.. ClaudeClient
+LLMClient <|.. ScriptedLLMClient
+LLMClient ..> LLMResponse
+LLMClient ..> Message
+LLMResponse "1" *-- "0..*" ToolCall
+ToolManager "1" o-- "*" Tool
+ToolManager ..> ToolCall
+ToolManager ..> ToolResult
+Tool <|.. AnalyticsTool
+Tool <|.. ExerciseDBTool
+Tool <|.. FoodDBTool
+Tool <|.. PlanLookupTool
+Tool <|.. RecoveryLookupTool
+AnalyticsTool --> StrengthAnalytics
+AnalyticsTool --> WorkoutRepository
+ExerciseDBTool --> ExerciseCatalog
+FoodDBTool --> FoodCatalog
+PlanLookupTool --> BlockRepository
+RecoveryLookupTool --> RecoveryRepository
+MemoryManager *-- "1" ConversationHistory
+ConversationHistory "1" *-- "0..*" Message
+MemoryManager --> MemoryRepository
+
+' infrastructure
+DataSource <|.. HevyCsvAdapter
+DataSource <|.. WhoopCsvAdapter
+HevyCsvAdapter --> CsvFileReader : adapts
+WhoopCsvAdapter --> CsvFileReader : adapts
+DataSourceFactory ..> DataSource : creates
+DataSourceFactory --> SourceKind
+CsvImportService --> DataSourceFactory
+CsvImportService --> ExerciseCatalog
+CsvImportService ..> ImportBatch
+CsvImportService ..> ImportReport
+Repository <|.. ProfileRepository
+Repository <|.. WorkoutRepository
+Repository <|.. RecoveryRepository
+Repository <|.. BlockRepository
+Repository <|.. IntakeRepository
+Repository <|.. MemoryRepository
+ProfileRepository --> Database
+WorkoutRepository --> Database
+RecoveryRepository --> Database
+BlockRepository --> Database
+IntakeRepository --> Database
+MemoryRepository --> Database

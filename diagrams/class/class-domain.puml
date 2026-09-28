@@ -1,0 +1,8 @@
+@startuml class-domain
+!include model.iuml
+title LiftPilot — Domain Model and Domain Services
+remove $pres
+remove $app
+remove $agent
+remove $infra
+@enduml

@@ -1,0 +1,8 @@
+@startuml class-infrastructure
+!include model.iuml
+title LiftPilot — Infrastructure Layer
+remove $pres
+remove $app
+remove $dom
+remove $agent
+@enduml

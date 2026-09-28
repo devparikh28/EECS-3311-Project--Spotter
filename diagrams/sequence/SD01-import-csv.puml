@@ -1,0 +1,82 @@
+@startuml SD01-import-csv
+!include _style.iuml
+title SD01 — Import CSV Data (F02, F03 / UC02, UC04, UC15)
+
+actor Lifter
+boundary "LogPanel\n<<GUI>>" as UI
+control "CoachController\n<<Facade>>" as Ctrl
+participant "CsvImportService" as Import
+participant "DataSourceFactory\n<<Factory>>" as Factory
+participant "HevyCsvAdapter\n<<Adapter>>" as Adapter
+participant "CsvFileReader" as Reader
+participant "ExerciseCatalog" as Catalog
+database "WorkoutRepository" as Repo
+participant "EventBus\n<<Subject>>" as Bus
+
+Lifter -> UI : onImportHevyClicked(path)
+UI -> Ctrl : importWorkouts(path)
+activate Ctrl
+Ctrl -> Import : importFile(path, HEVY)
+activate Import
+
+Import -> Factory : detect(path)
+activate Factory
+Factory -> Reader : header(path)
+Reader --> Factory : columns
+Factory --> Import : SourceKind.HEVY
+deactivate Factory
+
+Import -> Factory : create(HEVY)
+Factory --> Import : HevyCsvAdapter
+
+Import -> Adapter : read(path)
+activate Adapter
+Adapter -> Reader : rows(path)
+Reader --> Adapter : Iterator<dict>
+Adapter --> Import : ImportBatch(sessions, rowErrors)
+deactivate Adapter
+
+alt header matches no known format
+  Factory --> Import : raise UnknownFormatError
+  Import --> Ctrl : ImportReport(imported = 0, error)
+  Ctrl --> UI : ImportReport
+  UI --> Lifter : "unrecognised file format"
+end
+
+loop for each WorkoutSession in batch
+  Import -> Catalog : byName(exerciseName)
+  alt name found
+    Catalog --> Import : Exercise
+  else name unknown — UC15
+    Catalog --> Import : null
+    Import -> Catalog : closestMatches(name, 3)
+    Catalog --> Import : List<Exercise>
+    Import --> UI : promptMapping(name, candidates)
+    UI --> Lifter : show mapping dialog
+    Lifter -> UI : choose mapping
+    UI -> Import : resolveMapping(name, exercise)
+    Import -> Catalog : addAlias(name, exercise)
+  end
+end
+
+Import -> Import : dedupe(batch)
+Import -> Repo : save(sessions)
+Repo --> Import : saved count
+Import --> Ctrl : ImportReport(imported, duplicatesSkipped, rowErrors)
+deactivate Import
+
+Ctrl -> Bus : publish(DomainEvent(DATA_IMPORTED))
+activate Bus
+Bus -> UI : onEvent(e)
+UI -> UI : refresh()
+deactivate Bus
+Ctrl --> UI : ImportReport
+deactivate Ctrl
+UI --> Lifter : summary of imported, skipped, and failed rows
+
+note over Adapter
+  UC04 is identical with
+  WhoopCsvAdapter, RecoveryDay
+  objects, and RecoveryRepository
+end note
+@enduml

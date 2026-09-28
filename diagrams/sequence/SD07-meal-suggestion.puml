@@ -1,0 +1,71 @@
+@startuml SD07-meal-suggestion
+!include _style.iuml
+title SD07 — Get Meal Suggestion (F10 / UC12)
+
+actor Lifter
+boundary "NutritionPanel\n<<GUI>>" as UI
+control "CoachController\n<<Facade>>" as Ctrl
+participant "MacroTracker" as Macros
+participant "MealSuggestionAgent" as Agent
+participant "ToolManager" as Tools
+participant "FoodDBTool" as FTool
+participant "FoodCatalog" as Catalog
+participant "ClaudeClient" as LLM
+participant "ResponseParser" as Parser
+participant "PlanValidator" as Validator
+
+Lifter -> UI : onSuggestMealClicked()
+UI -> Ctrl : suggestMeal()
+activate Ctrl
+Ctrl -> Macros : getRemaining(today)
+activate Macros
+Macros --> Ctrl : MacroTotals(remaining)
+deactivate Macros
+
+alt remaining calories near zero
+  Ctrl --> UI : "targets already met"
+  UI --> Lifter : no meal needed
+else macros remain
+  Ctrl -> Agent : run(AgentRequest(remaining, constraints))
+  activate Agent
+  Agent -> Tools : execute(ToolCall("permitted_foods"))
+  Tools -> FTool : execute(constraints, maxCalories)
+  FTool -> Catalog : search(dietaryConstraints, maxCalories)
+  Catalog --> FTool : List<FoodItem>
+  FTool --> Tools : ToolResult(foods)
+  Tools --> Agent : permitted foods only
+
+  ref over Agent, LLM : UC14 agent loop\n(see SD03)
+
+  Agent -> Parser : toMeal(json, foodCatalog)
+  note right of Parser
+    gram amounts come from the model,
+    nutrition values come from the catalog
+  end note
+  Parser --> Agent : MealSuggestion
+  Agent -> Validator : validateMeal(meal, constraints, remaining)
+  activate Validator
+  Validator --> Agent : ValidationReport
+  deactivate Validator
+
+  alt valid
+    Agent --> Ctrl : AgentResult(meal)
+    Ctrl --> UI : meal with full nutrition breakdown
+    UI --> Lifter : suggestion shown
+    opt Lifter logs the meal
+      Lifter -> UI : logThisMeal()
+      UI -> Ctrl : logIntake(entries)
+    end
+  else non permitted item or totals exceed remaining
+    Agent -> LLM : retry with validation errors
+    LLM --> Agent : corrected meal
+    Agent --> Ctrl : AgentResult(meal or failure)
+  else no foods fit
+    Agent --> Ctrl : AgentResult(success = false, explanation)
+    Ctrl --> UI : explanation of the shortfall
+    UI --> Lifter : no meal invented
+  end
+  deactivate Agent
+end
+deactivate Ctrl
+@enduml

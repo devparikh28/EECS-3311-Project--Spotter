@@ -1,0 +1,73 @@
+@startuml SD04-substitute-exercise
+!include _style.iuml
+title SD04 — Substitute Unavailable Exercise (F06 / UC08, UC07)
+
+actor Lifter
+boundary "PlanPanel\n<<GUI>>" as UI
+control "CoachController\n<<Facade>>" as Ctrl
+participant "SubstitutionAgent" as Agent
+participant "ToolManager" as Tools
+participant "ExerciseDBTool" as ETool
+participant "ClaudeClient" as LLM
+participant "PlanValidator" as Validator
+participant "PlanEditHistory\n<<Invoker>>" as History
+participant "SwapExerciseCommand\n<<Command>>" as Cmd
+entity "TrainingBlock\n<<Receiver>>" as Block
+database "BlockRepository" as Repo
+participant "EventBus" as Bus
+
+Lifter -> UI : onSubstituteClicked(prescriptionId)
+UI -> Ctrl : suggestSubstitute(prescriptionId)
+activate Ctrl
+Ctrl -> Agent : run(AgentRequest(prescription, equipment))
+activate Agent
+
+Agent -> Tools : execute(ToolCall("candidate_exercises"))
+Tools -> ETool : execute(pattern, muscles, equipment)
+ETool --> Tools : ToolResult(List<Exercise>)
+Tools --> Agent : candidates
+
+alt no candidates available
+  Agent --> Ctrl : AgentResult(success = false, "no substitute available")
+  Ctrl --> UI : result
+  UI --> Lifter : suggest manual swap through UC07
+else candidates exist
+  ref over Agent, LLM : UC14 agent loop\n(see SD03: prompt, Claude call, parse)
+  Agent -> Validator : validateSubstitution(chosen, candidates)
+  activate Validator
+  Validator --> Agent : ValidationReport
+  deactivate Validator
+
+  alt chosen is outside the candidate list
+    Agent -> LLM : retry with validation errors
+    LLM --> Agent : corrected choice
+  end
+  Agent --> Ctrl : AgentResult(exercise, rationale)
+  deactivate Agent
+
+  Ctrl --> UI : suggestion and rationale
+  UI --> Lifter : show proposed substitute
+
+  alt Lifter accepts
+    Lifter -> UI : accept()
+    UI -> Ctrl : applyEdit(SwapExerciseCommand)
+    Ctrl -> History : execute(cmd)
+    activate History
+    History -> Cmd : execute()
+    activate Cmd
+    Cmd -> Block : setExercise(prescriptionId, newExercise)
+    Cmd -> Cmd : store previous exercise for undo
+    deactivate Cmd
+    History -> History : push(cmd)
+    deactivate History
+    Ctrl -> Repo : save(block)
+    Ctrl -> Bus : publish(DomainEvent(PLAN_UPDATED))
+    Bus -> UI : onEvent(e)
+    UI --> Lifter : plan updated, Undo available
+  else Lifter rejects
+    Lifter -> UI : reject()
+    UI --> Lifter : plan unchanged
+  end
+end
+deactivate Ctrl
+@enduml

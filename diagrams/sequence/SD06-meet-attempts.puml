@@ -1,0 +1,64 @@
+@startuml SD06-meet-attempts
+!include _style.iuml
+title SD06 — Select Meet Attempts (F08 / UC10)
+
+actor Lifter
+boundary "MeetPanel\n<<GUI>>" as UI
+control "CoachController\n<<Facade>>" as Ctrl
+participant "StrengthAnalytics" as Analytics
+participant "AttemptCalculator" as Calc
+participant "AttemptRationaleAgent" as Agent
+participant "ClaudeClient" as LLM
+participant "PlanValidator" as Validator
+
+Lifter -> UI : onCalculateClicked()
+UI -> Ctrl : calculateAttempts()
+activate Ctrl
+Ctrl -> Analytics : currentE1RMs(history)
+activate Analytics
+Analytics --> Ctrl : Map<Lift, float>
+deactivate Analytics
+
+loop for each competition lift
+  alt sufficient recent data
+    Ctrl -> Calc : calculate(lift, e1rm)
+  else thin data
+    Ctrl -> Calc : calculate(lift, e1rm, conservative = true)
+  end
+  activate Calc
+  Calc -> Calc : roundToPlate(kg)
+  Calc --> Ctrl : MeetAttempts(opener, second, third)
+  deactivate Calc
+end
+
+Ctrl -> Agent : run(AgentRequest(attempts, trend))
+activate Agent
+ref over Agent, LLM : UC14 agent loop\n(see SD03)
+Agent -> Validator : validateRationale(text, attempts)
+activate Validator
+note right of Validator
+  every number quoted in the
+  rationale must match the
+  calculator output
+end note
+Validator --> Agent : ValidationReport
+deactivate Validator
+
+alt rationale consistent
+  Agent --> Ctrl : AgentResult(rationale)
+  Ctrl --> UI : attempts and rationale
+  UI --> Lifter : nine attempts with explanation
+else rationale contradicts calculator, or agent failed
+  Agent --> Ctrl : AgentResult(success = false)
+  Ctrl --> UI : attempts only
+  UI --> Lifter : attempts shown with a note that no rationale was produced
+end
+deactivate Agent
+
+opt Lifter overrides an attempt
+  Lifter -> UI : editAttempt(lift, value)
+  UI -> Ctrl : saveManualAttempt(lift, value)
+  Ctrl --> UI : stored and marked manual
+end
+deactivate Ctrl
+@enduml
