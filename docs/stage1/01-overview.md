@@ -52,6 +52,10 @@ Failure is a designed path. Tool errors are returned to the model rather than th
 
 ## 1.6 Architecture
 
+The diagram below is the whole system on one page: every component, what it does, and what it talks to. It is the right starting point for anyone who wants to understand Spotter before reading the class diagram.
+
+![Spotter system overview](../../diagrams/architecture/architecture.png)
+
 Five layers, each depending only on the layer beneath it or on an interface.
 
 | Layer | Contents | Responsibility |
