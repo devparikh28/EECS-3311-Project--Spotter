@@ -197,8 +197,6 @@ Fourteen features, each classified as deterministic, AI, or hybrid. That classif
 - **AI** — the agent gathers context, chooses tools, and the model shapes the result, which `PlanValidator` must pass before it reaches the domain model.
 - **Hybrid** — deterministic code computes every number; the model handles one bounded part, such as an explanation or a rewrite.
 
-
-
 ## F01 — Lifter Profile and Constraints
 
 - **Description:** Stores who the lifter is before anything is prescribed: training goal, experience level, split preference, optional competition details, training frequency, equipment, physical limitations, dietary constraints, preferred units and macro targets. Every other feature reads from this record, and two of these fields change what the system prescribes rather than merely how it displays it.
