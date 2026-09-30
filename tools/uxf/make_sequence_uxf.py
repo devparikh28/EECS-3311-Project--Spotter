@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate UMLet sequence diagrams (UMLSequenceAllInOne) into diagrams/uxf/.
+"""Generate UMLet sequence diagrams (UMLSequenceAllInOne) into diagrams/.
 
 Each diagram is one UMLSequenceAllInOne element whose panel_attributes hold
 UMLet's sequence text syntax, so the diagram stays editable as text in UMLet.
@@ -10,7 +10,7 @@ import re
 from puml_to_uxf import write_uxf
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-OUT = os.path.join(ROOT, "diagrams", "uxf")
+OUT = os.path.join(ROOT, "diagrams")
 
 SD01 = """title=SD01 Import CSV Data (F02, F03 / UC02, UC04, UC15)
 obj=Lifter~lifter ACTOR

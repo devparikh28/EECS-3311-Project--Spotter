@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Generate the UMLet system overview (diagrams/uxf/architecture.uxf).
+"""Generate the UMLet system overview (diagrams/architecture.uxf).
 
-Same content as diagrams/architecture/architecture.puml, laid out in columns
+Same content as diagrams/sources/architecture.puml, laid out in columns
 so the flow reads left to right: user, interfaces, application, agent,
 domain and infrastructure, external services.
 """
@@ -10,7 +10,7 @@ import os
 from puml_to_uxf import write_uxf, GRID
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-OUT = os.path.join(ROOT, "diagrams", "uxf", "architecture.uxf")
+OUT = os.path.join(ROOT, "diagrams", "architecture.uxf")
 
 # column x, box width
 COLS = {
