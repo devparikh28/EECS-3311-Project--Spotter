@@ -7,29 +7,41 @@
       <x>20</x>
       <y>20</y>
       <w>1350</w>
-      <h>1126</h>
+      <h>1534</h>
     </coordinates>
-    <panel_attributes>title=SD01 Import CSV Data (F02, F03 / UC02, UC04, UC15)
+    <panel_attributes>title=SD01 Import CSV Data, any source (F02, F03 / UC02, UC04, UC15, UC17)
 obj=Lifter~lifter ACTOR
 obj=LogPanel~ui
 obj=CoachController~ctrl
 obj=CsvImportService~imp
 obj=DataSourceFactory~fac
-obj=HevyCsvAdapter~ad
+obj=DataSource~ad
 obj=ExerciseCatalog~cat
 obj=WorkoutRepository~repo
 obj=EventBus~bus
 
-lifter-&gt;&gt;&gt;ui : onImportHevyClicked(path); on=ui
+lifter-&gt;&gt;&gt;ui : onImportWorkoutsClicked(path); on=ui
 ui-&gt;&gt;&gt;ctrl : importWorkouts(path); on=ctrl
-ctrl-&gt;&gt;&gt;imp : importFile(path, HEVY); on=imp
+ctrl-&gt;&gt;&gt;imp : importFile(path); on=imp
 imp-&gt;&gt;&gt;fac : detect(path)
-fac.&gt;imp : SourceKind.HEVY
-imp-&gt;&gt;&gt;fac : create(HEVY)
-fac.&gt;imp : HevyCsvAdapter
+fac.&gt;imp : SourceKind
+combinedFragment=alt~f0 ui ad
+imp:[header recognised: Hevy, Whoop]
+imp-&gt;&gt;&gt;fac : create(kind)
+fac.&gt;imp : HevyCsvAdapter / WhoopCsvAdapter
+..=f0
+imp:[header unrecognised, UC17]
+imp-&gt;&gt;&gt;fac : suggestMapping(path, kind)
+fac.&gt;imp : proposed ColumnMapping
+imp-&gt;&gt;&gt;ui : confirmMapping(proposed)
+ui.&gt;imp : confirmed ColumnMapping
+imp-&gt;&gt;&gt;fac : create(mapping)
+fac.&gt;imp : GenericCsvAdapter
+imp-&gt;&gt;&gt;ctrl : saveImportProfile(mapping)
+--=f0
 imp-&gt;&gt;&gt;ad : read(path); on=ad
 ad.&gt;imp : ImportBatch; off=ad
-combinedFragment=alt~f1 imp cat
+combinedFragment=alt~f1 ui cat
 imp:[exercise name known]
 imp-&gt;&gt;&gt;cat : byName(name)
 cat.&gt;imp : Exercise

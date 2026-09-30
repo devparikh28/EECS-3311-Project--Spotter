@@ -35,8 +35,8 @@ package "presentation" $pres {
     + onSaveClicked() : void
   }
   class LogPanel $pres {
-    + onImportHevyClicked() : void
-    + onImportWhoopClicked() : void
+    + onImportWorkoutsClicked() : void
+    + onImportRecoveryClicked() : void
     + onManualEntrySubmitted() : void
   }
   class AnalyticsPanel $pres {
