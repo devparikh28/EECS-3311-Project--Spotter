@@ -174,7 +174,7 @@ Every diagram is delivered in two formats, a PNG for reading and a UMLet `.uxf` 
 
 # 2. Feature Specifications
 
-Fourteen features, each classified as deterministic, AI, or hybrid. The system serves any strength trainee: a meet date is optional, and the training goal recorded in F01 drives planning for everyone else. That classification decides how the feature is tested in Stage 3: deterministic behaviour through automated unit and integration tests, agent behaviour through KUMA.
+Fourteen features, each classified as deterministic, AI, or hybrid. That classification decides how the feature is tested in Stage 3: deterministic behaviour through automated unit and integration tests, agent behaviour through KUMA.
 
 | ID | Feature | Type |
 |---|---|---|
