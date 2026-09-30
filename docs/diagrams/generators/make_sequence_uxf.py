@@ -9,8 +9,8 @@ import os
 import re
 from puml_to_uxf import write_uxf
 
-ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-OUT = os.path.join(ROOT, "diagrams")
+ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+OUT = os.path.join(ROOT, "docs", "diagrams", "uxf")
 
 SD01 = """title=SD01 Import CSV Data (F02, F03 / UC02, UC04, UC15)
 obj=Lifter~lifter ACTOR

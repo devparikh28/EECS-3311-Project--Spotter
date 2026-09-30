@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Generate the UMLet use case diagram (diagrams/usecase.uxf)."""
+"""Generate the UMLet use case diagram (docs/diagrams/uxf/usecase.uxf)."""
 
 import os
 from puml_to_uxf import write_uxf, GRID, border_point
 
-ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-OUT = os.path.join(ROOT, "diagrams", "usecase.uxf")
+ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+OUT = os.path.join(ROOT, "docs", "diagrams", "uxf", "usecase.uxf")
 
 UC_W, UC_H = 310, 50
 COL_X = 340          # left column of use cases
