@@ -200,7 +200,7 @@ Session &gt; Prescription</panel_attributes>
 --
 gather context &gt; build prompt &gt; call model &gt;
 run tools &gt; parse &gt; validate &gt; retry once
-seven agents, one per AI feature</panel_attributes>
+nine agents, one per agent-backed feature</panel_attributes>
     <additional_attributes />
   </element>
   <element>
