@@ -87,7 +87,7 @@ The diagram below is the whole system on one page: every component, what it does
 
 *Image:* [`architecture.png`](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/architecture.png) · *Editable UMLet source:* [`architecture.uxf`](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/architecture.uxf)
 
-Five layers, each depending only on the layer beneath it or on an interface.
+Five layers, each depending only on the layer beneath it or on an interface. The figure above shows the whole system on one page: every component, the layer it belongs to, and what crosses between layers. The Agent and Domain layers are drawn side by side rather than stacked, because the Application layer calls both and the Agent layer calls the Domain layer; every arrow in the figure therefore runs between neighbouring layers only. Section 3 shows the same components as proper class diagrams with their attributes, methods and relationships.
 
 | Layer | Contents | Responsibility |
 |---|---|---|
