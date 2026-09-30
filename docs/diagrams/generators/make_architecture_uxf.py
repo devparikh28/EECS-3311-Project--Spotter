@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
-"""Generate the UMLet system overview (diagrams/architecture.uxf).
+"""Generate the UMLet system overview (docs/diagrams/uxf/architecture.uxf).
 
 One page, every component, laid out as stacked layer bands so that arrows only
 ever cross between neighbouring layers. Agent and Domain sit side by side
 because the Application layer talks to both and the Agent layer talks to the
 Domain layer; stacking them would force arrows across a band.
 
-Same content as diagrams/sources/architecture.puml.
+Same content as docs/diagrams/sources/architecture.puml.
 """
 
 import os
 from puml_to_uxf import write_uxf, GRID
 
-ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-OUT = os.path.join(ROOT, "diagrams", "architecture.uxf")
+ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+OUT = os.path.join(ROOT, "docs", "diagrams", "uxf", "architecture.uxf")
 
 CHAR_W = 8
 LINE_H = 16

@@ -19,7 +19,7 @@ Deterministic components do all arithmetic and validation. The agent supplies ju
 
 ## Stage 1 Report
 
-The whole Stage 1 report is one document: [`docs/stage1/Spotter-Stage1-Design-Report.md`](docs/stage1/Spotter-Stage1-Design-Report.md). It carries all nine deliverables in order.
+The whole Stage 1 report is one document: [`docs/Spotter-Stage1-Design-Report.md`](docs/Spotter-Stage1-Design-Report.md). It carries all nine deliverables in order.
 
 | Section | Contents |
 |---|---|
@@ -36,19 +36,23 @@ The whole Stage 1 report is one document: [`docs/stage1/Spotter-Stage1-Design-Re
 
 ## Diagrams
 
-Every diagram is delivered in two formats, and they are the same picture: a UMLet `.uxf` file and the PNG UMLet exports from it. Both sit side by side in `diagrams/`.
+Every diagram is delivered in two formats, and they are the same picture: a UMLet `.uxf` file and the PNG UMLet exports from it. Each pair shares a name.
 
 ```
-diagrams/
-  <name>.uxf      the UMLet file, opens and edits in UMLet 15.1
-  <name>.png      UMLet's own export of that .uxf
-  sources/        the PlantUML the .uxf files are generated from (build input, not a deliverable)
-tools/uxf/        the generators that turn the PlantUML model into .uxf
+README.md
+.gitignore
+docs/
+  Spotter-Stage1-Design-Report.md   the whole Stage 1 report
+  diagrams/
+    png/          19 PNGs, what the report displays
+    uxf/          the same 19 diagrams as UMLet files
+    sources/      the PlantUML the .uxf files are generated from (build input)
+    generators/   the scripts that turn that PlantUML into UMLet XML
 ```
 
-There are nineteen diagrams: the system overview, five class views, the use case diagram, and twelve sequence diagrams. The class diagram is one model, `diagrams/sources/model.iuml`, filtered into five views, so the views cannot disagree with each other.
+There are nineteen diagrams: the system overview, five class views, the use case diagram, and twelve sequence diagrams. The class diagram is one model, `docs/diagrams/sources/model.iuml`, filtered into five views, so the views cannot disagree with each other.
 
-UMLet has no PlantUML import, so the `.uxf` files are generated rather than redrawn: `tools/uxf/puml_to_uxf.py` parses `model.iuml`, lays the classes out with Graphviz, and writes UMLet XML; `make_usecase_uxf.py`, `make_architecture_uxf.py` and `make_sequence_uxf.py` produce the rest, the sequence diagrams as UMLet `UMLSequenceAllInOne` elements whose text stays editable. Every `.uxf` was opened and rendered with UMLet 15.1 to confirm it loads without errors, and those renders are the committed PNGs. See [`diagrams/README.md`](diagrams/README.md) for the regeneration commands.
+UMLet has no PlantUML import, so the `.uxf` files are generated rather than redrawn. Every `.uxf` was opened and rendered with UMLet 15.1 to confirm it loads without errors, and those renders are the committed PNGs. See [`docs/diagrams/README.md`](docs/diagrams/README.md) for the regeneration commands.
 
 ## Technology (Stage 2)
 
@@ -102,7 +106,7 @@ The course deliverable is the fourteen features in the report. The design keeps 
 
 ## Architecture
 
-![Spotter system overview](diagrams/architecture.png)
+![Spotter system overview](docs/diagrams/png/architecture.png)
 
 Five layers, each depending only on the layer beneath it or on an interface.
 
