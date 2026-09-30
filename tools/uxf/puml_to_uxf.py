@@ -2,12 +2,12 @@
 """
 Generate UMLet .uxf class diagrams from the PlantUML class model.
 
-The PlantUML source in diagrams/class/model.iuml stays the single source of
+The PlantUML source in diagrams/sources/model.iuml stays the single source of
 truth. This script parses it, lays the classes out with Graphviz, and writes
 UMLet .uxf files so the same design can be opened and edited in UMLet.
 
 Usage:  python3 tools/uxf/puml_to_uxf.py
-Output: diagrams/uxf/class-<view>.uxf
+Output: diagrams/class-<view>.uxf
 """
 
 import os
@@ -16,8 +16,8 @@ import subprocess
 import xml.etree.ElementTree as ET
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-MODEL = os.path.join(ROOT, "diagrams", "class", "model.iuml")
-OUTDIR = os.path.join(ROOT, "diagrams", "uxf")
+MODEL = os.path.join(ROOT, "diagrams", "sources", "model.iuml")
+OUTDIR = os.path.join(ROOT, "diagrams")
 
 ZOOM = 10
 CHAR_W = 8          # approximate character width at zoom 10 (UMLet font)

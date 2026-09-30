@@ -1,8 +1,0 @@
-<map id="SD07-meal-suggestion_map" name="SD07-meal-suggestion_map">
-<area shape="rect" id="id1" href="valid" title="valid" alt="" coords="99,839,129,852"/>
-<area shape="rect" id="id2" href="macros" title="macros" alt="" coords="15,327,58,340"/>
-<area shape="rect" id="id3" href="no" title="no" alt="" coords="25,1149,76,1162"/>
-<area shape="rect" id="id4" href="Lifter" title="Lifter" alt="" coords="114,966,198,979"/>
-<area shape="rect" id="id5" href="remaining" title="remaining" alt="" coords="89,253,200,265"/>
-<area shape="rect" id="id6" href="non" title="non" alt="" coords="25,1047,289,1060"/>
-</map>
