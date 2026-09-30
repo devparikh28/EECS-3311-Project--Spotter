@@ -12,27 +12,39 @@ from puml_to_uxf import write_uxf
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 OUT = os.path.join(ROOT, "docs", "diagrams", "uxf")
 
-SD01 = """title=SD01 Import CSV Data (F02, F03 / UC02, UC04, UC15)
+SD01 = """title=SD01 Import CSV Data, any source (F02, F03 / UC02, UC04, UC15, UC17)
 obj=Lifter~lifter ACTOR
 obj=LogPanel~ui
 obj=CoachController~ctrl
 obj=CsvImportService~imp
 obj=DataSourceFactory~fac
-obj=HevyCsvAdapter~ad
+obj=DataSource~ad
 obj=ExerciseCatalog~cat
 obj=WorkoutRepository~repo
 obj=EventBus~bus
 
-lifter->>>ui : onImportHevyClicked(path); on=ui
+lifter->>>ui : onImportWorkoutsClicked(path); on=ui
 ui->>>ctrl : importWorkouts(path); on=ctrl
-ctrl->>>imp : importFile(path, HEVY); on=imp
+ctrl->>>imp : importFile(path); on=imp
 imp->>>fac : detect(path)
-fac.>imp : SourceKind.HEVY
-imp->>>fac : create(HEVY)
-fac.>imp : HevyCsvAdapter
+fac.>imp : SourceKind
+combinedFragment=alt~f0 ui ad
+imp:[header recognised: Hevy, Whoop]
+imp->>>fac : create(kind)
+fac.>imp : HevyCsvAdapter / WhoopCsvAdapter
+..=f0
+imp:[header unrecognised, UC17]
+imp->>>fac : suggestMapping(path, kind)
+fac.>imp : proposed ColumnMapping
+imp->>>ui : confirmMapping(proposed)
+ui.>imp : confirmed ColumnMapping
+imp->>>fac : create(mapping)
+fac.>imp : GenericCsvAdapter
+imp->>>ctrl : saveImportProfile(mapping)
+--=f0
 imp->>>ad : read(path); on=ad
 ad.>imp : ImportBatch; off=ad
-combinedFragment=alt~f1 imp cat
+combinedFragment=alt~f1 ui cat
 imp:[exercise name known]
 imp->>>cat : byName(name)
 cat.>imp : Exercise
