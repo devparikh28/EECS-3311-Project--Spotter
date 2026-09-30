@@ -10,16 +10,16 @@ This single document contains all nine required Stage 1 deliverables, followed b
 
 | Section | Deliverable |
 |---|---|
-| **[1](#1-project-overview)** | [Project Overview](#1-project-overview) — Problem, target users, what the agent does, why an agent fits, the AI model and how it is integrated, architecture and technology |
-| **[2](#2-feature-specifications)** | [Feature Specifications](#2-feature-specifications) — Fourteen features, F01 to F14, each with description, user interaction, input, output, AI involvement, expected workflow and error cases |
-| **[3](#3-uml-class-diagram)** | [UML Class Diagram](#3-uml-class-diagram) — One model in five views, with relationships and multiplicities |
-| **[4](#4-design-patterns)** | [Design Patterns](#4-design-patterns) — Eight patterns with problem, participants, rationale and cost of omission, then the SOLID principles and the unit testing approach |
-| **[5](#5-use-case-diagram)** | [Use Case Diagram](#5-use-case-diagram) — Actors, system boundary, include and extend relationships |
-| **[6](#6-use-case-descriptions)** | [Use Case Descriptions](#6-use-case-descriptions) — Nineteen use cases, UC01 to UC19 |
-| **[7](#7-sequence-diagrams)** | [Sequence Diagrams](#7-sequence-diagrams) — Twelve diagrams, SD01 to SD12, covering every feature |
-| **[8](#8-feature-to-design-traceability)** | [Feature to Design Traceability](#8-feature-to-design-traceability) — Each feature against its use case, classes, methods, sequence diagram and patterns |
-| **[9](#9-how-each-feature-is-realized)** | [How Each Feature Is Realized](#9-how-each-feature-is-realized) — Per feature: the classes involved, their responsibilities and the execution narrative |
-| **[10](#10-appendices)** | [Appendices](#10-appendices) — A testing map and behavioural requirements, B CLI command map, C diagram files, D requirements checklist |
+| 1 | [Project Overview](#1-project-overview) — Problem, target users, what the agent does, why an agent fits, the AI model and how it is integrated, architecture and technology |
+| 2 | [Feature Specifications](#2-feature-specifications) — Fourteen features, F01 to F14, each with description, user interaction, input, output, AI involvement, expected workflow and error cases |
+| 3 | [UML Class Diagram](#3-uml-class-diagram) — One model in five views, with relationships and multiplicities |
+| 4 | [Design Patterns](#4-design-patterns) — Eight patterns with problem, participants, rationale and cost of omission, then the SOLID principles and the unit testing approach |
+| 5 | [Use Case Diagram](#5-use-case-diagram) — Actors, system boundary, include and extend relationships |
+| 6 | [Use Case Descriptions](#6-use-case-descriptions) — Nineteen use cases, UC01 to UC19 |
+| 7 | [Sequence Diagrams](#7-sequence-diagrams) — Twelve diagrams, SD01 to SD12, covering every feature |
+| 8 | [Feature to Design Traceability](#8-feature-to-design-traceability) — Each feature against its use case, classes, methods, sequence diagram and patterns |
+| 9 | [How Each Feature Is Realized](#9-how-each-feature-is-realized) — Per feature: the classes involved, their responsibilities and the execution narrative |
+| 10 | [Appendices](#10-appendices) — A testing map and behavioural requirements, B CLI command map, C diagram files, D requirements checklist |
 
 ---
 
