@@ -8,125 +8,18 @@
 
 This single document contains all nine required Stage 1 deliverables, followed by four appendices. Every diagram referenced below is delivered in two formats in the `diagrams/` folder of the repository: a PNG for reading and a UMLet `.uxf` for opening and editing in UMLet. The two are the same picture, because each PNG is UMLet's own export of the `.uxf` beside it, and both are linked under each figure.
 
-| Deliverable | Section |
+| Section | Deliverable |
 |---|---|
-| Project overview and AI model used | 1 |
-| Feature specifications | 2 |
-| UML class diagram | 3 |
-| Design patterns, SOLID principles and testing approach | 4 |
-| Use case diagram | 5 |
-| Use case descriptions | 6 |
-| Sequence diagrams | 7 |
-| Feature to design traceability | 8 |
-| Feature realization by class and method | 9 |
-| Appendices: testing map, CLI command map, diagram files, requirements checklist | 10 |
-
-## Contents
-
-- [1. Project Overview](#1-project-overview)
-    - [1.1 The Problem](#11-the-problem)
-    - [1.2 Target Users](#12-target-users)
-    - [1.3 What the Agent Does](#13-what-the-agent-does)
-    - [1.4 Why an Agent Rather Than a Program](#14-why-an-agent-rather-than-a-program)
-    - [1.5 AI Model and Integration](#15-ai-model-and-integration)
-    - [1.6 Architecture](#16-architecture)
-    - [1.7 Technology](#17-technology)
-    - [1.8 Beyond the Course: Deliberate Extension Points](#18-beyond-the-course-deliberate-extension-points)
-    - [1.9 Document Map](#19-document-map)
-- [2. Feature Specifications](#2-feature-specifications)
-    - [F01 — Lifter Profile and Constraints](#f01-lifter-profile-and-constraints)
-    - [F02 — Workout Logging and Import](#f02-workout-logging-and-import)
-    - [F03 — Recovery Input](#f03-recovery-input)
-    - [F04 — Strength Analytics](#f04-strength-analytics)
-    - [F05 — Training Block Generation](#f05-training-block-generation)
-    - [F06 — Equipment Substitution](#f06-equipment-substitution)
-    - [F07 — Recovery Aware Session Adjustment](#f07-recovery-aware-session-adjustment)
-    - [F08 — Max Testing and Attempt Planning](#f08-max-testing-and-attempt-planning)
-    - [F09 — Macro Targets and Adherence Tracking](#f09-macro-targets-and-adherence-tracking)
-    - [F10 — Vegetarian Meal Suggestion](#f10-vegetarian-meal-suggestion)
-    - [F11 — Coaching Chat with Memory](#f11-coaching-chat-with-memory)
-    - [F12 — Plan Adherence and Progression](#f12-plan-adherence-and-progression)
-    - [F13 — Guided Onboarding](#f13-guided-onboarding)
-    - [F14 — Adopt an Existing Programme](#f14-adopt-an-existing-programme)
-- [3. UML Class Diagram](#3-uml-class-diagram)
-    - [3.1 Architecture Overview](#31-architecture-overview)
-    - [3.2 Key Relationships and Multiplicities](#32-key-relationships-and-multiplicities)
-    - [3.3 Design Changes Since the Initial Outline](#33-design-changes-since-the-initial-outline)
-- [4. Design Patterns](#4-design-patterns)
-    - [4.1 Facade — CoachController](#41-facade-coachcontroller)
-    - [4.2 Strategy — LLMClient and ProgressionStrategy](#42-strategy-llmclient-and-progressionstrategy)
-    - [4.3 Observer — EventBus, EventListener, BasePanel](#43-observer-eventbus-eventlistener-basepanel)
-    - [4.4 Command — PlanEditCommand and PlanEditHistory](#44-command-planeditcommand-and-planedithistory)
-    - [4.5 Adapter — DataSource, HevyCsvAdapter, WhoopCsvAdapter](#45-adapter-datasource-hevycsvadapter-whoopcsvadapter)
-    - [4.6 Factory Method — CoachAgent.createToolset()](#46-factory-method-coachagentcreatetoolset)
-    - [4.7 Template Method — CoachAgent.run()](#47-template-method-coachagentrun)
-    - [4.8 Decorator — LLMClientDecorator, CachingLLMClient, RecordingLLMClient](#48-decorator-llmclientdecorator-cachingllmclient-recordingllmclient)
-    - [4.9 Supporting Patterns (not counted)](#49-supporting-patterns-not-counted)
-    - [4.10 Pattern Summary](#410-pattern-summary)
-    - [4.11 SOLID Principles in the Design](#411-solid-principles-in-the-design)
-    - [4.12 Unit Testing Approach](#412-unit-testing-approach)
-- [5. Use Case Diagram](#5-use-case-diagram)
-    - [5.1 Actors](#51-actors)
-    - [5.2 Relationships](#52-relationships)
-    - [5.3 Interfaces](#53-interfaces)
-- [6. Use Case Descriptions](#6-use-case-descriptions)
-    - [UC01 — Manage Lifter Profile](#uc01-manage-lifter-profile)
-    - [UC02 — Import Workout History](#uc02-import-workout-history)
-    - [UC03 — Log Workout Manually](#uc03-log-workout-manually)
-    - [UC04 — Import Recovery Data](#uc04-import-recovery-data)
-    - [UC05 — View Strength Analytics](#uc05-view-strength-analytics)
-    - [UC06 — Generate Training Block](#uc06-generate-training-block)
-    - [UC07 — Edit Training Plan](#uc07-edit-training-plan)
-    - [UC08 — Substitute Unavailable Exercise](#uc08-substitute-unavailable-exercise)
-    - [UC09 — Adjust Session for Poor Recovery](#uc09-adjust-session-for-poor-recovery)
-    - [UC10 — Plan a Heavy Single (Meet Attempts or Test Day)](#uc10-plan-a-heavy-single-meet-attempts-or-test-day)
-    - [UC11 — Track Macros](#uc11-track-macros)
-    - [UC12 — Get Meal Suggestion](#uc12-get-meal-suggestion)
-    - [UC13 — Chat with Coach](#uc13-chat-with-coach)
-    - [UC18 — Complete Guided Onboarding](#uc18-complete-guided-onboarding)
-    - [UC19 — Adopt an Existing Programme](#uc19-adopt-an-existing-programme)
-    - [UC17 — Map an Unrecognised CSV (extends UC02 and UC04)](#uc17-map-an-unrecognised-csv-extends-uc02-and-uc04)
-    - [UC16 — Review Adherence and Progress the Plan](#uc16-review-adherence-and-progress-the-plan)
-    - [UC14 — Run Agent Task (included)](#uc14-run-agent-task-included)
-    - [UC15 — Resolve Unknown Exercise (extends UC02)](#uc15-resolve-unknown-exercise-extends-uc02)
-    - [6.1 Feature Coverage](#61-feature-coverage)
-- [7. Sequence Diagrams](#7-sequence-diagrams)
-    - [SD01 — Import CSV Data](#sd01-import-csv-data)
-    - [SD02 — View Strength Analytics](#sd02-view-strength-analytics)
-    - [SD03 — Generate Training Block](#sd03-generate-training-block)
-    - [SD04 — Substitute Unavailable Exercise](#sd04-substitute-unavailable-exercise)
-    - [SD05 — Adjust Session for Poor Recovery](#sd05-adjust-session-for-poor-recovery)
-    - [SD06 — Plan a Heavy Single](#sd06-plan-a-heavy-single)
-    - [SD07 — Get Meal Suggestion](#sd07-get-meal-suggestion)
-    - [SD08 — Chat with Coach](#sd08-chat-with-coach)
-    - [SD09 — Save Profile and Log Intake](#sd09-save-profile-and-log-intake)
-    - [SD10 — Review Adherence and Progress the Plan](#sd10-review-adherence-and-progress-the-plan)
-    - [SD11 — Complete Guided Onboarding](#sd11-complete-guided-onboarding)
-    - [SD12 — Adopt an Existing Programme](#sd12-adopt-an-existing-programme)
-    - [7.1 Consistency with the Class Diagram](#71-consistency-with-the-class-diagram)
-- [8. Feature to Design Traceability](#8-feature-to-design-traceability)
-    - [8.1 Coverage Checks](#81-coverage-checks)
-- [9. How Each Feature Is Realized](#9-how-each-feature-is-realized)
-    - [F01 — Lifter Profile and Constraints](#f01-lifter-profile-and-constraints)
-    - [F02 — Workout Logging and Import](#f02-workout-logging-and-import)
-    - [F03 — Recovery Input](#f03-recovery-input)
-    - [F04 — Strength Analytics](#f04-strength-analytics)
-    - [F05 — Training Block Generation](#f05-training-block-generation)
-    - [F06 — Equipment Substitution](#f06-equipment-substitution)
-    - [F07 — Recovery Aware Session Adjustment](#f07-recovery-aware-session-adjustment)
-    - [F08 — Max Testing and Attempt Planning](#f08-max-testing-and-attempt-planning)
-    - [F09 — Macro Targets and Adherence Tracking](#f09-macro-targets-and-adherence-tracking)
-    - [F10 — Vegetarian Meal Suggestion](#f10-vegetarian-meal-suggestion)
-    - [F11 — Coaching Chat with Memory](#f11-coaching-chat-with-memory)
-    - [F12 — Plan Adherence and Progression](#f12-plan-adherence-and-progression)
-    - [F13 — Guided Onboarding](#f13-guided-onboarding)
-    - [F14 — Adopt an Existing Programme](#f14-adopt-an-existing-programme)
-    - [9.1 What This Design Is Meant to Demonstrate](#91-what-this-design-is-meant-to-demonstrate)
-- [10. Appendices](#10-appendices)
-    - [Appendix A — Testing Map (preparing for Stage 3)](#appendix-a--testing-map-preparing-for-stage-3)
-    - [Appendix B — CLI Command Map (GUI and CLI parity)](#appendix-b--cli-command-map-gui-and-cli-parity)
-    - [Appendix C — Diagram Files](#appendix-c--diagram-files)
-    - [Appendix D — Requirements Checklist](#appendix-d--requirements-checklist)
+| **[1](#1-project-overview)** | [Project Overview](#1-project-overview) — Problem, target users, what the agent does, why an agent fits, the AI model and how it is integrated, architecture and technology |
+| **[2](#2-feature-specifications)** | [Feature Specifications](#2-feature-specifications) — Fourteen features, F01 to F14, each with description, user interaction, input, output, AI involvement, expected workflow and error cases |
+| **[3](#3-uml-class-diagram)** | [UML Class Diagram](#3-uml-class-diagram) — One model in five views, with relationships and multiplicities |
+| **[4](#4-design-patterns)** | [Design Patterns](#4-design-patterns) — Eight patterns with problem, participants, rationale and cost of omission, then the SOLID principles and the unit testing approach |
+| **[5](#5-use-case-diagram)** | [Use Case Diagram](#5-use-case-diagram) — Actors, system boundary, include and extend relationships |
+| **[6](#6-use-case-descriptions)** | [Use Case Descriptions](#6-use-case-descriptions) — Nineteen use cases, UC01 to UC19 |
+| **[7](#7-sequence-diagrams)** | [Sequence Diagrams](#7-sequence-diagrams) — Twelve diagrams, SD01 to SD12, covering every feature |
+| **[8](#8-feature-to-design-traceability)** | [Feature to Design Traceability](#8-feature-to-design-traceability) — Each feature against its use case, classes, methods, sequence diagram and patterns |
+| **[9](#9-how-each-feature-is-realized)** | [How Each Feature Is Realized](#9-how-each-feature-is-realized) — Per feature: the classes involved, their responsibilities and the execution narrative |
+| **[10](#10-appendices)** | [Appendices](#10-appendices) — A testing map and behavioural requirements, B CLI command map, C diagram files, D requirements checklist |
 
 ---
 
