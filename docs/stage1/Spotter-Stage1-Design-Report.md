@@ -1,11 +1,12 @@
-# Spotter — Stage 1 Design Report
+# Spotter — Stage 1 Project Design Report
+### An AI Strength Training and Nutrition Coaching Agent
 
-**EECS 3311 Software Design**
-**Project:** Spotter, an AI strength training and nutrition coaching agent
-**Student:** Dev Parikh
-**Repository:** https://github.com/devparikh28/EECS3311_Project_Spotter
+**Course:** EECS 3311 Software Design, Fall 2026 · **Stage:** 1 (Design)
+**Student:** Dev Parikh, _[student number]_ · **Repository:** [github.com/devparikh28/EECS3311_Project_Spotter](https://github.com/devparikh28/EECS3311_Project_Spotter)
 
-This single document contains all nine required Stage 1 deliverables. Every diagram referenced below is delivered in two formats in the `diagrams/` folder of the repository: a PNG for reading and a UMLet `.uxf` file for opening and editing in UMLet. The two are the same picture, because each PNG is UMLet's own export of the `.uxf` beside it.
+> **Notice:** Spotter gives training and nutrition guidance for informational purposes. It is not medical advice and does not replace a coach, a physician or a dietitian. This notice appears in the GUI footer and in the CLI banner.
+
+This single document contains all nine required Stage 1 deliverables, followed by four appendices. Every diagram referenced below is delivered in two formats in the `diagrams/` folder of the repository: a PNG for reading and a UMLet `.uxf` for opening and editing in UMLet. The two are the same picture, because each PNG is UMLet's own export of the `.uxf` beside it, and both are linked under each figure.
 
 | Deliverable | Section |
 |---|---|
@@ -18,6 +19,7 @@ This single document contains all nine required Stage 1 deliverables. Every diag
 | Sequence diagrams | 7 |
 | Feature to design traceability | 8 |
 | Feature realization by class and method | 9 |
+| Appendices: testing map, CLI command map, diagram files, requirements checklist | 10 |
 
 ## Contents
 
@@ -120,6 +122,11 @@ This single document contains all nine required Stage 1 deliverables. Every diag
     - [F13 — Guided Onboarding](#f13-guided-onboarding)
     - [F14 — Adopt an Existing Programme](#f14-adopt-an-existing-programme)
     - [9.1 What This Design Is Meant to Demonstrate](#91-what-this-design-is-meant-to-demonstrate)
+- [10. Appendices](#10-appendices)
+    - [Appendix A — Testing Map (preparing for Stage 3)](#appendix-a--testing-map-preparing-for-stage-3)
+    - [Appendix B — CLI Command Map (GUI and CLI parity)](#appendix-b--cli-command-map-gui-and-cli-parity)
+    - [Appendix C — Diagram Files](#appendix-c--diagram-files)
+    - [Appendix D — Requirements Checklist](#appendix-d--requirements-checklist)
 
 ---
 
@@ -184,6 +191,8 @@ Failure is a designed path. Tool errors are returned to the model rather than th
 The diagram below is the whole system on one page: every component, what it does, and what it talks to. It is the right starting point for anyone who wants to understand Spotter before reading the class diagram.
 
 ![Spotter system overview](../../diagrams/architecture.png)
+
+*Image:* [`architecture.png`](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/architecture.png) · *Editable UMLet source:* [`architecture.uxf`](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/architecture.uxf)
 
 Five layers, each depending only on the layer beneath it or on an interface.
 
@@ -427,17 +436,25 @@ The complete diagram, `diagrams/class-full.uxf`, is large by nature; it is inclu
 
 ![Presentation and application layers](../../diagrams/class-presentation-application.png)
 
+*Image:* [`class-presentation-application.png`](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/class-presentation-application.png) · *Editable UMLet source:* [`class-presentation-application.uxf`](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/class-presentation-application.uxf)
+
 ### Domain
 
 ![Domain model and domain services](../../diagrams/class-domain.png)
+
+*Image:* [`class-domain.png`](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/class-domain.png) · *Editable UMLet source:* [`class-domain.uxf`](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/class-domain.uxf)
 
 ### Agent
 
 ![Agent layer](../../diagrams/class-agent.png)
 
+*Image:* [`class-agent.png`](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/class-agent.png) · *Editable UMLet source:* [`class-agent.uxf`](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/class-agent.uxf)
+
 ### Infrastructure
 
 ![Infrastructure layer](../../diagrams/class-infrastructure.png)
+
+*Image:* [`class-infrastructure.png`](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/class-infrastructure.png) · *Editable UMLet source:* [`class-infrastructure.uxf`](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/class-infrastructure.uxf)
 
 ## 3.1 Architecture Overview
 
@@ -616,6 +633,8 @@ End to end agent behaviour, the part that is judgement rather than arithmetic, i
 # 5. Use Case Diagram
 
 ![Use case diagram](../../diagrams/usecase.png)
+
+*Image:* [`usecase.png`](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/usecase.png) · *Editable UMLet source:* [`usecase.uxf`](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/usecase.uxf)
 
 Files: `diagrams/usecase.uxf` and `diagrams/usecase.png`
 
@@ -958,6 +977,8 @@ SD03 is the reference diagram for the agent loop. Because all six AI features sh
 
 ![SD01](../../diagrams/SD01-import-csv.png)
 
+*Image:* [`SD01-import-csv.png`](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/SD01-import-csv.png) · *Editable UMLet source:* [`SD01-import-csv.uxf`](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/SD01-import-csv.uxf)
+
 The lifter picks a file and `LogPanel` calls `CoachController.importWorkouts()`. `CsvImportService` asks `DataSourceFactory` to identify the file from its header, receives a `HevyCsvAdapter`, and the adapter translates raw rows from `CsvFileReader` into `WorkoutSession` and `SetEntry` objects. Each exercise name is resolved through `ExerciseCatalog`, duplicates are removed, and the surviving sessions are saved. The controller then publishes `DATA_IMPORTED`, which is what causes the Log and Analytics panels to refresh through the Observer relationship.
 
 Three alternative flows appear: an unrecognised header opens the UC17 mapping dialog, where the lifter confirms which column holds each field and the mapping is saved as a named profile so the next export from that app imports in one step, individual malformed rows are collected into the report while valid rows continue, and an unknown exercise name opens the UC15 mapping dialog so the lifter can map or add it. Recovery import (UC04) has the same shape with `WhoopCsvAdapter`, `RecoveryDay` and `RecoveryRepository`, which is noted on the diagram rather than drawn twice, and the same generic path applies to any other wearable's export. A lifter with no wearable at all bypasses this diagram entirely and records a check in, which creates a `RecoveryDay` directly.
@@ -966,11 +987,15 @@ Three alternative flows appear: an unrecognised header opens the UC17 mapping di
 
 ![SD02](../../diagrams/SD02-analytics.png)
 
+*Image:* [`SD02-analytics.png`](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/SD02-analytics.png) · *Editable UMLet source:* [`SD02-analytics.uxf`](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/SD02-analytics.uxf)
+
 A purely deterministic path with no agent involvement. `StrengthAnalytics` loops over the history, converts each set into an estimated one rep max through `RPEChart`, and returns the series, weekly tonnage, and best set. The loop contains the data quality rule: sets with an invalid RPE, or RPE 10 above one rep, are excluded and reported rather than silently used. The empty history case returns an empty summary instead of an error.
 
 ## SD03 — Generate Training Block
 
 ![SD03](../../diagrams/SD03-generate-block.png)
+
+*Image:* [`SD03-generate-block.png`](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/SD03-generate-block.png) · *Editable UMLet source:* [`SD03-generate-block.uxf`](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/SD03-generate-block.uxf)
 
 This is the most detailed diagram because it shows the full agent loop that the other AI features reuse.
 
@@ -982,11 +1007,15 @@ When Claude returns the final JSON, `ResponseParser.toBlock()` builds a `Trainin
 
 ![SD04](../../diagrams/SD04-substitute-exercise.png)
 
+*Image:* [`SD04-substitute-exercise.png`](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/SD04-substitute-exercise.png) · *Editable UMLet source:* [`SD04-substitute-exercise.uxf`](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/SD04-substitute-exercise.uxf)
+
 `ExerciseDBTool` filters the catalog deterministically first, so Claude chooses from a list it did not invent. `PlanValidator.validateSubstitution()` then confirms the chosen exercise is actually one of those candidates, and a choice outside the list triggers the retry. The second half of the diagram shows the Command pattern in full: acceptance creates a `SwapExerciseCommand`, `PlanEditHistory.execute()` runs it, the command records the previous exercise for undo, and the modified `TrainingBlock` is saved. This is why an agent suggestion can be undone with the same Undo button as a manual edit.
 
 ## SD05 — Adjust Session for Poor Recovery
 
 ![SD05](../../diagrams/SD05-recovery-adjustment.png)
+
+*Image:* [`SD05-recovery-adjustment.png`](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/SD05-recovery-adjustment.png) · *Editable UMLet source:* [`SD05-recovery-adjustment.uxf`](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/SD05-recovery-adjustment.uxf)
 
 Split into two phases. Flagging is deterministic: `RecoveryRuleEngine.evaluate()` applies the thresholds and, when a day is flagged, `RECOVERY_FLAGGED` is published so a badge appears on the session. The agent is only invoked when the lifter asks for an adjustment, which keeps the LLM out of routine operation.
 
@@ -996,11 +1025,15 @@ The validator here enforces direction: an adjustment may not raise loads or remo
 
 ![SD06](../../diagrams/SD06-heavy-single.png)
 
+*Image:* [`SD06-heavy-single.png`](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/SD06-heavy-single.png) · *Editable UMLet source:* [`SD06-heavy-single.uxf`](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/SD06-heavy-single.uxf)
+
 The numbers come from `AttemptCalculator` before the agent is involved at all, including the plate rounding. Which method runs depends on the profile: `calculateMeetAttempts()` when a meet date is set, `projectTestDay()` when it is not, so a lifter who never competes still gets a planned heavy single. The agent only writes the rationale, and `PlanValidator.validateRationale()` confirms every number quoted in that text matches the calculator. If the rationale contradicts the calculator or the agent fails, the attempts are still shown without a rationale. The diagram also covers thin data (a conservative percentage plus a warning) and a manual override by the lifter.
 
 ## SD07 — Get Meal Suggestion
 
 ![SD07](../../diagrams/SD07-meal-suggestion.png)
+
+*Image:* [`SD07-meal-suggestion.png`](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/SD07-meal-suggestion.png) · *Editable UMLet source:* [`SD07-meal-suggestion.uxf`](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/SD07-meal-suggestion.uxf)
 
 `FoodDBTool` returns only foods that `DietaryConstraints.permits()` allows, so the vegetarian constraint is enforced by code before the model sees the options. `ResponseParser.toMeal()` takes the gram amounts from the model but reads every nutrition value from `FoodCatalog`, which means the displayed breakdown cannot contain invented numbers. `PlanValidator.validateMeal()` performs the final check on permitted items and totals. The "no foods fit" branch is deliberate: the agent explains the shortfall instead of inventing a meal.
 
@@ -1008,11 +1041,15 @@ The numbers come from `AttemptCalculator` before the agent is involved at all, i
 
 ![SD08](../../diagrams/SD08-coach-chat.png)
 
+*Image:* [`SD08-coach-chat.png`](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/SD08-coach-chat.png) · *Editable UMLet source:* [`SD08-coach-chat.uxf`](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/SD08-coach-chat.uxf)
+
 Shows memory and multi step tool use together. `MemoryManager.recall()` supplies relevant earlier turns before the prompt is built, Claude decides which of the chat tools to call, and the results are returned to it before the final answer. After answering, `MemoryManager.remember()` appends the exchange and summarises older turns once the history limit is reached. The alternative flows cover an ambiguous question (the agent asks for clarification rather than guessing) and a failing tool (reported as unavailable rather than answered from memory of the model's training).
 
 ## SD09 — Save Profile and Log Intake
 
 ![SD09](../../diagrams/SD09-profile-and-macros.png)
+
+*Image:* [`SD09-profile-and-macros.png`](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/SD09-profile-and-macros.png) · *Editable UMLet source:* [`SD09-profile-and-macros.uxf`](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/SD09-profile-and-macros.uxf)
 
 Two short deterministic interactions in one diagram. Profile saving shows validation before persistence and the `PROFILE_UPDATED` event that refreshes dependent panels. Intake logging shows the unknown food path (the lifter supplies macros per 100 g, which adds the item to `FoodCatalog`), range validation on the gram amount, and the adherence calculation that excludes days with no entries rather than counting them as zero.
 
@@ -1022,6 +1059,8 @@ Two short deterministic interactions in one diagram. Profile saving shows valida
 
 ![SD10](../../diagrams/SD10-adherence-progression.png)
 
+*Image:* [`SD10-adherence-progression.png`](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/SD10-adherence-progression.png) · *Editable UMLet source:* [`SD10-adherence-progression.uxf`](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/SD10-adherence-progression.uxf)
+
 Split into a deterministic half and an agent half, which is the point of the feature. `PlanAdherence.compare()` matches each prescription to the logged sets and assigns a verdict, and that comparison is useful on its own: the lifter sees prescribed against actual per exercise whether or not the agent runs. Only when there is a shortfall, or the lifter asks, does `ProgressionAgent` propose revised remaining weeks, reading the comparison through `AdherenceTool` rather than re deriving it.
 
 `PlanValidator.validateProgression()` is stricter than the other validators because this is the path that changes future training: loads may advance only where the verdict permits it, week over week increases are capped, and competition lifts cannot be dropped. An accepted revision is applied as an `ApplyProgressionCommand`, so a progression the lifter dislikes is one Undo away, exactly like a manual edit.
@@ -1030,11 +1069,15 @@ Split into a deterministic half and an agent half, which is the point of the fea
 
 ![SD11](../../diagrams/SD11-onboarding.png)
 
+*Image:* [`SD11-onboarding.png`](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/SD11-onboarding.png) · *Editable UMLet source:* [`SD11-onboarding.uxf`](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/SD11-onboarding.uxf)
+
 The loop is the interesting part: the agent asks one question at a time and adapts to the answers, rather than reading a script, and each answer lands in a `ProfileDraft`. Two deterministic guards surround it. `validateProfileDraft()` catches contradictions before a profile is created, and the question limit means onboarding can never trap someone in an endless interview; when it expires, the ordinary form opens prefilled with whatever was answered. The diagram ends on `StartingStrength`, because the point of onboarding is not a filled form but knowing what to do first.
 
 ## SD12 — Adopt an Existing Programme
 
 ![SD12](../../diagrams/SD12-adopt-programme.png)
+
+*Image:* [`SD12-adopt-programme.png`](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/SD12-adopt-programme.png) · *Editable UMLet source:* [`SD12-adopt-programme.uxf`](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/SD12-adopt-programme.uxf)
 
 Three routes in, one route out. Manual entry and CSV import are deterministic, and only pasted free text involves the agent, which is the right split: interpreting a coach's message is a language problem, while building a block from structured rows is not. All three converge on `validateAdoptedBlock()`, which is a different check from the generated path, because an adopted block was never produced by a progression strategy and so cannot be validated against one. What it checks instead is that the exercises exist, the week fits the lifter's available days, and the loads are plausible against current strength.
 
@@ -1380,3 +1423,103 @@ The validation differs deliberately. A generated block is checked against the pr
 Reading the eleven descriptions together, the same shape recurs: deterministic code establishes the facts and the constraints, the agent supplies judgement within them, and a validator decides whether that judgement is acceptable before it reaches the domain model. The lifter always keeps the final say, through acceptance, rejection and undo.
 
 This is what makes the system testable in the two separate ways Stage 3 requires. The deterministic components have correct answers, so they take ordinary unit tests. The agent components have expected behaviours rather than expected outputs, which is what KUMA evaluates. `PlanValidator` is the seam between them, and it is deliberately a deterministic class: whether model output is acceptable is itself a decision with a correct answer, and it can be tested as such.
+
+
+---
+
+# 10. Appendices
+
+## Appendix A — Testing Map (preparing for Stage 3)
+
+Spotter keeps deterministic code and agent code apart because the two are tested in different ways. Section 4.12 describes the JUnit approach; this table says which classes fall on which side of the line.
+
+| Group | Classes | Stage 3 method |
+|---|---|---|
+| Deterministic | `StrengthAnalytics`, `RPEChart`, `AttemptCalculator`, `MacroTracker`, `RecoveryRuleEngine`, `ProgressionStrategy` and its three implementations, `CsvImportService`, `HevyCsvAdapter`, `WhoopCsvAdapter`, `GenericCsvAdapter`, `ExerciseCatalog`, `FoodCatalog`, the `Repository<T>` implementations, `PlanEditHistory` and the four commands | JUnit 5 unit tests with Mockito and AssertJ |
+| Boundary | `PlanValidator`, `ResponseParser` | JUnit 5 against recorded good and deliberately bad model output; also exercised by the KUMA tests |
+| Agent | `CoachAgent` and its subclasses, `PromptBuilder`, `ToolManager` and the five tools, `MemoryManager`, `ClaudeClient` | Behavioural tests with KUMA, driving the `spotter` CLI |
+
+**Planned behavioural requirements** (to be refined in Stage 3):
+
+- **BR-01 Tool use before answering.** A block generation request calls `AnalyticsTool` and `ExerciseDBTool` before producing a plan; the agent never invents a lifter's current strength.
+- **BR-02 Grounded numbers.** Every load, percentage and macro figure in an agent's output either comes from a tool result or matches what the deterministic calculator produced for the same input.
+- **BR-03 Validation is never bypassed.** No model output reaches the domain model without passing `PlanValidator`; a plan with an out of range load is rejected and retried once, then reported as an error rather than saved.
+- **BR-04 Catalog grounding.** Every prescribed exercise exists in `ExerciseCatalog`, every substitute is one of the candidates the deterministic filter produced, and every food in a meal suggestion exists in `FoodCatalog` and satisfies the lifter's `DietaryConstraints`.
+- **BR-05 Failure recovery.** When a tool or the model fails, the agent says what is unavailable rather than guessing; the recovery adjustment falls back to `RecoveryRuleEngine.fallbackAdjustment()`.
+- **BR-06 Clarification over assumption.** An onboarding interview with a missing required answer asks for it instead of filling in a default, and an ambiguous programme file opens the column mapping dialog rather than guessing.
+
+**KUMA and Java.** KUMA is a Python SDK and Spotter is written in Java, so a small Python harness in `tools/kuma/` starts the `spotter` process, passes the test input on the command line, and returns the CLI's JSON output and trace to KUMA. The harness holds no application logic. Every agent command accepts `--json` to print the result and the agent trace as JSON, which is what makes this possible.
+
+## Appendix B — CLI Command Map (GUI and CLI parity)
+
+Both interfaces call the same `CoachController` methods, so every feature is reachable either way. The CLI is also what the Stage 3 behavioural tests drive.
+
+| CLI command | `CoachController` method | Feature |
+|---|---|---|
+| `spotter onboard` | `runOnboarding()` | F13 |
+| `spotter profile show` · `profile set` | `getProfile()`, `saveProfile()` | F01 |
+| `spotter import hevy <file>` · `import csv <file> <profile>` · `log add` · `log prescribed <sessionId>` | `importWorkouts()`, `logWorkout()`, `logAsPrescribed()` | F02 |
+| `spotter import whoop <file>` · `checkin` | `importRecovery()`, `recordCheckIn()` | F03 |
+| `spotter analytics <lift>` | `getAnalytics()` | F04 |
+| `spotter plan generate <weeks>` | `generateBlock()` | F05 |
+| `spotter plan substitute <prescriptionId>` · `plan edit swap <prescriptionId> <exercise>` | `suggestSubstitute()`, `applyEdit()` | F06 |
+| `spotter plan flags` · `plan adjust <sessionId>` | `getRecoveryFlags()`, `adjustSession()` | F07 |
+| `spotter meet attempts` · `test plan` | `calculateAttempts()`, `projectTestDay()` | F08 |
+| `spotter macros today` · `macros week` · `macros log <food> <grams>` | `getRemaining()`, `weeklyAdherence()`, `logIntake()` | F09 |
+| `spotter meal suggest` | `suggestMeal()` | F10 |
+| `spotter chat "<question>"` · `chat` | `chat()` | F11 |
+| `spotter plan review <week>` · `plan progress <week>` | `reviewAdherence()`, `progressPlan()` | F12 |
+| `spotter plan adopt <file>` · `plan adopt text` | `adoptProgramme()` | F14 |
+| `spotter plan edit load <prescriptionId> <kg>` · `plan undo` | `applyEdit()`, `undoLastEdit()` | supports F05 to F07, F12, F14 |
+
+**`--json`.** Every agent command (`plan generate`, `plan substitute`, `plan adjust`, `meet attempts`, `meal suggest`, `chat`, `onboard`, `plan adopt`, `plan review`) accepts `--json` to print the result and its agent trace, including the tools called and the validation outcome, as JSON. It changes only the output format, never the behaviour.
+
+## Appendix C — Diagram Files
+
+Every diagram is delivered in two formats, and they are the same picture: the `.uxf` is the UMLet file, and the `.png` is UMLet's own export of it. Both sit side by side in `diagrams/`. A `.uxf` opens in UMLet 15.1 or in the browser at [umletino.com](https://www.umletino.com/umletino.html) through File → Open.
+
+| ID | Diagram | Image | UMLet file |
+|---|---|---|---|
+| Fig 1 | System overview (layered architecture) | [png](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/architecture.png) | [uxf](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/architecture.uxf) |
+| Fig 3.0 | Class diagram, complete model | [png](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/class-full.png) | [uxf](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/class-full.uxf) |
+| Fig 3.1 | Class diagram, presentation and application layers | [png](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/class-presentation-application.png) | [uxf](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/class-presentation-application.uxf) |
+| Fig 3.2 | Class diagram, domain layer | [png](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/class-domain.png) | [uxf](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/class-domain.uxf) |
+| Fig 3.3 | Class diagram, agent layer | [png](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/class-agent.png) | [uxf](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/class-agent.uxf) |
+| Fig 3.4 | Class diagram, infrastructure layer | [png](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/class-infrastructure.png) | [uxf](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/class-infrastructure.uxf) |
+| Fig 5 | Use case diagram | [png](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/usecase.png) | [uxf](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/usecase.uxf) |
+| SD01 | Import CSV data | [png](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/SD01-import-csv.png) | [uxf](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/SD01-import-csv.uxf) |
+| SD02 | View strength analytics | [png](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/SD02-analytics.png) | [uxf](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/SD02-analytics.uxf) |
+| SD03 | Generate training block | [png](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/SD03-generate-block.png) | [uxf](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/SD03-generate-block.uxf) |
+| SD04 | Substitute unavailable exercise | [png](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/SD04-substitute-exercise.png) | [uxf](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/SD04-substitute-exercise.uxf) |
+| SD05 | Adjust session for poor recovery | [png](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/SD05-recovery-adjustment.png) | [uxf](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/SD05-recovery-adjustment.uxf) |
+| SD06 | Plan a heavy single | [png](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/SD06-heavy-single.png) | [uxf](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/SD06-heavy-single.uxf) |
+| SD07 | Get meal suggestion | [png](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/SD07-meal-suggestion.png) | [uxf](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/SD07-meal-suggestion.uxf) |
+| SD08 | Chat with coach | [png](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/SD08-coach-chat.png) | [uxf](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/SD08-coach-chat.uxf) |
+| SD09 | Save profile and log intake | [png](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/SD09-profile-and-macros.png) | [uxf](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/SD09-profile-and-macros.uxf) |
+| SD10 | Review adherence and progress the plan | [png](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/SD10-adherence-progression.png) | [uxf](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/SD10-adherence-progression.uxf) |
+| SD11 | Complete guided onboarding | [png](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/SD11-onboarding.png) | [uxf](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/SD11-onboarding.uxf) |
+| SD12 | Adopt an existing programme | [png](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/SD12-adopt-programme.png) | [uxf](https://github.com/devparikh28/EECS3311_Project_Spotter/blob/master/diagrams/SD12-adopt-programme.uxf) |
+
+The five class views are generated from one shared model, `diagrams/sources/model.iuml`, so they cannot contradict each other; `class-full` is that whole model in one picture, and the four layer views are the readable form. `diagrams/sources/` holds the PlantUML the `.uxf` files are generated from, and `tools/uxf/` holds the generators. Those are build inputs, not deliverables.
+
+## Appendix D — Requirements Checklist
+
+| Requirement | Where it is met |
+|---|---|
+| GUI | JavaFX `DashboardApp` with seven panels: section 1.6, section 3, and the user interaction field of every feature in section 2 |
+| CLI | `CoachCLI` (picocli) calling the same `CoachController` methods: section 1.6, Appendix B |
+| At least 10 features | Fourteen features, F01 to F14: section 2 |
+| At least 5 design patterns | Eight patterns, plus two supporting ones: section 4 |
+| AI or LLM model named | Anthropic Claude through LangChain4j, wrapped in `ClaudeClient`: section 1.5 |
+| How the AI interacts with the rest of the software | Section 1.5, the agent layer in section 3, and SD03 as the reference diagram for the agent loop |
+| Agent behaviour (planning, tool use, memory, multi-step execution) | `CoachAgent.run()` in section 4.7, the five tools and `MemoryManager` in section 3, SD03 to SD08 and SD11 to SD12 |
+| UML class diagram | Section 3, five views |
+| Design pattern explanations | Section 4, each with problem, participants, why it fits, and what would be harder without it |
+| Design principles | Section 4.11, the five SOLID principles mapped to classes |
+| Use case diagram | Section 5 |
+| Use case descriptions | Section 6, nineteen use cases UC01 to UC19 |
+| Sequence diagrams | Section 7, twelve diagrams SD01 to SD12 |
+| Traceability table | Section 8 |
+| Feature realization explanations | Section 9 |
+| Diagrams in PNG and UXF | Every figure links both formats; the full list is in Appendix C |
+| Testing plan for Stage 3 | Section 4.12 and Appendix A |

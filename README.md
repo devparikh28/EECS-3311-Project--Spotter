@@ -32,6 +32,7 @@ The whole Stage 1 report is one document: [`docs/stage1/Spotter-Stage1-Design-Re
 | 7 | Twelve sequence diagrams |
 | 8 | Feature to design traceability table |
 | 9 | Feature realization by class and method |
+| 10 | Appendices: testing map and behavioural requirements, CLI command map, diagram file list, requirements checklist |
 
 ## Diagrams
 
