@@ -193,6 +193,9 @@ Fourteen features, each classified as deterministic, AI, or hybrid. That classif
 | F13 | Guided Onboarding | AI |
 | F14 | Adopt an Existing Programme | Hybrid |
 
+**What the three types mean.** **Deterministic** means no model call at all: the feature is ordinary code, and given the same input it produces the same output every time. **AI** means the agent does the work — it gathers context, decides which tools to call, and the model's output shapes the result, though nothing reaches the domain model until `PlanValidator` has passed it. **Hybrid** means the two are split inside one feature: deterministic code computes every number and makes every decision that has a correct answer, and the model handles one bounded part, such as explaining a result, rewriting a session, or interpreting free text. Sections 1.4 and 4.7 set out where that line is drawn and why.
+
+
 ## F01 — Lifter Profile and Constraints
 
 - **Description:** Stores who the lifter is before anything is prescribed: training goal, experience level, split preference, optional competition details, training frequency, equipment, physical limitations, dietary constraints, preferred units and macro targets. Every other feature reads from this record, and two of these fields change what the system prescribes rather than merely how it displays it.
