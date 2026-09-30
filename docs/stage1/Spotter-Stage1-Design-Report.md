@@ -2,7 +2,7 @@
 ### An AI Strength Training and Nutrition Coaching Agent
 
 **Course:** EECS 3311 Software Design, Fall 2026 · **Stage:** 1 (Design)
-**Student:** Dev Parikh, _[student number]_ · **Repository:** [github.com/devparikh28/EECS3311_Project_Spotter](https://github.com/devparikh28/EECS3311_Project_Spotter)
+**Student:** Dev Parikh, _219957794_ · **Repository:** [github.com/devparikh28/EECS3311_Project_Spotter](https://github.com/devparikh28/EECS3311_Project_Spotter)
 
 > **Notice:** Spotter gives training and nutrition guidance for informational purposes. It is not medical advice and does not replace a coach, a physician or a dietitian. This notice appears in the GUI footer and in the CLI banner.
 
