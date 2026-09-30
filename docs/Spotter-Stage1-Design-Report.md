@@ -94,7 +94,7 @@ Five layers, each depending only on the layer beneath it or on an interface. The
 | Presentation | `DashboardApp` with seven panels, `CoachCLI` | Collect input, display results. No logic. |
 | Application | `CoachController`, `EventBus`, `PlanEditHistory`, `FxTaskRunner` | One entry point per feature; notify the GUI; record undoable edits; keep long work off the UI thread. |
 | Domain | Entities plus `StrengthAnalytics`, `AttemptCalculator`, `MacroTracker`, `RecoveryRuleEngine`, `ProgressionStrategy` | The data model and every calculation. Knows nothing about LLMs. |
-| Agent | `CoachAgent` and seven agents, `ClaudeClient`, `ToolManager` and six tools, `PromptBuilder`, `ResponseParser`, `PlanValidator`, `MemoryManager` | Turn a request into validated output using the model and tools. |
+| Agent | `CoachAgent` and nine agents, `ClaudeClient`, `ToolManager` and six tools, `PromptBuilder`, `ResponseParser`, `PlanValidator`, `MemoryManager` | Turn a request into validated output using the model and tools. |
 | Infrastructure | CSV adapters behind `DataSource`, `CsvImportService`, catalogs, SQLite repositories | Get data in and out. |
 
 Because an agent call takes seconds and JavaFX has a single UI thread, `CoachController` dispatches agent work through `FxTaskRunner` on a background thread and returns results through `Platform.runLater()`. The CLI calls the same controller methods and blocks, having no UI thread to protect.
@@ -359,7 +359,7 @@ The system is organised in five layers. Each layer depends only on the layer ben
 
 **Domain** holds the data model (`LifterProfile`, `WorkoutSession`, `SetEntry`, `RecoveryDay`, `TrainingBlock` → `Week` → `Session` → `ExercisePrescription`, `DailyIntake`, `FoodEntry`, `MeetAttempts`) and the deterministic services (`StrengthAnalytics`, `AttemptCalculator`, `MacroTracker`, `RecoveryRuleEngine`). Nothing in this layer knows an LLM exists.
 
-**Agent** holds the abstract `CoachAgent` and seven concrete agents, the `LLMClient` interface with `ClaudeClient`, the `ToolManager` and six tools, `PromptBuilder`, `ResponseParser`, `PlanValidator`, and `MemoryManager`.
+**Agent** holds the abstract `CoachAgent` and nine concrete agents, the `LLMClient` interface with `ClaudeClient`, the `ToolManager` and six tools, `PromptBuilder`, `ResponseParser`, `PlanValidator`, and `MemoryManager`.
 
 **Infrastructure** holds the CSV adapters behind `DataSource` (two recognised formats plus a mapped generic one), `CsvImportService`, the exercise and food catalogs, saved import profiles, and the SQLite repositories behind a generic `Repository<T>` interface.
 
@@ -464,7 +464,7 @@ Eight patterns are applied. Each one solves a problem that exists in this system
 
 ## 4.7 Template Method — `CoachAgent.run()`
 
-**Problem.** All seven agents follow the same algorithm: gather context, build a prompt, call the model (running any requested tools), parse the reply, validate it, and retry once with the validation errors if it fails. Only the individual steps differ between agents.
+**Problem.** All nine agents follow the same algorithm: gather context, build a prompt, call the model (running any requested tools), parse the reply, validate it, and retry once with the validation errors if it fails. Only the individual steps differ between agents.
 
 **Participants.** `CoachAgent` is the abstract class and `run()` is the final template method. The primitive operations are `gatherContext()`, `buildPrompt()`, `parse()`, `validate()`, and `createToolset()`. `BlockGenerationAgent`, `SubstitutionAgent`, `AdjustmentAgent`, `AttemptRationaleAgent`, `MealSuggestionAgent`, `ProgressionAgent` and `ChatAgent` are the concrete classes.
 
@@ -862,7 +862,7 @@ Twelve sequence diagrams cover every important behaviour in the system. Each one
 | SD11 Complete Guided Onboarding | F13 | UC18 | `SD11-onboarding.uxf` / `.png` |
 | SD12 Adopt an Existing Programme | F14 | UC19 | `SD12-adopt-programme.uxf` / `.png` |
 
-SD03 is the reference diagram for the agent loop. Because all six AI features share that loop (the Template Method in `CoachAgent.run()`), the other agent diagrams use a UML `ref` fragment pointing back to SD03 rather than repeating the same twelve messages, and show only the parts that differ: which tools are called, what is validated, and what happens to the result.
+SD03 is the reference diagram for the agent loop. Because all nine agent-backed features share that loop (the Template Method in `CoachAgent.run()`), the other agent diagrams use a UML `ref` fragment pointing back to SD03 rather than repeating the same twelve messages, and show only the parts that differ: which tools are called, what is validated, and what happens to the result.
 
 ---
 
@@ -1330,7 +1330,7 @@ Spotter keeps deterministic code and agent code apart because the two are tested
 |---|---|---|
 | Deterministic | `StrengthAnalytics`, `RPEChart`, `AttemptCalculator`, `MacroTracker`, `RecoveryRuleEngine`, `ProgressionStrategy` and its three implementations, `CsvImportService`, `HevyCsvAdapter`, `WhoopCsvAdapter`, `GenericCsvAdapter`, `ExerciseCatalog`, `FoodCatalog`, the `Repository<T>` implementations, `PlanEditHistory` and the four commands | JUnit 5 unit tests with Mockito and AssertJ |
 | Boundary | `PlanValidator`, `ResponseParser` | JUnit 5 against recorded good and deliberately bad model output; also exercised by the KUMA tests |
-| Agent | `CoachAgent` and its subclasses, `PromptBuilder`, `ToolManager` and the five tools, `MemoryManager`, `ClaudeClient` | Behavioural tests with KUMA, driving the `spotter` CLI |
+| Agent | `CoachAgent` and its subclasses, `PromptBuilder`, `ToolManager` and the six tools, `MemoryManager`, `ClaudeClient` | Behavioural tests with KUMA, driving the `spotter` CLI |
 
 **Planned behavioural requirements** (to be refined in Stage 3):
 

@@ -49,7 +49,7 @@ DOM = [
 
 AGENT = [
     ("*CoachAgent*\n<<Template Method>>", "gather context > build prompt > call model >",
-     "run tools > parse > validate > retry once", "seven agents, one per AI feature"),
+     "run tools > parse > validate > retry once", "nine agents, one per agent-backed feature"),
     ("*Tools*", "what the agent may look up: AnalyticsTool,", "ExerciseDBTool, FoodDBTool, PlanLookupTool,",
      "RecoveryLookupTool, AdherenceTool"),
     ("*PromptBuilder*\n<<Builder>>", "instructions, context, JSON schema"),
