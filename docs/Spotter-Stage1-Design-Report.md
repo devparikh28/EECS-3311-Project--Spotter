@@ -10,7 +10,7 @@ This single document contains all nine required Stage 1 deliverables, followed b
 
 | Section | Deliverable |
 |---|---|
-| 1 | [Project Overview](#1-project-overview) — Problem, target users, what the agent does, why an agent fits, the AI model and how it is integrated, architecture and technology |
+| 1 | [Project Overview](#1-project-overview) — Problem, target users, what the agent does, why an agent fits, the AI model and how it is integrated, architecture, technology, and a worked example of one lifter's first three weeks |
 | 2 | [Feature Specifications](#2-feature-specifications) — Fourteen features, F01 to F14, each with description, user interaction, input, output, AI involvement, expected workflow and error cases |
 | 3 | [UML Class Diagram](#3-uml-class-diagram) — One model in five views, with relationships and multiplicities |
 | 4 | [Design Patterns](#4-design-patterns) — Eight patterns with problem, participants, rationale and cost of omission, then the SOLID principles and the unit testing approach |
@@ -119,7 +119,33 @@ The application is entirely Java. Python appears only in `tools/kuma/`, because 
 
 Live Hevy and Whoop APIs are deliberately out of scope. Both require account authentication that would consume implementation time without demonstrating any additional design, so the system reads their CSV exports instead. The `DataSource` interface is the extension point: adding `HevyApiAdapter` later would change nothing above it.
 
-## 1.8 Beyond the Course: Deliberate Extension Points
+## 1.8 Example Scenario: Maya's First Three Weeks
+
+Maya trains four days a week at a commercial gym, has been lifting for about two years, and wants to get stronger without preparing for a meet. She has eight months of history in Hevy and a Whoop band. What follows is the whole system doing its job, and every step names the feature behind it.
+
+**Day one, setting up.** She runs `spotter onboard`, or opens the app and lands on the onboarding tab. Instead of a blank form, Spotter interviews her (F13): how long she has trained, what she wants, how many days she can train, what the gym has, and whether anything hurts. She says two years, general strength, four days, no safety squat bar, and a left shoulder that complains on flat barbell pressing. Those answers become a `LifterProfile` with a training goal of strength, an experience level of intermediate, an equipment set, and a limitation on flat barbell pressing (F01). Because she said intermediate rather than novice, `ProgressionStrategyFactory` will hand her a weekly RPE-based progression rather than the session-to-session linear one a beginner gets.
+
+**Day one, bringing her history in.** She exports her Hevy CSV and imports it (F02). `DataSourceFactory` recognises the header, `HevyCsvAdapter` reads it, and eight months of sessions land in the database. Her Whoop export follows (F03). Nothing here involves the model at all; it is parsing and de-duplication.
+
+**Day one, what the numbers say.** The Analytics tab now has something to show (F04). `StrengthAnalytics` estimates her one rep max from her RPE-tagged top sets: squat 132 kg, bench 71 kg, deadlift 158 kg. The e1RM trend for squat is flat across the last two months, which is the fact that will drive everything the agent does next.
+
+**Day one, getting a plan.** She asks for a six week block (F05). This is where the agent loop runs, and it is worth being precise about it. `BlockGenerationAgent.run()` gathers her context, calls `AnalyticsTool` to get those e1RM figures and the flat squat trend, calls `ExerciseDBTool` to find pressing variations that respect her shoulder, and builds a prompt. Claude proposes a block. `ResponseParser` turns the JSON into objects, reading exercise facts from the catalog rather than trusting the model for them, and `PlanValidator` checks every prescribed load against what `ProgressionStrategy` says is possible from a 132 kg squat. Only then does a `TrainingBlock` exist. The block avoids flat barbell bench, uses a front squat variation on the second squat day, and adds volume where her trend is flat.
+
+**Week one, Wednesday.** Her Whoop sync shows two poor nights and a low recovery score. `RecoveryRuleEngine` flags Wednesday's session before she even opens the app (F07). She taps Adjust. `AdjustmentAgent` proposes dropping the top set intensity and cutting one back-off set, `PlanValidator` confirms the new loads are still in range, and the change goes onto the undo stack as an `ApplyAdjustmentCommand`, so she can reverse it if she feels better by the evening. Had the model been unavailable, `RecoveryRuleEngine.fallbackAdjustment()` would have offered a fixed reduction instead — the feature degrades, it does not fail.
+
+**Week one, Friday.** Someone is using the only competition bench. She hits Substitute on that exercise (F06). A deterministic filter produces the candidates her equipment and shoulder allow; `SubstitutionAgent` picks among them and says why; `PlanValidator` confirms the choice was one of the candidates rather than something invented.
+
+**Every day, eating.** She logs food against her macro targets (F09) and `MacroTracker` shows what is left. At 8 pm with 41 g of protein remaining and a vegetarian constraint on file, she asks for a suggestion (F10). `MealSuggestionAgent` composes something from the food catalog; the nutrition figures in the answer are read from `FoodCatalog`, not generated, so the numbers are arithmetic rather than a guess.
+
+**End of week two, the loop closing.** This is the feature that makes Spotter a coach rather than a planner (F12). `PlanAdherence` compares what was prescribed against what she logged. She hit the prescribed squat sets at RPE 7 when the plan called for RPE 8, which means the intensity was too low, and she missed the last set of Friday's accessory work twice. `ProgressionAgent` reads both facts and progresses week three accordingly: squat loads up more than the default step, and the accessory volume trimmed to something she will actually finish.
+
+**Any time, asking.** "Why is Tuesday lighter this week?" (F11). `ChatAgent` calls `PlanLookupTool` and `RecoveryLookupTool`, answers from what it retrieves, and `MemoryManager` keeps the thread so the follow-up question does not start from nothing.
+
+**Week six.** She wants to know what she can actually hit. Spotter projects a test day rather than meet attempts, because she has no meet date (F08). `AttemptCalculator` produces the numbers with correct plate rounding, and `AttemptRationaleAgent` explains the choice in terms of how the block actually went — with `PlanValidator` checking that every figure in the explanation matches what the calculator produced.
+
+One path is not in Maya's story because it belongs to a different kind of user. Someone who already follows a programme they like does not want a generated block; they paste it in or upload the file, and `ProgrammeParserAgent` turns it into a `TrainingBlock` that the rest of the system can then track, adjust and progress (F14).
+
+## 1.9 Beyond the Course: Deliberate Extension Points
 
 Spotter is built to outlive the course, so several boundaries exist specifically to let it grow without being rewritten. None of the work below is in scope for Stages 2 and 3; it is recorded here because the design accommodates it on purpose rather than by accident.
 
@@ -131,7 +157,7 @@ Spotter is built to outlive the course, so several boundaries exist specifically
 
 **Multiple lifters.** The current design assumes one lifter per installation, which keeps the repositories simple. Adding a lifter identifier to the repository queries would be the first step toward a coach managing several athletes; the domain model already treats `LifterProfile` as the root that other entities hang from.
 
-## 1.9 Document Map
+## 1.10 Document Map
 
 | Section | Contents |
 |---|---|
