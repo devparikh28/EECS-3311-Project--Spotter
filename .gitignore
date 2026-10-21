@@ -1,36 +1,34 @@
-# secrets
+# Local secrets, never commit these
 .env
-*.key
+.env.*
+!.env.example
+config.local.json
 config.local.*
+*.key
 
-# java / maven
+# Build output
 target/
 *.class
 *.jar
-!plantuml.jar.keep
 
-# python harness
+# Local database and recorded model traffic
+*.db
+*.db-journal
+trace.jsonl
+recordings/
+
+# Python, used only by the diagram generators
 __pycache__/
-*.py[cod]
+*.pyc
 .venv/
 
-# data and db
-*.db
-*.sqlite3
-data/local/
-trace.jsonl
-
-# ide and os
+# Editors and operating system
 .idea/
 *.iml
 .vscode/
 .DS_Store
 
-# UMLet conversion scratch
-diagrams/uxf/*.png
-!diagrams/uxf/png/*.png
-
-# R console history, dropped by R or RStudio
+# R, from an unrelated tool on this machine
 .Rhistory
 .RData
 .Rproj.user/
