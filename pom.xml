@@ -30,7 +30,7 @@
     <assertj.version>3.26.3</assertj.version>
 
     <main.class>
-      ca.yorku.eecs3311.spotter.presentation.cli.SpotterCli
+      ca.yorku.eecs3311.spotter.presentation.cli.CoachCLI
     </main.class>
     <gui.class>
       ca.yorku.eecs3311.spotter.presentation.gui.DashboardApp
