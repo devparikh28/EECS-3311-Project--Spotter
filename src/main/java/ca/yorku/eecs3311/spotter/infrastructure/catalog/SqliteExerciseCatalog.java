@@ -28,6 +28,18 @@ public final class SqliteExerciseCatalog
 
     private final Database database;
 
+    /**
+     * The catalog read once and kept.
+     *
+     * Importing a real export asks for an
+     * exercise by name thousands of times. Re
+     * reading every row from SQLite each time
+     * made a seventeen month file take ten
+     * seconds; with this it is immediate. Any
+     * write clears it.
+     */
+    private List<Exercise> cached;
+
     public SqliteExerciseCatalog(
             Database database) {
         if (database == null) {
@@ -89,6 +101,18 @@ public final class SqliteExerciseCatalog
 
     @Override
     public List<Exercise> all() {
+        if (cached == null) {
+            cached = readAll();
+        }
+        return cached;
+    }
+
+    /** Drops the cache after a write. */
+    private void invalidate() {
+        cached = null;
+    }
+
+    private List<Exercise> readAll() {
         String sql = "SELECT id, name,"
                 + " movement_pattern,"
                 + " competition_lift"
@@ -283,6 +307,7 @@ public final class SqliteExerciseCatalog
             }
             saveEquipment(id, exercise);
             saveMuscles(id, exercise);
+            invalidate();
             return byId(id).orElseThrow();
         } catch (SQLException e) {
             throw new PersistenceException(
@@ -351,6 +376,7 @@ public final class SqliteExerciseCatalog
             s.setString(1, alias.trim());
             s.setInt(2, exercise.id());
             s.executeUpdate();
+            invalidate();
         } catch (SQLException e) {
             throw new PersistenceException(
                 "Could not record the alias", e);

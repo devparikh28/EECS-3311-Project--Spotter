@@ -47,8 +47,9 @@ public final class SqliteWorkoutRepository
         }
         String sql = "INSERT OR IGNORE INTO"
                 + " workout_session"
-                + " (date, source)"
-                + " VALUES (?, ?)";
+                + " (date, source,"
+                + " external_id, title)"
+                + " VALUES (?, ?, ?, ?)";
         try (PreparedStatement s =
                 database.connection()
                     .prepareStatement(sql,
@@ -57,6 +58,9 @@ public final class SqliteWorkoutRepository
             s.setString(1,
                     session.date().toString());
             s.setString(2, session.source());
+            s.setString(3, session.externalId());
+            s.setString(4, session.title()
+                    .orElse(null));
             s.executeUpdate();
 
             int id = generatedOrExisting(s,
@@ -91,7 +95,8 @@ public final class SqliteWorkoutRepository
         String sql = "SELECT id FROM"
                 + " workout_session"
                 + " WHERE date = ?"
-                + " AND source = ?";
+                + " AND source = ?"
+                + " AND external_id = ?";
         try (PreparedStatement lookup =
                 database.connection()
                     .prepareStatement(sql)) {
@@ -99,6 +104,8 @@ public final class SqliteWorkoutRepository
                     session.date().toString());
             lookup.setString(2,
                     session.source());
+            lookup.setString(3,
+                    session.externalId());
             try (ResultSet rs =
                     lookup.executeQuery()) {
                 rs.next();
@@ -153,7 +160,8 @@ public final class SqliteWorkoutRepository
     @Override
     public Optional<WorkoutSession> findById(
             int id) {
-        String sql = "SELECT id, date, source"
+        String sql = "SELECT id, date, source,"
+                + " external_id, title"
                 + " FROM workout_session"
                 + " WHERE id = ?";
         try (PreparedStatement s =
@@ -175,7 +183,8 @@ public final class SqliteWorkoutRepository
 
     @Override
     public List<WorkoutSession> findAll() {
-        return query("SELECT id, date, source"
+        return query("SELECT id, date, source,"
+                + " external_id, title"
                 + " FROM workout_session"
                 + " ORDER BY date", null);
     }
@@ -186,7 +195,8 @@ public final class SqliteWorkoutRepository
         if (since == null) {
             return findAll();
         }
-        return query("SELECT id, date, source"
+        return query("SELECT id, date, source,"
+                + " external_id, title"
                 + " FROM workout_session"
                 + " WHERE date >= ?"
                 + " ORDER BY date",
@@ -238,6 +248,8 @@ public final class SqliteWorkoutRepository
                 LocalDate.parse(
                         rs.getString("date")),
                 rs.getString("source"),
+                rs.getString("external_id"),
+                rs.getString("title"),
                 setsFor(id));
     }
 
