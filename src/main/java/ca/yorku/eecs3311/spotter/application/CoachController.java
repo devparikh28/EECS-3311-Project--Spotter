@@ -29,6 +29,27 @@ import ca.yorku.eecs3311.spotter
 import ca.yorku.eecs3311.spotter
         .infrastructure.config.SpotterConfig;
 import ca.yorku.eecs3311.spotter
+        .infrastructure.csv.CsvImportService;
+import ca.yorku.eecs3311.spotter
+        .infrastructure.csv.DataSourceFactory;
+import ca.yorku.eecs3311.spotter
+        .infrastructure.csv.ImportReport;
+import ca.yorku.eecs3311.spotter
+        .infrastructure.csv.SourceKind;
+import ca.yorku.eecs3311.spotter
+        .infrastructure.persistence
+        .RecoveryRepository;
+import ca.yorku.eecs3311.spotter
+        .infrastructure.persistence
+        .SqliteRecoveryRepository;
+import ca.yorku.eecs3311.spotter.domain
+        .RecoveryDay;
+import ca.yorku.eecs3311.spotter.domain
+        .RecoveryFlag;
+import ca.yorku.eecs3311.spotter.domain
+        .RecoveryRuleEngine;
+import java.nio.file.Path;
+import ca.yorku.eecs3311.spotter
         .infrastructure.persistence.Database;
 import ca.yorku.eecs3311.spotter
         .infrastructure.persistence
@@ -56,6 +77,9 @@ public final class CoachController
     private final WorkoutRepository workouts;
     private final StrengthAnalytics analytics;
     private final AttemptCalculator attempts;
+    private final RecoveryRepository recovery;
+    private final RecoveryRuleEngine recoveryRules;
+    private final CsvImportService imports;
 
     public CoachController(
             SpotterConfig config) {
@@ -80,6 +104,48 @@ public final class CoachController
             new StrengthAnalytics();
         this.attempts =
             new AttemptCalculator();
+        this.recovery =
+            new SqliteRecoveryRepository(
+                database);
+        this.recoveryRules =
+            new RecoveryRuleEngine();
+        this.imports = new CsvImportService(
+            new DataSourceFactory(catalog),
+            workouts, recovery);
+    }
+
+    /** What an export is, without importing. */
+    public SourceKind detect(Path file) {
+        return imports.detect(file);
+    }
+
+    /**
+     * Imports an export, working out what it is
+     * (F02 and F03).
+     */
+    public ImportReport importFile(Path file) {
+        return imports.importFile(file);
+    }
+
+    public RecoveryRepository recovery() {
+        return recovery;
+    }
+
+    /**
+     * Days whose readings were poor enough to
+     * question the session planned for them
+     * (F07).
+     */
+    public List<RecoveryFlag> recoveryFlags(
+            LocalDate since) {
+        List<RecoveryFlag> flags =
+                new ArrayList<>();
+        for (RecoveryDay day
+                : recovery.findSince(since)) {
+            recoveryRules.evaluate(day)
+                    .ifPresent(flags::add);
+        }
+        return List.copyOf(flags);
     }
 
     public ExerciseCatalog catalog() {
