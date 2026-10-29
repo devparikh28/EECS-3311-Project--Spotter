@@ -38,6 +38,22 @@ public final class SqliteWorkoutRepository
         this.catalog = catalog;
     }
 
+    /**
+     * Saves a session, or returns the stored one
+     * when it is already there.
+     *
+     * The existing row is looked up first rather
+     * than relying on what an ignored insert
+     * reports. SQLite answers getGeneratedKeys
+     * with the last rowid it did insert, which
+     * for a skipped duplicate is some other
+     * session entirely, and acting on that id
+     * would rewrite the wrong session's sets.
+     *
+     * A session already present is left alone, so
+     * importing the same export twice is a no op
+     * rather than a rewrite.
+     */
     @Override
     public WorkoutSession save(
             WorkoutSession session) {
@@ -45,7 +61,51 @@ public final class SqliteWorkoutRepository
             throw new IllegalArgumentException(
                     "A session is required");
         }
-        String sql = "INSERT OR IGNORE INTO"
+        try {
+            Optional<Integer> existing =
+                    idOf(session);
+            if (existing.isPresent()) {
+                return findById(existing.get())
+                        .orElseThrow();
+            }
+            int id = insert(session);
+            saveSets(id, session);
+            return findById(id).orElseThrow();
+        } catch (SQLException e) {
+            throw new PersistenceException(
+                "Could not save the session for "
+                + session.date(), e);
+        }
+    }
+
+    /** The id of a stored session, if present. */
+    private Optional<Integer> idOf(
+            WorkoutSession session)
+            throws SQLException {
+        String sql = "SELECT id FROM"
+                + " workout_session"
+                + " WHERE date = ?"
+                + " AND source = ?"
+                + " AND external_id = ?";
+        try (PreparedStatement s =
+                database.connection()
+                    .prepareStatement(sql)) {
+            s.setString(1,
+                    session.date().toString());
+            s.setString(2, session.source());
+            s.setString(3,
+                    session.externalId());
+            try (ResultSet rs = s.executeQuery()) {
+                return rs.next()
+                    ? Optional.of(rs.getInt(1))
+                    : Optional.empty();
+            }
+        }
+    }
+
+    private int insert(WorkoutSession session)
+            throws SQLException {
+        String sql = "INSERT INTO"
                 + " workout_session"
                 + " (date, source,"
                 + " external_id, title)"
@@ -58,58 +118,15 @@ public final class SqliteWorkoutRepository
             s.setString(1,
                     session.date().toString());
             s.setString(2, session.source());
-            s.setString(3, session.externalId());
+            s.setString(3,
+                    session.externalId());
             s.setString(4, session.title()
                     .orElse(null));
             s.executeUpdate();
-
-            int id = generatedOrExisting(s,
-                    session);
-            saveSets(id, session);
-            return findById(id).orElseThrow();
-        } catch (SQLException e) {
-            throw new PersistenceException(
-                "Could not save the session", e);
-        }
-    }
-
-    /**
-     * SQLite returns no key when INSERT OR IGNORE
-     * skipped a duplicate, so the existing row is
-     * looked up instead. That is what makes
-     * importing the same export twice harmless.
-     */
-    private int generatedOrExisting(
-            PreparedStatement s,
-            WorkoutSession session)
-            throws SQLException {
-        try (ResultSet keys =
-                s.getGeneratedKeys()) {
-            if (keys.next()) {
-                int id = keys.getInt(1);
-                if (id > 0) {
-                    return id;
-                }
-            }
-        }
-        String sql = "SELECT id FROM"
-                + " workout_session"
-                + " WHERE date = ?"
-                + " AND source = ?"
-                + " AND external_id = ?";
-        try (PreparedStatement lookup =
-                database.connection()
-                    .prepareStatement(sql)) {
-            lookup.setString(1,
-                    session.date().toString());
-            lookup.setString(2,
-                    session.source());
-            lookup.setString(3,
-                    session.externalId());
-            try (ResultSet rs =
-                    lookup.executeQuery()) {
-                rs.next();
-                return rs.getInt(1);
+            try (ResultSet keys =
+                    s.getGeneratedKeys()) {
+                keys.next();
+                return keys.getInt(1);
             }
         }
     }
@@ -118,15 +135,6 @@ public final class SqliteWorkoutRepository
             int sessionId,
             WorkoutSession session)
             throws SQLException {
-        try (PreparedStatement clear =
-                database.connection()
-                    .prepareStatement(
-                      "DELETE FROM set_entry"
-                      + " WHERE session_id = ?")) {
-            clear.setInt(1, sessionId);
-            clear.executeUpdate();
-        }
-
         String sql = "INSERT INTO set_entry"
                 + " (session_id, exercise_id,"
                 + " weight_kg, reps, rpe,"

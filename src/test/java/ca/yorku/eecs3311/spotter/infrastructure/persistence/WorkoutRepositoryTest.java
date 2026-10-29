@@ -158,6 +158,64 @@ class WorkoutRepositoryTest {
 
     @Test
     @DisplayName(
+        "re importing many sessions does not"
+        + " duplicate or corrupt any of them")
+    void reimportOfManySessionsIsSafe() {
+        for (int day = 0; day < 20; day++) {
+            workouts.save(new WorkoutSession(0,
+                DAY.plusDays(day), "hevy",
+                "start-" + day, "Session " + day,
+                List.of(SetEntry.of(squat,
+                    100 + day, 5, 8))));
+        }
+        List<WorkoutSession> first =
+                workouts.findAll();
+
+        // the same export, read again
+        for (int day = 0; day < 20; day++) {
+            workouts.save(new WorkoutSession(0,
+                DAY.plusDays(day), "hevy",
+                "start-" + day, "Session " + day,
+                List.of(SetEntry.of(squat,
+                    100 + day, 5, 8))));
+        }
+
+        assertThat(workouts.findAll())
+                .hasSize(20);
+        for (int i = 0; i < 20; i++) {
+            assertThat(workouts.findAll().get(i)
+                    .sets()).hasSize(1);
+            assertThat(workouts.findAll().get(i)
+                    .sets().get(0).weightKg())
+                .isEqualTo(first.get(i).sets()
+                    .get(0).weightKg());
+        }
+    }
+
+    @Test
+    @DisplayName(
+        "two sessions on one day stay separate")
+    void twoSessionsOnOneDayStaySeparate() {
+        workouts.save(new WorkoutSession(0,
+            DAY, "hevy", "08:00", "Back",
+            List.of(SetEntry.of(squat,
+                    100, 5, 8))));
+        workouts.save(new WorkoutSession(0,
+            DAY, "hevy", "17:00", "Chest",
+            List.of(SetEntry.of(squat,
+                    110, 5, 8))));
+
+        assertThat(workouts.findAll())
+                .hasSize(2);
+        assertThat(workouts.findAll())
+            .extracting(w -> w.title()
+                    .orElse(""))
+            .containsExactlyInAnyOrder(
+                    "Back", "Chest");
+    }
+
+    @Test
+    @DisplayName(
         "sessions can be filtered by date")
     void sessionsFilterByDate() {
         workouts.save(new WorkoutSession(0,
