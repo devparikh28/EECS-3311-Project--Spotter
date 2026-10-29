@@ -153,8 +153,28 @@ public final class CoachController
         return warnings;
     }
 
-    /** Current estimated maxima, per lift. */
+    /** How far back "current" strength reaches. */
+    public static final int RECENT_WEEKS = 8;
+
+    /**
+     * Current estimated maxima, per lift.
+     *
+     * Only the last eight weeks count. Against a
+     * seventeen month history the all time best
+     * is not what to plan from: strength from a
+     * year ago is not strength now, and planning
+     * attempts off it would prescribe weights the
+     * lifter cannot currently hit.
+     */
     public Map<Lift, Double> currentE1RMs() {
+        return analytics.currentE1RMs(
+            workouts.findSince(
+                LocalDate.now().minusWeeks(
+                        RECENT_WEEKS)));
+    }
+
+    /** Best ever, for comparison against current. */
+    public Map<Lift, Double> allTimeE1RMs() {
         return analytics.currentE1RMs(
                 workouts.findAll());
     }

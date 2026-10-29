@@ -97,10 +97,15 @@ CREATE TABLE IF NOT EXISTS exercise_alias (
 -- ---------- logged training ----------
 
 CREATE TABLE IF NOT EXISTS workout_session (
-  id      INTEGER PRIMARY KEY,
-  date    TEXT NOT NULL,
-  source  TEXT NOT NULL,
-  UNIQUE (date, source)
+  id          INTEGER PRIMARY KEY,
+  date        TEXT NOT NULL,
+  source      TEXT NOT NULL,
+  -- Identifies the session within its day.
+  -- Real exports contain two sessions on one
+  -- date, so the day alone is not unique.
+  external_id TEXT NOT NULL DEFAULT '',
+  title       TEXT,
+  UNIQUE (date, source, external_id)
 );
 
 CREATE TABLE IF NOT EXISTS set_entry (
@@ -124,6 +129,10 @@ CREATE INDEX IF NOT EXISTS
 
 -- ---------- recovery ----------
 
+-- One row per calendar day. A wearable may
+-- report several cycles in a day when a nap
+-- starts one; the import keeps the longest
+-- sleep, which is the night.
 CREATE TABLE IF NOT EXISTS recovery_day (
   date            TEXT PRIMARY KEY,
   source          TEXT NOT NULL,
