@@ -29,7 +29,9 @@ import picocli.CommandLine.Command;
         "An AI strength training and nutrition"
         + " coach.",
     subcommands = {
-        StatusCommand.class
+        StatusCommand.class,
+        SeedCommand.class,
+        AnalyticsCommand.class
     })
 public final class CoachCLI
         implements Callable<Integer> {
