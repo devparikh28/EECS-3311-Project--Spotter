@@ -24,6 +24,13 @@ import ca.yorku.eecs3311.spotter.domain
 import ca.yorku.eecs3311.spotter
         .infrastructure.catalog.ExerciseCatalog;
 import ca.yorku.eecs3311.spotter
+        .infrastructure.catalog.FoodCatalog;
+import ca.yorku.eecs3311.spotter
+        .infrastructure.catalog
+        .SqliteFoodCatalog;
+import ca.yorku.eecs3311.spotter
+        .infrastructure.sample.SampleFoods;
+import ca.yorku.eecs3311.spotter
         .infrastructure.catalog
         .SqliteExerciseCatalog;
 import ca.yorku.eecs3311.spotter
@@ -74,6 +81,7 @@ public final class CoachController
 
     private final Database database;
     private final ExerciseCatalog catalog;
+    private final FoodCatalog foods;
     private final WorkoutRepository workouts;
     private final StrengthAnalytics analytics;
     private final AttemptCalculator attempts;
@@ -97,6 +105,8 @@ public final class CoachController
         this.database.migrate();
         this.catalog =
             new SqliteExerciseCatalog(database);
+        this.foods =
+            new SqliteFoodCatalog(database);
         this.workouts =
             new SqliteWorkoutRepository(
                 database, catalog);
@@ -146,6 +156,19 @@ public final class CoachController
                     .ifPresent(flags::add);
         }
         return List.copyOf(flags);
+    }
+
+    /** The food catalog, for F09 and F10. */
+    public FoodCatalog foods() {
+        return foods;
+    }
+
+    /**
+     * Loads the sample foods (F10), returning how
+     * many were written.
+     */
+    public int loadSampleFoods() {
+        return SampleFoods.load(foods);
     }
 
     public ExerciseCatalog catalog() {

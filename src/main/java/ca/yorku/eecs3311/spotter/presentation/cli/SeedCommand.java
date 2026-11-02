@@ -55,8 +55,22 @@ public final class SeedCommand
         try (CoachController controller =
                 new CoachController(config)) {
 
+            // Foods are written first and
+            // unconditionally. They are
+            // reference data rather than
+            // history, writing them twice
+            // changes nothing, and a lifter
+            // with their own training logged
+            // still needs a food catalogue to
+            // plan meals from.
+            int foodsWritten =
+                controller.loadSampleFoods();
+
             if (controller.hasTrainingHistory()
                     && !force) {
+                out.printf(
+                    "The food catalogue has %d"
+                    + " foods.%n", foodsWritten);
                 out.println(
                     "Training history already"
                     + " exists. Use --force to"
@@ -68,10 +82,10 @@ public final class SeedCommand
             int written =
                 controller.loadSampleData(
                         LocalDate.now());
-
             out.printf(
-                "Loaded %d sample sessions.%n",
-                written);
+                "Loaded %d sample sessions and"
+                + " %d foods.%n",
+                written, foodsWritten);
             out.println();
             for (String line
                     : SampleData.describe()) {
@@ -80,6 +94,9 @@ public final class SeedCommand
             out.println();
             out.println(
                 "Try: spotter analytics squat");
+            out.println(
+                "     spotter meal"
+                + " --calories 900");
             out.flush();
         }
         return 0;
