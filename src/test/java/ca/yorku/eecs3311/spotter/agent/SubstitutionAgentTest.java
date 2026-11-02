@@ -176,9 +176,7 @@ class SubstitutionAgentTest {
         "answering with the exercise being"
         + " replaced is rejected")
     void theSameExerciseIsRejected() {
-        model.reply(choice(
-                "Barbell Bench Press", 100.0))
-             .reply(choice(
+        model.alwaysReply(choice(
                 "Barbell Bench Press", 100.0));
 
         AgentResult<Substitution> result =
@@ -219,9 +217,7 @@ class SubstitutionAgentTest {
         "a movement training something else is"
         + " rejected")
     void unrelatedMovementIsRejected() {
-        model.reply(choice("Dumbbell Curl", 50.0))
-             .reply(choice("Dumbbell Curl",
-                     50.0));
+        model.alwaysReply(choice("Dumbbell Curl", 50.0));
 
         AgentResult<Substitution> result =
                 agent().run();
@@ -237,9 +233,7 @@ class SubstitutionAgentTest {
         "the barbell's weight on a dumbbell"
         + " press is rejected as too heavy")
     void tooHeavyIsRejected() {
-        model.reply(choice(
-                "Dumbbell Bench Press", 120.0))
-             .reply(choice(
+        model.alwaysReply(choice(
                 "Dumbbell Bench Press", 120.0));
 
         AgentResult<Substitution> result =
@@ -256,9 +250,7 @@ class SubstitutionAgentTest {
         "a load far below the original is"
         + " rejected as too light")
     void tooLightIsRejected() {
-        model.reply(choice(
-                "Dumbbell Bench Press", 20.0))
-             .reply(choice(
+        model.alwaysReply(choice(
                 "Dumbbell Bench Press", 20.0));
 
         AgentResult<Substitution> result =
@@ -289,9 +281,7 @@ class SubstitutionAgentTest {
         "an invented movement is caught at"
         + " parse time")
     void inventedExerciseIsCaught() {
-        model.reply(choice("Ultra Chest Blaster",
-                70.0))
-             .reply(choice("Ultra Chest Blaster",
+        model.alwaysReply(choice("Ultra Chest Blaster",
                 70.0));
 
         SubstitutionAgent agent = agent();
@@ -324,9 +314,7 @@ class SubstitutionAgentTest {
                 Set.of(), true))
             .build();
 
-        model.reply(choice(
-                "Dumbbell Bench Press", 70.0))
-             .reply(choice(
+        model.alwaysReply(choice(
                 "Dumbbell Bench Press", 70.0));
 
         AgentResult<Substitution> result =

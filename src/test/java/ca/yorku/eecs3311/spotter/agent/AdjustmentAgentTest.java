@@ -200,7 +200,7 @@ class AdjustmentAgentTest {
             + "\"loadKg\":150.0},"
             + "{\"id\":2,\"sets\":3,"
             + "\"loadKg\":100.0}]}";
-        model.reply(heavier).reply(heavier);
+        model.alwaysReply(heavier);
 
         AgentResult<Session> result =
                 agent(mild()).run();
@@ -221,7 +221,7 @@ class AdjustmentAgentTest {
             + "\"loadKg\":140.0},"
             + "{\"id\":2,\"sets\":3,"
             + "\"loadKg\":100.0}]}";
-        model.reply(more).reply(more);
+        model.alwaysReply(more);
 
         AgentResult<Session> result =
                 agent(mild()).run();
@@ -243,7 +243,7 @@ class AdjustmentAgentTest {
             + "\"loadKg\":138.0},"
             + "{\"id\":2,\"sets\":3,"
             + "\"loadKg\":100.0}]}";
-        model.reply(token).reply(token);
+        model.alwaysReply(token);
 
         AgentResult<Session> result =
                 agent(mild()).run();
@@ -265,7 +265,7 @@ class AdjustmentAgentTest {
             + "\"loadKg\":100.0},"
             + "{\"id\":2,\"sets\":1,"
             + "\"loadKg\":60.0}]}";
-        model.reply(gutted).reply(gutted);
+        model.alwaysReply(gutted);
 
         AgentResult<Session> result =
                 agent(mild()).run();
@@ -310,7 +310,7 @@ class AdjustmentAgentTest {
             + "\"loadKg\":100.0},"
             + "{\"id\":2,\"sets\":2,"
             + "\"loadKg\":80.0}]}";
-        model.reply(deep).reply(deep);
+        model.alwaysReply(deep);
 
         AgentResult<Session> result =
                 agent(mild()).run();
@@ -327,7 +327,7 @@ class AdjustmentAgentTest {
             + " it\",\"exercises\":["
             + "{\"id\":99,\"sets\":3,"
             + "\"loadKg\":100.0}]}";
-        model.reply(invented).reply(invented);
+        model.alwaysReply(invented);
 
         AdjustmentAgent agent = agent(mild());
         AgentResult<Session> result =
@@ -348,7 +348,7 @@ class AdjustmentAgentTest {
         String nameless = "{\"note\":\"lighter"
             + "\",\"exercises\":[{\"sets\":3,"
             + "\"loadKg\":100.0}]}";
-        model.reply(nameless).reply(nameless);
+        model.alwaysReply(nameless);
 
         AdjustmentAgent agent = agent(mild());
 
@@ -368,7 +368,7 @@ class AdjustmentAgentTest {
             + " squat\",\"exercises\":["
             + "{\"id\":1,\"sets\":0,"
             + "\"loadKg\":140.0}]}";
-        model.reply(empty).reply(empty);
+        model.alwaysReply(empty);
 
         AdjustmentAgent agent = agent(mild());
 

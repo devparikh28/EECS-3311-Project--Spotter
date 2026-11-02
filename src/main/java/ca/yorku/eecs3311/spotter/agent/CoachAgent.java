@@ -54,8 +54,27 @@ public abstract class CoachAgent<T> {
      */
     public static final int MAX_TOOL_ROUNDS = 6;
 
-    /** Retries allowed after a rejected reply. */
-    public static final int MAX_RETRIES = 1;
+    /**
+     * Retries allowed after a rejected reply.
+     *
+     * Two rather than one. The first real block
+     * generation against a full catalogue spent
+     * its first attempt producing something
+     * unreadable and its second producing a
+     * sound plan with loads outside the allowed
+     * range, which left nothing for the
+     * correction the rejection message exists to
+     * invite. One retry assumes the first answer
+     * is nearly right, which is true for a small
+     * task and not for writing four weeks of
+     * training.
+     *
+     * Still a hard limit rather than a loop. An
+     * agent that keeps arguing until something
+     * passes is how a bill gets run up without
+     * anyone noticing.
+     */
+    public static final int MAX_RETRIES = 2;
 
     private final LLMClient model;
     private final PromptBuilder prompts;

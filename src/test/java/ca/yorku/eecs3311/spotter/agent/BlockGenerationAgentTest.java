@@ -169,8 +169,8 @@ class BlockGenerationAgentTest {
         "a plan that stays too heavy is"
         + " refused rather than handed over")
     void persistentlyTooHeavyIsRefused() {
-        model.reply(plan("Back Squat", 250.0))
-             .reply(plan("Back Squat", 240.0));
+        model.alwaysReply(
+            plan("Back Squat", 250.0));
 
         AgentResult<TrainingBlock> result =
                 agent(1).run();
@@ -223,8 +223,7 @@ class BlockGenerationAgentTest {
         "a block of the wrong length is"
         + " rejected")
     void wrongLengthIsRejected() {
-        model.reply(plan("Back Squat", 162.0))
-             .reply(plan("Back Squat", 162.0));
+        model.alwaysReply(plan("Back Squat", 162.0));
 
         AgentResult<TrainingBlock> result =
                 agent(4).run();
