@@ -264,7 +264,7 @@ class BlockGenerationAgentTest {
 
     @Test
     @DisplayName(
-        "both tools are offered to the model")
+        "every lookup is offered to the model")
     void toolsAreOffered() {
         model.reply(plan("Back Squat", 162.0));
 
@@ -274,7 +274,8 @@ class BlockGenerationAgentTest {
             .extracting(ToolSchema::name)
             .containsExactlyInAnyOrder(
                 "strength_analytics",
-                "available_exercises");
+                "available_exercises",
+                "allowed_load");
     }
 
     @Test

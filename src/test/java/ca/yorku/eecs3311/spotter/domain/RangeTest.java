@@ -87,4 +87,31 @@ class RangeTest {
             .isInstanceOf(
                 IllegalArgumentException.class);
     }
+
+    @Test
+    @DisplayName(
+        "a load on the boundary is acceptable,"
+        + " since rounding should not decide it")
+    void theBoundaryIsInside() {
+        Range range = new Range(66.04, 76.7);
+
+        assertThat(range.contains(66.0))
+            .isTrue();
+        assertThat(range.contains(76.74))
+            .isTrue();
+    }
+
+    @Test
+    @DisplayName(
+        "the slack is far below any real plate")
+    void theSlackIsTiny() {
+        Range range = new Range(100, 110);
+
+        assertThat(range.contains(99.0))
+            .isFalse();
+        assertThat(range.contains(111.0))
+            .isFalse();
+        assertThat(Range.TOLERANCE)
+            .isLessThan(1.25);
+    }
 }

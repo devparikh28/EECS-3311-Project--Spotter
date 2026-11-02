@@ -56,8 +56,15 @@ public final class ClaudeClient
     private final ObjectMapper json =
             new ObjectMapper();
 
-    private ChatLanguageModel fast;
-    private ChatLanguageModel reasoning;
+    /**
+     * Models built so far, by name and reply
+     * length. Built on first use rather than in
+     * the constructor, so a command that never
+     * reaches the model never needs a key.
+     */
+    private final java.util.Map<String,
+            ChatLanguageModel> built =
+                new java.util.HashMap<>();
     private TokenUsage usage = TokenUsage.NONE;
 
     public ClaudeClient(SpotterConfig config) {
@@ -87,7 +94,8 @@ public final class ClaudeClient
         }
         try {
             ChatLanguageModel model =
-                    modelFor(request.tier());
+                    modelFor(request.tier(),
+                        request.maxTokens());
 
             List<ChatMessage> messages =
                     new ArrayList<>();
@@ -209,27 +217,39 @@ public final class ClaudeClient
         return specs;
     }
 
+    /**
+     * The model for one request.
+     *
+     * Keyed by tier and by the reply length the
+     * agent asked for, because the library fixes
+     * maxTokens when the model is built rather
+     * than per call. Caching on the name alone
+     * meant the first agent to run decided the
+     * reply length for every agent after it, and
+     * since the configured default is modest,
+     * block generation was silently truncated
+     * and the truncation was then reported as an
+     * unreadable reply.
+     */
     private ChatLanguageModel modelFor(
-            ModelTier tier) {
-        if (tier == ModelTier.REASONING) {
-            if (reasoning == null) {
-                reasoning = build(
-                    config.reasoningModel());
-            }
-            return reasoning;
-        }
-        if (fast == null) {
-            fast = build(config.model());
-        }
-        return fast;
+            ModelTier tier, int maxTokens) {
+        String name = tier == ModelTier.REASONING
+                ? config.reasoningModel()
+                : config.model();
+        int tokens = maxTokens > 0
+                ? maxTokens
+                : config.maxTokens();
+        return built.computeIfAbsent(
+            name + "@" + tokens,
+            key -> build(name, tokens));
     }
 
     private ChatLanguageModel build(
-            String modelName) {
+            String modelName, int maxTokens) {
         return AnthropicChatModel.builder()
             .apiKey(config.requireApiKey())
             .modelName(modelName)
-            .maxTokens(config.maxTokens())
+            .maxTokens(maxTokens)
             .timeout(Duration.ofSeconds(
                 config.timeoutSeconds()))
             .build();

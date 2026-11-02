@@ -23,6 +23,8 @@ import ca.yorku.eecs3311.spotter.agent.tools
         .AnalyticsTool;
 import ca.yorku.eecs3311.spotter.agent.tools
         .ExerciseDBTool;
+import ca.yorku.eecs3311.spotter.agent.tools
+        .LoadRangeTool;
 import ca.yorku.eecs3311.spotter.domain.Lift;
 import ca.yorku.eecs3311.spotter.domain
         .LifterProfile;
@@ -144,6 +146,13 @@ public final class BlockGenerationAgent
             Call strength_analytics before \
             choosing any load. Never estimate a \
             one rep max yourself.
+            Call allowed_load for every squat, \
+            bench and deadlift prescription \
+            before writing its weight. The \
+            range it gives is checked, and a \
+            load outside it is rejected. Do not \
+            work out from an RPE what a weight \
+            should be: ask.
             Answer with one JSON object and \
             nothing else: no explanation, no \
             code fence.
@@ -224,7 +233,11 @@ public final class BlockGenerationAgent
             .register(new AnalyticsTool(
                     analytics, history))
             .register(new ExerciseDBTool(
-                    catalog, profile));
+                    catalog, profile))
+            .register(new LoadRangeTool(
+                    progression,
+                    analytics.currentE1RMs(
+                            history)));
     }
 
     @Override
