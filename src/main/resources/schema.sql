@@ -49,6 +49,15 @@ CREATE TABLE IF NOT EXISTS profile_limitation (
     ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS limitation_exercise (
+  limitation_id INTEGER NOT NULL,
+  exercise_name TEXT NOT NULL,
+  PRIMARY KEY (limitation_id, exercise_name),
+  FOREIGN KEY (limitation_id)
+    REFERENCES profile_limitation (id)
+    ON DELETE CASCADE
+);
+
 CREATE TABLE IF NOT EXISTS limitation_pattern (
   limitation_id INTEGER NOT NULL,
   pattern       TEXT NOT NULL,
