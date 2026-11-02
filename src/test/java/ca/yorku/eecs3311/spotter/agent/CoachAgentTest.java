@@ -431,4 +431,54 @@ class CoachAgentTest {
                     "database is down");
         }
     }
+
+    @Test
+    @DisplayName(
+        "an agent that spends every round on"
+        + " lookups still gets to answer")
+    void exhaustingTheRoundsStillAnswers() {
+        // Ask for a tool on every round, then
+        // answer once none are offered.
+        for (int i = 0;
+                i < CoachAgent.MAX_TOOL_ROUNDS;
+                i++) {
+            model.requestTool("fixed",
+                    Map.of());
+        }
+        model.reply("41");
+
+        tools.register(new FixedTool("fixed",
+                "a fact"));
+        AgentResult<Integer> result =
+                new NumberAgent("ctx").run();
+
+        assertThat(result.succeeded()).isTrue();
+        assertThat(result.value().orElseThrow())
+            .isEqualTo(41);
+        assertThat(result.trace().steps())
+            .anyMatch(step -> step.contains(
+                "tool rounds exhausted"));
+    }
+
+    @Test
+    @DisplayName(
+        "the last call offers no tools, since"
+        + " offering them is what invites"
+        + " another request")
+    void theFinalCallOffersNoTools() {
+        for (int i = 0;
+                i < CoachAgent.MAX_TOOL_ROUNDS;
+                i++) {
+            model.requestTool("fixed",
+                    Map.of());
+        }
+        model.reply("41");
+
+        tools.register(new FixedTool("fixed",
+                "a fact"));
+        new NumberAgent("ctx").run();
+
+        assertThat(model.lastRequest().tools())
+            .isEmpty();
+    }
 }
