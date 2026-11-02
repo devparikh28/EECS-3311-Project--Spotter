@@ -1,5 +1,5 @@
 package ca.yorku.eecs3311.spotter
-        .presentation.cli;
+        .presentation.support;
 
 import ca.yorku.eecs3311.spotter.agent
         .ClaudeClient;

@@ -1,5 +1,5 @@
 package ca.yorku.eecs3311.spotter
-        .presentation.cli;
+        .presentation.support;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
