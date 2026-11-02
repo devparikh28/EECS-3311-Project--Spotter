@@ -59,9 +59,10 @@ public final class SpotterConfig {
 
     private static final Map<String, String>
             DEFAULTS = Map.of(
-            KEY_MODEL, "claude-haiku-5-5",
+            KEY_MODEL,
+            "claude-haiku-4-5-20251001",
             KEY_MODEL_REASONING,
-            "claude-sonnet-5-5",
+            "claude-sonnet-4-6",
             KEY_MAX_TOKENS, "4096",
             KEY_TIMEOUT, "60",
             KEY_DB, "spotter.db",
