@@ -38,8 +38,21 @@ import java.util.Optional;
  */
 public abstract class CoachAgent<T> {
 
-    /** How many times tools may be run. */
-    public static final int MAX_TOOL_ROUNDS = 4;
+    /**
+     * How many exchanges may be spent on
+     * lookups before an answer is required.
+     *
+     * Six rather than four because a real
+     * catalogue is large: writing a block for
+     * three lifts means asking about three
+     * lifts and then about the movements
+     * available for each, which is six
+     * exchanges before any thinking starts.
+     * Four was chosen against a test catalogue
+     * of two exercises and was far too few the
+     * first time it met a real one.
+     */
+    public static final int MAX_TOOL_ROUNDS = 6;
 
     /** Retries allowed after a rejected reply. */
     public static final int MAX_RETRIES = 1;
@@ -184,7 +197,7 @@ public abstract class CoachAgent<T> {
                 new StringBuilder(prompt);
 
         for (int round = 0;
-                round <= MAX_TOOL_ROUNDS;
+                round < MAX_TOOL_ROUNDS;
                 round++) {
 
             LLMRequest request = new LLMRequest(
@@ -199,18 +212,6 @@ public abstract class CoachAgent<T> {
 
             if (!response.wantsTools()) {
                 return response.text();
-            }
-
-            if (round == MAX_TOOL_ROUNDS) {
-                trace.step("tool rounds"
-                    + " exhausted; asking for an"
-                    + " answer with what is"
-                    + " known");
-                conversation.append(
-                    "\n\nNo more lookups are"
-                    + " available. Answer with"
-                    + " what you have.");
-                continue;
             }
 
             List<String> results =
@@ -230,7 +231,49 @@ public abstract class CoachAgent<T> {
                 .append(String.join("\n",
                         results));
         }
-        return "";
+
+        return finalAnswer(conversation, trace);
+    }
+
+    /**
+     * One last call with no tools offered.
+     *
+     * A model that has spent every round looking
+     * things up still has to answer, and the
+     * only reliable way to stop it asking for
+     * more is to stop offering any. Without this
+     * an agent that used all its lookups
+     * returned nothing at all, which then failed
+     * as an unreadable reply and blamed the
+     * model for a limit the code imposed.
+     */
+    private String finalAnswer(
+            StringBuilder conversation,
+            AgentTrace trace) {
+
+        trace.step("tool rounds exhausted;"
+            + " asking for an answer with what"
+            + " is known");
+        conversation.append(
+            "\n\nNo more lookups are available."
+            + " Answer now, using what you have"
+            + " already been told.");
+
+        LLMResponse response = model.complete(
+            new LLMRequest(systemPrompt(),
+                conversation.toString(),
+                List.of(), tier(),
+                maxTokens()));
+        trace.modelCalled(response.usage());
+
+        String text = response.text();
+        if (text == null || text.isBlank()) {
+            trace.step("the model returned"
+                + " nothing on the final"
+                + " call");
+            return "";
+        }
+        return text;
     }
 
     protected int maxTokens() {
