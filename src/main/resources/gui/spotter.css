@@ -1,0 +1,149 @@
+/*
+ * Spotter's dashboard styling.
+ *
+ * Kept in one file rather than set from Java so
+ * that appearance and behaviour stay separable:
+ * nothing in the panels knows a colour.
+ */
+
+.root {
+    -fx-font-family: "SF Pro Text", "Segoe UI",
+        system-ui, sans-serif;
+    -fx-font-size: 13px;
+    -fx-background-color: #f6f6f7;
+}
+
+/* ---------- navigation ---------- */
+
+.nav {
+    -fx-background-color: #23242a;
+    -fx-min-width: 190px;
+    -fx-pref-width: 190px;
+    -fx-padding: 18 0 18 0;
+}
+
+.nav-title {
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-padding: 0 18 2 18;
+}
+
+.nav-subtitle {
+    -fx-text-fill: #8e9099;
+    -fx-font-size: 11px;
+    -fx-padding: 0 18 16 18;
+}
+
+.nav-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #c9cbd3;
+    -fx-alignment: center-left;
+    -fx-padding: 9 18 9 18;
+    -fx-background-radius: 0;
+    -fx-cursor: hand;
+}
+
+.nav-button:hover {
+    -fx-background-color: #2e3038;
+    -fx-text-fill: #ffffff;
+}
+
+.nav-button-selected {
+    -fx-background-color: #3a3d47;
+    -fx-text-fill: #ffffff;
+    -fx-font-weight: bold;
+}
+
+.nav-footer {
+    -fx-text-fill: #7a7c85;
+    -fx-font-size: 11px;
+    -fx-padding: 12 18 0 18;
+}
+
+/* ---------- content ---------- */
+
+.content {
+    -fx-padding: 24 28 24 28;
+}
+
+.panel-title {
+    -fx-font-size: 21px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1c1d21;
+}
+
+.panel-description {
+    -fx-font-size: 12px;
+    -fx-text-fill: #6b6d76;
+    -fx-padding: 2 0 16 0;
+}
+
+.card {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 8px;
+    -fx-border-color: #e2e3e7;
+    -fx-border-radius: 8px;
+    -fx-padding: 16;
+}
+
+.card-heading {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #6b6d76;
+}
+
+.figure {
+    -fx-font-size: 26px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1c1d21;
+}
+
+.figure-unit {
+    -fx-font-size: 12px;
+    -fx-text-fill: #6b6d76;
+}
+
+.note {
+    -fx-font-size: 12px;
+    -fx-text-fill: #6b6d76;
+    -fx-wrap-text: true;
+}
+
+.flag-mild {
+    -fx-text-fill: #8a6100;
+    -fx-font-weight: bold;
+}
+
+.flag-significant {
+    -fx-text-fill: #9b1c1c;
+    -fx-font-weight: bold;
+}
+
+.good {
+    -fx-text-fill: #1c6b3a;
+    -fx-font-weight: bold;
+}
+
+.mono {
+    -fx-font-family: "SF Mono", "Consolas",
+        monospace;
+    -fx-font-size: 12px;
+}
+
+.empty-state {
+    -fx-font-size: 13px;
+    -fx-text-fill: #6b6d76;
+    -fx-wrap-text: true;
+}
+
+.table-view {
+    -fx-background-color: transparent;
+    -fx-border-color: #e2e3e7;
+    -fx-border-radius: 8px;
+    -fx-background-radius: 8px;
+}
+
+.table-view .column-header-background {
+    -fx-background-color: #fafafb;
+}
