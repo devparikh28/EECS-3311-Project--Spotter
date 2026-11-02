@@ -5,6 +5,8 @@ import ca.yorku.eecs3311.spotter.agent
         .AgentTrace;
 import ca.yorku.eecs3311.spotter.agent
         .TokenUsage;
+import ca.yorku.eecs3311.spotter
+        .infrastructure.config.SpotterConfig;
 
 /**
  * What a run of an agent cost.
@@ -26,11 +28,11 @@ public final class UsageReport {
 
     /** Rate assumed when none is configured. */
     public static final double
-            DEFAULT_INPUT_PER_MILLION = 1.0;
+            DEFAULT_INPUT_PER_MILLION = 2.0;
 
     /** Rate assumed when none is configured. */
     public static final double
-            DEFAULT_OUTPUT_PER_MILLION = 5.0;
+            DEFAULT_OUTPUT_PER_MILLION = 10.0;
 
     private UsageReport() {
     }
@@ -43,7 +45,26 @@ public final class UsageReport {
      *                       was called
      */
     public static String describe(
-            AgentTrace trace, boolean live) {
+            AgentTrace trace,
+            boolean live,
+            SpotterConfig config) {
+
+        double inputRate = config == null
+                ? DEFAULT_INPUT_PER_MILLION
+                : config.inputRatePerMillion();
+        double outputRate = config == null
+                ? DEFAULT_OUTPUT_PER_MILLION
+                : config.outputRatePerMillion();
+        return describe(trace, live, inputRate,
+                outputRate);
+    }
+
+    /** The same, with the rates stated outright. */
+    public static String describe(
+            AgentTrace trace,
+            boolean live,
+            double inputPerMillion,
+            double outputPerMillion) {
 
         if (trace == null) {
             return "no run to report on";
@@ -69,10 +90,10 @@ public final class UsageReport {
             used.inputTokens(),
             used.outputTokens(),
             money(used.costUsd(
-                DEFAULT_INPUT_PER_MILLION,
-                DEFAULT_OUTPUT_PER_MILLION)),
-            DEFAULT_INPUT_PER_MILLION,
-            DEFAULT_OUTPUT_PER_MILLION);
+                inputPerMillion,
+                outputPerMillion)),
+            inputPerMillion,
+            outputPerMillion);
     }
 
     /**

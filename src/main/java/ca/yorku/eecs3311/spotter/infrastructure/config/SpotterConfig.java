@@ -37,18 +37,36 @@ public final class SpotterConfig {
     public static final String KEY_DB =
             "SPOTTER_DB_PATH";
 
+    /**
+     * What a million input tokens costs, in US
+     * dollars, for the model being used.
+     *
+     * Configured rather than compiled in, because
+     * Stage 2 asks for the money cost of the AI
+     * tools and a rate baked into the source
+     * would go stale while sitting in a report
+     * claiming to have measured it.
+     */
+    public static final String KEY_INPUT_RATE =
+            "LLM_INPUT_PER_MILLION";
+
+    /** The same for a million output tokens. */
+    public static final String KEY_OUTPUT_RATE =
+            "LLM_OUTPUT_PER_MILLION";
+
     private static final String PLACEHOLDER =
             "YOUR_LOCAL_API_KEY_HERE";
 
     private static final Map<String, String>
             DEFAULTS = Map.of(
-            KEY_MODEL,
-            "claude-3-5-haiku-20241022",
+            KEY_MODEL, "claude-haiku-5-5",
             KEY_MODEL_REASONING,
-            "claude-3-5-sonnet-20241022",
+            "claude-sonnet-5-5",
             KEY_MAX_TOKENS, "4096",
             KEY_TIMEOUT, "60",
-            KEY_DB, "spotter.db");
+            KEY_DB, "spotter.db",
+            KEY_INPUT_RATE, "2.0",
+            KEY_OUTPUT_RATE, "10.0");
 
     private final Map<String, String> values;
 
@@ -208,6 +226,32 @@ public final class SpotterConfig {
                     + " still work without it.");
         }
         return get(KEY_API).orElseThrow();
+    }
+
+    /**
+     * A configured rate, or the default when it
+     * is missing or unreadable. A malformed rate
+     * is not worth failing a run over; it is
+     * worth reporting a slightly wrong cost.
+     */
+    public double rate(String key) {
+        String configured = getOrDefault(key,
+                DEFAULTS.get(key));
+        try {
+            return Double.parseDouble(
+                    configured.trim());
+        } catch (RuntimeException e) {
+            return Double.parseDouble(
+                    DEFAULTS.get(key));
+        }
+    }
+
+    public double inputRatePerMillion() {
+        return rate(KEY_INPUT_RATE);
+    }
+
+    public double outputRatePerMillion() {
+        return rate(KEY_OUTPUT_RATE);
     }
 
     public String model() {

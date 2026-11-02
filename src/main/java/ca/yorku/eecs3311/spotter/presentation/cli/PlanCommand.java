@@ -138,8 +138,7 @@ public final class PlanCommand
 
     @Override
     public Integer call() {
-        SpotterConfig config =
-                SpotterConfig.load(envFile);
+        config = SpotterConfig.load(envFile);
         PrintWriter out =
                 spec.commandLine().getOut();
         LocalDate from = start == null
@@ -271,6 +270,7 @@ public final class PlanCommand
     }
 
     private boolean wasLive;
+    private SpotterConfig config;
 
     private void printTrace(
             PrintWriter out,
@@ -282,7 +282,7 @@ public final class PlanCommand
         }
         out.println("    " + UsageReport
                 .describe(result.trace(),
-                        wasLive));
+                        wasLive, config));
         out.println();
     }
 
