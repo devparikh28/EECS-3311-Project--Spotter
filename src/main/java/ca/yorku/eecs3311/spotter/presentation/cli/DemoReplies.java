@@ -61,8 +61,16 @@ public final class DemoReplies {
             int weeks,
             int daysPerWeek) {
 
-        List<Lift> trained =
-                new ArrayList<>(lifts.keySet());
+        // Enum order, not map order. A demo
+        // whose sessions came out in a
+        // different order on every run would
+        // look like a bug.
+        List<Lift> trained = new ArrayList<>();
+        for (Lift lift : Lift.values()) {
+            if (lifts.containsKey(lift)) {
+                trained.add(lift);
+            }
+        }
         if (trained.isEmpty()) {
             throw new IllegalStateException(
                 "There is no training history to"
@@ -105,6 +113,32 @@ public final class DemoReplies {
             json.append("]}");
         }
         return json.append("]}").toString();
+    }
+
+    /**
+     * An explanation of meet attempts for F08.
+     *
+     * Only the three calculated figures appear
+     * in it, because the gate rejects any other,
+     * and a prepared reply that failed
+     * validation would demonstrate nothing.
+     *
+     * @param opener first attempt
+     * @param second second attempt
+     * @param third  third attempt
+     */
+    public static String attemptRationale(
+            double opener,
+            double second,
+            double third) {
+        return String.format(
+            "{\"rationale\":\"Open at %.1f kg,"
+            + " which you have handled for reps"
+            + " in training, then take %.1f kg"
+            + " for a small personal best. If"
+            + " that moves well, %.1f kg is"
+            + " there on the third.\"}",
+            opener, second, third);
     }
 
     private static void appendSession(
