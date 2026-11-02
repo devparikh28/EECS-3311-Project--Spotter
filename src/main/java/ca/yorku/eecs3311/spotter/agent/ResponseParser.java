@@ -15,6 +15,10 @@ import ca.yorku.eecs3311.spotter.domain
         .ExercisePrescription;
 import ca.yorku.eecs3311.spotter.domain.Session;
 import ca.yorku.eecs3311.spotter.domain
+        .Substitution;
+import ca.yorku.eecs3311.spotter.domain
+        .SubstitutionReason;
+import ca.yorku.eecs3311.spotter.domain
         .TrainingBlock;
 import ca.yorku.eecs3311.spotter.domain.Week;
 import ca.yorku.eecs3311.spotter
@@ -159,6 +163,68 @@ public final class ResponseParser {
                         .asText(null),
                     BlockOrigin.GENERATED,
                     weeks));
+        } catch (IllegalArgumentException e) {
+            problems.add(e.getMessage());
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * Reads a substitution from a reply.
+     *
+     * The replacement is resolved through the
+     * catalog like any other exercise, so a model
+     * that invents a movement fails here. Sets
+     * and reps are taken from the prescription
+     * being replaced rather than from the reply,
+     * because only the movement and the load were
+     * being asked about.
+     *
+     * @param reply    what the model said
+     * @param original the prescription to replace
+     * @param reason   why it is being replaced
+     */
+    public Optional<Substitution> toSubstitution(
+            String reply,
+            ExercisePrescription original,
+            SubstitutionReason reason) {
+        problems.clear();
+        if (original == null) {
+            problems.add("there is no"
+                + " prescription to replace");
+            return Optional.empty();
+        }
+        Optional<JsonNode> root =
+                extractJson(reply);
+        if (root.isEmpty()) {
+            problems.add("no JSON object was"
+                    + " found in the reply");
+            return Optional.empty();
+        }
+        JsonNode node = root.get();
+
+        String name =
+                node.path("name").asText("");
+        Optional<Exercise> replacement =
+                catalog.byName(name);
+        if (replacement.isEmpty()) {
+            problems.add("there is no exercise"
+                + " called \"" + name + "\" in"
+                + " the catalog");
+            return Optional.empty();
+        }
+
+        double loadKg = node.path("loadKg")
+                .asDouble(original.loadKg());
+        String rationale = node
+                .path("rationale")
+                .asText(null);
+
+        try {
+            return Optional.of(
+                new Substitution(original,
+                    replacement.get(), loadKg,
+                    reason, rationale));
         } catch (IllegalArgumentException e) {
             problems.add(e.getMessage());
             return Optional.empty();
