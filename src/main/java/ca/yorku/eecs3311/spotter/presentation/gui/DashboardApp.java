@@ -13,6 +13,8 @@ import ca.yorku.eecs3311.spotter
 import ca.yorku.eecs3311.spotter
         .presentation.gui.panels.Cards;
 import ca.yorku.eecs3311.spotter
+        .presentation.gui.panels.CoachPanel;
+import ca.yorku.eecs3311.spotter
         .presentation.gui.panels
         .DashboardPanel;
 import ca.yorku.eecs3311.spotter
@@ -91,6 +93,7 @@ public final class DashboardApp
             new AnalyticsPanel(context),
             new RecoveryPanel(context),
             new NutritionPanel(context),
+            new CoachPanel(context),
             new ProfilePanel(context));
 
         shell.setLeft(navigation(panels));

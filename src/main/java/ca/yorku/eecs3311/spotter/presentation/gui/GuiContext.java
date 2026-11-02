@@ -6,6 +6,8 @@ import java.util.Optional;
 import ca.yorku.eecs3311.spotter.agent
         .LLMClient;
 import ca.yorku.eecs3311.spotter.agent
+        .MemoryManager;
+import ca.yorku.eecs3311.spotter.agent
         .PlanValidator;
 import ca.yorku.eecs3311.spotter.agent
         .ProfileValidator;
@@ -33,6 +35,9 @@ import ca.yorku.eecs3311.spotter
 import ca.yorku.eecs3311.spotter
         .infrastructure.persistence
         .SqliteBlockRepository;
+import ca.yorku.eecs3311.spotter
+        .infrastructure.persistence
+        .SqliteMemoryRepository;
 import ca.yorku.eecs3311.spotter
         .infrastructure.persistence
         .SqliteNutritionRepository;
@@ -66,6 +71,7 @@ public final class GuiContext
     private final BlockRepository blocks;
     private final NutritionRepository
             nutrition;
+    private final MemoryManager memory;
     private final FxTaskRunner tasks;
     private final PromptBuilder prompts =
             new PromptBuilder();
@@ -94,6 +100,9 @@ public final class GuiContext
         this.nutrition =
             new SqliteNutritionRepository(
                 database, controller.foods());
+        this.memory = new MemoryManager(
+            new SqliteMemoryRepository(
+                    database));
         this.tasks = new FxTaskRunner();
     }
 
@@ -115,6 +124,18 @@ public final class GuiContext
 
     public NutritionRepository nutrition() {
         return nutrition;
+    }
+
+    /**
+     * What the coach remembers.
+     *
+     * One manager for the whole window, so the
+     * chat screen and anything else that learns
+     * about the lifter share a single view of it
+     * rather than two caches disagreeing.
+     */
+    public MemoryManager memory() {
+        return memory;
     }
 
     public FxTaskRunner tasks() {
