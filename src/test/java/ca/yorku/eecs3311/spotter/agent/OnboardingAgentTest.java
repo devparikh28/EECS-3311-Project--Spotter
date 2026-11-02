@@ -156,11 +156,7 @@ class OnboardingAgentTest {
         "a field nobody mentioned is left"
         + " absent rather than guessed")
     void anUnmentionedFieldStaysAbsent() {
-        model.reply("{\"bodyweightKg\":82.0,"
-            + "\"goal\":\"STRENGTH\","
-            + "\"experience\":\"INTERMEDIATE\","
-            + "\"equipment\":[\"BARBELL\"]}")
-             .reply("{\"bodyweightKg\":82.0,"
+        model.alwaysReply("{\"bodyweightKg\":82.0,"
             + "\"goal\":\"STRENGTH\","
             + "\"experience\":\"INTERMEDIATE\","
             + "\"equipment\":[\"BARBELL\"]}");
@@ -223,7 +219,7 @@ class OnboardingAgentTest {
             + "\"experience\":\"NOVICE\","
             + "\"trainingDaysPerWeek\":3,"
             + "\"equipment\":[\"REVERSE_HYPER\"]}";
-        model.reply(invented).reply(invented);
+        model.alwaysReply(invented);
 
         OnboardingAgent agent = agent(SAID);
 
@@ -245,7 +241,7 @@ class OnboardingAgentTest {
             + "\"experience\":\"NOVICE\","
             + "\"trainingDaysPerWeek\":3,"
             + "\"equipment\":[\"BARBELL\"]}";
-        model.reply(invented).reply(invented);
+        model.alwaysReply(invented);
 
         OnboardingAgent agent = agent(SAID);
         AgentResult<ProfileDraft> result =
@@ -290,7 +286,7 @@ class OnboardingAgentTest {
             + "\"experience\":\"NOVICE\","
             + "\"trainingDaysPerWeek\":3,"
             + "\"equipment\":[\"BARBELL\"]}";
-        model.reply(wrong).reply(wrong);
+        model.alwaysReply(wrong);
 
         AgentResult<ProfileDraft> result =
                 agent(SAID).run();
@@ -314,7 +310,7 @@ class OnboardingAgentTest {
             + "\"trainingDaysPerWeek\":5,"
             + "\"meetDate\":\"2025-03-01\","
             + "\"equipment\":[\"BARBELL\"]}";
-        model.reply(stale).reply(stale);
+        model.alwaysReply(stale);
 
         AgentResult<ProfileDraft> result =
                 agent(SAID).run();

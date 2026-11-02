@@ -58,6 +58,29 @@ public final class ScriptedLLMClient
         return this;
     }
 
+    /**
+     * The reply to give once the script runs
+     * out, when one was set.
+     */
+    private LLMResponse repeating;
+
+    /**
+     * Answers this way for every call, however
+     * many are made.
+     *
+     * For tests about a model that keeps giving
+     * the same wrong answer. Queueing one reply
+     * per attempt would pin the test to the
+     * current retry limit, and a test that fails
+     * when a limit changes is testing the limit
+     * rather than the behaviour.
+     */
+    public ScriptedLLMClient alwaysReply(
+            String text) {
+        this.repeating = LLMResponse.of(text);
+        return this;
+    }
+
     @Override
     public String name() {
         return "scripted";
@@ -71,6 +94,11 @@ public final class ScriptedLLMClient
             throw failure;
         }
         if (scripted.isEmpty()) {
+            if (repeating != null) {
+                usage = usage.plus(
+                        repeating.usage());
+                return repeating;
+            }
             throw new LLMException(
                 "The script ran out after "
                 + received.size()

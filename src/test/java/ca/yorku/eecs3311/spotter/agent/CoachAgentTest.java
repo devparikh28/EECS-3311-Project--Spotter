@@ -141,10 +141,10 @@ class CoachAgentTest {
 
     @Test
     @DisplayName(
-        "a second failure returns a failure,"
-        + " not the bad value")
-    void secondFailureIsNotAccepted() {
-        model.reply("-5").reply("-9");
+        "a model that stays wrong returns a"
+        + " failure, not the bad value")
+    void staysWrongReturnsAFailure() {
+        model.alwaysReply("-5");
 
         AgentResult<Integer> result =
                 new NumberAgent("ctx").run();
@@ -155,7 +155,8 @@ class CoachAgentTest {
                 .orElseThrow())
                 .contains("above zero");
         assertThat(model.callCount())
-                .isEqualTo(2);
+                .isEqualTo(CoachAgent.MAX_RETRIES
+                        + 1);
     }
 
     @Test
@@ -177,16 +178,20 @@ class CoachAgentTest {
 
     @Test
     @DisplayName(
-        "the model is never retried more than"
-        + " once, however wrong it is")
+        "the retries are bounded, however wrong"
+        + " the model keeps being")
     void retriesAreBounded() {
-        model.reply("-1").reply("-2")
-             .reply("-3").reply("-4");
+        model.alwaysReply("-1");
 
         new NumberAgent("ctx").run();
 
+        // Stated against the constant rather
+        // than a number, so raising the limit
+        // changes the behaviour and not the
+        // meaning of this test.
         assertThat(model.callCount())
-                .isEqualTo(2);
+                .isEqualTo(CoachAgent.MAX_RETRIES
+                        + 1);
     }
 
     @Test

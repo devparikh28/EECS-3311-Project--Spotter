@@ -297,7 +297,7 @@ class ChatAgentTest {
         String ownVoice = "{\"reply\":\"Drop a"
             + " set.\",\"remember\":\"I"
             + " recommended dropping a set\"}";
-        model.reply(ownVoice).reply(ownVoice);
+        model.alwaysReply(ownVoice);
 
         AgentResult<ChatReply> result =
             agent("I feel beaten up").run();
@@ -314,7 +314,7 @@ class ChatAgentTest {
     void anEssayIsSentBack() {
         String essay = reply("and so on "
                 .repeat(200));
-        model.reply(essay).reply(essay);
+        model.alwaysReply(essay);
 
         AgentResult<ChatReply> result =
             agent("how am I doing?").run();
@@ -330,8 +330,7 @@ class ChatAgentTest {
         "a reply with no answer in it fails at"
         + " parse")
     void anEmptyAnswerFailsAtParse() {
-        model.reply("{\"remember\":\"something\"}")
-             .reply("{\"remember\":\"something\"}");
+        model.alwaysReply("{\"remember\":\"something\"}");
 
         ChatAgent agent =
                 agent("how am I doing?");

@@ -116,9 +116,19 @@ public final class BlockGenerationAgent
         return ModelTier.REASONING;
     }
 
+    /**
+     * Room for a long plan.
+     *
+     * Four weeks of four sessions is a large
+     * JSON document, and a reply cut off partway
+     * through is not a bad plan but an
+     * unreadable one, which wastes an attempt
+     * and reports a truncation as a parse
+     * failure.
+     */
     @Override
     protected int maxTokens() {
-        return 8192;
+        return 16384;
     }
 
     @Override

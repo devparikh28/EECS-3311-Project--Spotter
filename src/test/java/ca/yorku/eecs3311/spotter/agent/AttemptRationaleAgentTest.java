@@ -165,8 +165,7 @@ class AttemptRationaleAgentTest {
             attempts.opener() + 1.0,
             attempts.second(),
             attempts.third());
-        model.reply(asJson(wrong))
-             .reply(asJson(wrong));
+        model.alwaysReply(asJson(wrong));
 
         AgentResult<MeetAttempts> result =
                 agent().run();
@@ -212,8 +211,7 @@ class AttemptRationaleAgentTest {
             + " kg. Play the rest by feel.",
             attempts.opener(),
             attempts.second());
-        model.reply(asJson(partial))
-             .reply(asJson(partial));
+        model.alwaysReply(asJson(partial));
 
         AgentResult<MeetAttempts> result =
                 agent().run();
@@ -250,8 +248,7 @@ class AttemptRationaleAgentTest {
         String padded = soundRationale()
             + " You have trained well."
                 .repeat(40);
-        model.reply(asJson(padded))
-             .reply(asJson(padded));
+        model.alwaysReply(asJson(padded));
 
         AgentResult<MeetAttempts> result =
                 agent().run();
@@ -267,8 +264,7 @@ class AttemptRationaleAgentTest {
         "a reply with no rationale text fails"
         + " at parse")
     void aMissingRationaleFailsAtParse() {
-        model.reply("{\"notes\":\"go heavy\"}")
-             .reply("{\"notes\":\"go heavy\"}");
+        model.alwaysReply("{\"notes\":\"go heavy\"}");
 
         AttemptRationaleAgent agent = agent();
 

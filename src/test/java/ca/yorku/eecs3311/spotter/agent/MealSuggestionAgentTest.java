@@ -221,7 +221,7 @@ class MealSuggestionAgentTest {
             + "\"grams\":500},"
             + "{\"name\":\"White Rice\","
             + "\"grams\":500}]}";
-        model.reply(huge).reply(huge);
+        model.alwaysReply(huge);
 
         AgentResult<MealSuggestion> result =
                 agent().run();
@@ -241,7 +241,7 @@ class MealSuggestionAgentTest {
             + " broccoli\",\"foods\":["
             + "{\"name\":\"Broccoli\","
             + "\"grams\":50}]}";
-        model.reply(tiny).reply(tiny);
+        model.alwaysReply(tiny);
 
         AgentResult<MealSuggestion> result =
                 agent().run();
@@ -261,7 +261,7 @@ class MealSuggestionAgentTest {
             + " mountain\",\"foods\":["
             + "{\"name\":\"White Rice\","
             + "\"grams\":900}]}";
-        model.reply(absurd).reply(absurd);
+        model.alwaysReply(absurd);
 
         AgentResult<MealSuggestion> result =
                 agent().run();
@@ -285,7 +285,7 @@ class MealSuggestionAgentTest {
             + "\"grams\":200},"
             + "{\"name\":\"Broccoli\","
             + "\"grams\":2}]}";
-        model.reply(crumbs).reply(crumbs);
+        model.alwaysReply(crumbs);
 
         AgentResult<MealSuggestion> result =
                 agent().run();
@@ -305,7 +305,7 @@ class MealSuggestionAgentTest {
             + " bowl\",\"foods\":["
             + "{\"name\":\"Protein Sludge\","
             + "\"grams\":200}]}";
-        model.reply(invented).reply(invented);
+        model.alwaysReply(invented);
 
         MealSuggestionAgent agent = agent();
 
@@ -324,8 +324,7 @@ class MealSuggestionAgentTest {
         String portionless = "{\"name\":\"Rice\","
             + "\"foods\":["
             + "{\"name\":\"White Rice\"}]}";
-        model.reply(portionless)
-             .reply(portionless);
+        model.alwaysReply(portionless);
 
         MealSuggestionAgent agent = agent();
 
