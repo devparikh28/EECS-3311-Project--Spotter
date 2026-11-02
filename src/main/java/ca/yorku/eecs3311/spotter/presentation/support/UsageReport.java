@@ -26,13 +26,21 @@ import ca.yorku.eecs3311.spotter
  */
 public final class UsageReport {
 
-    /** Rate assumed when none is configured. */
+    /**
+     * Rate assumed when none is configured.
+     *
+     * The reasoning model's rate rather than the
+     * ordinary one's, so a reported cost
+     * overstates rather than flatters. Most calls
+     * use the cheaper model and cost a third of
+     * what this reports.
+     */
     public static final double
-            DEFAULT_INPUT_PER_MILLION = 2.0;
+            DEFAULT_INPUT_PER_MILLION = 3.0;
 
     /** Rate assumed when none is configured. */
     public static final double
-            DEFAULT_OUTPUT_PER_MILLION = 10.0;
+            DEFAULT_OUTPUT_PER_MILLION = 15.0;
 
     private UsageReport() {
     }

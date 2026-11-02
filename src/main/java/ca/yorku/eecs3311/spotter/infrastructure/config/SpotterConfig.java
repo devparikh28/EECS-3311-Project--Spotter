@@ -66,8 +66,8 @@ public final class SpotterConfig {
             KEY_MAX_TOKENS, "4096",
             KEY_TIMEOUT, "60",
             KEY_DB, "spotter.db",
-            KEY_INPUT_RATE, "2.0",
-            KEY_OUTPUT_RATE, "10.0");
+            KEY_INPUT_RATE, "3.0",
+            KEY_OUTPUT_RATE, "15.0");
 
     private final Map<String, String> values;
 
