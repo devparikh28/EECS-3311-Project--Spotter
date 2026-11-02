@@ -26,10 +26,16 @@ import ca.yorku.eecs3311.spotter
         .infrastructure.persistence.Database;
 import ca.yorku.eecs3311.spotter
         .infrastructure.persistence
+        .NutritionRepository;
+import ca.yorku.eecs3311.spotter
+        .infrastructure.persistence
         .ProfileRepository;
 import ca.yorku.eecs3311.spotter
         .infrastructure.persistence
         .SqliteBlockRepository;
+import ca.yorku.eecs3311.spotter
+        .infrastructure.persistence
+        .SqliteNutritionRepository;
 import ca.yorku.eecs3311.spotter
         .infrastructure.persistence
         .SqliteProfileRepository;
@@ -58,6 +64,8 @@ public final class GuiContext
     private final CoachController controller;
     private final ProfileRepository profiles;
     private final BlockRepository blocks;
+    private final NutritionRepository
+            nutrition;
     private final FxTaskRunner tasks;
     private final PromptBuilder prompts =
             new PromptBuilder();
@@ -83,6 +91,9 @@ public final class GuiContext
                     database);
         this.blocks = new SqliteBlockRepository(
                 database, controller.catalog());
+        this.nutrition =
+            new SqliteNutritionRepository(
+                database, controller.foods());
         this.tasks = new FxTaskRunner();
     }
 
@@ -100,6 +111,10 @@ public final class GuiContext
 
     public BlockRepository blocks() {
         return blocks;
+    }
+
+    public NutritionRepository nutrition() {
+        return nutrition;
     }
 
     public FxTaskRunner tasks() {
