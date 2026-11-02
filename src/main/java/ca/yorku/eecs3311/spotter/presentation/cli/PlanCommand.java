@@ -249,9 +249,14 @@ public final class PlanCommand
         out.println("  Current estimated maxima,"
             + " which the coach is given as"
             + " fact");
-        current.forEach((lift, e1rm) ->
-            out.printf("    %-9s %6.1f kg%n",
-                    lift, e1rm));
+        for (Lift lift : Lift.values()) {
+            Double e1rm = current.get(lift);
+            if (e1rm != null) {
+                out.printf(
+                    "    %-9s %6.1f kg%n",
+                    lift, e1rm);
+            }
+        }
         out.println();
         out.println("  " + access.explanation());
         out.println();
