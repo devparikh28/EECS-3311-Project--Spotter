@@ -133,6 +133,17 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <version>3.3.1</version>
+        <configuration>
+          <!--
+            SQLite loads a native library, which
+            Java 21 onwards warns about unless
+            the access is declared. Declaring it
+            keeps the build output clean and will
+            keep working when the warning becomes
+            an error.
+          -->
+          <argLine>--enable-native-access=ALL-UNNAMED</argLine>
+        </configuration>
       </plugin>
 
       <!-- mvn javafx:run starts the dashboard -->
