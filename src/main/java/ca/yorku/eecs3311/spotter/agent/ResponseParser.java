@@ -2,8 +2,11 @@ package ca.yorku.eecs3311.spotter.agent;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
+import java.util.Set;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -13,11 +16,26 @@ import ca.yorku.eecs3311.spotter.domain
 import ca.yorku.eecs3311.spotter.domain.Exercise;
 import ca.yorku.eecs3311.spotter.domain
         .ExercisePrescription;
+import ca.yorku.eecs3311.spotter.domain
+        .DietaryConstraints;
+import ca.yorku.eecs3311.spotter.domain.Equipment;
+import ca.yorku.eecs3311.spotter.domain
+        .ExperienceLevel;
 import ca.yorku.eecs3311.spotter.domain.FoodItem;
 import ca.yorku.eecs3311.spotter.domain
         .MealSuggestion;
 import ca.yorku.eecs3311.spotter.domain
+        .Limitation;
+import ca.yorku.eecs3311.spotter.domain
         .MeetAttempts;
+import ca.yorku.eecs3311.spotter.domain
+        .ProfileDraft;
+import ca.yorku.eecs3311.spotter.domain
+        .SplitPreference;
+import ca.yorku.eecs3311.spotter.domain
+        .TrainingGoal;
+import ca.yorku.eecs3311.spotter.domain
+        .WeightUnit;
 import ca.yorku.eecs3311.spotter.domain.Session;
 import ca.yorku.eecs3311.spotter.domain
         .Substitution;
@@ -189,6 +207,219 @@ public final class ResponseParser {
             problems.add(e.getMessage());
             return Optional.empty();
         }
+    }
+
+    /**
+     * Reads an onboarding draft from a reply.
+     *
+     * Every value is taken as a name to look up
+     * rather than as text to keep. A goal, an
+     * experience level, a split and a unit must
+     * each resolve to something the domain
+     * already defines, and so must every piece
+     * of equipment, so a model cannot introduce
+     * a goal Spotter has no progression for or a
+     * rack that does not exist.
+     *
+     * A field the reply leaves out stays absent
+     * rather than being filled in. That is the
+     * whole reason a draft exists: an invented
+     * training frequency would shape every plan
+     * the lifter is ever given, and they would
+     * have no way of knowing.
+     *
+     * @param reply what the model said
+     */
+    public Optional<ProfileDraft> toProfileDraft(
+            String reply) {
+        problems.clear();
+        Optional<JsonNode> root =
+                extractJson(reply);
+        if (root.isEmpty()) {
+            problems.add("no JSON object was"
+                    + " found in the reply");
+            return Optional.empty();
+        }
+        JsonNode node = root.get();
+        ProfileDraft draft = new ProfileDraft();
+
+        if (node.hasNonNull("bodyweightKg")) {
+            draft.bodyweightKg(node
+                .get("bodyweightKg")
+                .asDouble());
+        }
+        if (node.hasNonNull("weightClassKg")) {
+            draft.weightClassKg(node
+                .get("weightClassKg")
+                .asDouble());
+        }
+        if (node.hasNonNull(
+                "trainingDaysPerWeek")) {
+            draft.trainingDaysPerWeek(node
+                .get("trainingDaysPerWeek")
+                .asInt());
+        }
+
+        readEnum(node, "goal",
+                TrainingGoal.class)
+            .ifPresent(draft::goal);
+        readEnum(node, "experience",
+                ExperienceLevel.class)
+            .ifPresent(draft::experience);
+        readEnum(node, "splitPreference",
+                SplitPreference.class)
+            .ifPresent(draft::splitPreference);
+        readEnum(node, "displayUnit",
+                WeightUnit.class)
+            .ifPresent(draft::displayUnit);
+
+        if (node.hasNonNull("meetDate")) {
+            String text = node.get("meetDate")
+                    .asText("");
+            try {
+                draft.meetDate(
+                        LocalDate.parse(text));
+            } catch (RuntimeException e) {
+                problems.add("\"" + text
+                    + "\" is not a date in the"
+                    + " form YYYY-MM-DD");
+                return Optional.empty();
+            }
+        }
+
+        JsonNode equipment =
+                node.get("equipment");
+        if (equipment != null
+                && equipment.isArray()) {
+            for (JsonNode item : equipment) {
+                String name =
+                        item.asText("");
+                Optional<Equipment> resolved =
+                    constantOf(Equipment.class,
+                            name);
+                if (resolved.isEmpty()) {
+                    problems.add("\"" + name
+                        + "\" is not equipment"
+                        + " Spotter knows"
+                        + " about");
+                    return Optional.empty();
+                }
+                draft.addEquipment(
+                        resolved.get());
+            }
+        }
+
+        JsonNode diet = node.get("diet");
+        if (diet != null && diet.isObject()) {
+            draft.diet(new DietaryConstraints(
+                diet.path("vegetarian")
+                    .asBoolean(false),
+                diet.path("allowsDairy")
+                    .asBoolean(true),
+                diet.path("allowsEggs")
+                    .asBoolean(true)));
+        }
+
+        JsonNode limitations =
+                node.get("limitations");
+        if (limitations != null
+                && limitations.isArray()) {
+            for (JsonNode item : limitations) {
+                Optional<Limitation> limitation =
+                        toLimitation(item);
+                if (limitation.isEmpty()) {
+                    return Optional.empty();
+                }
+                draft.addLimitation(
+                        limitation.get());
+            }
+        }
+        return Optional.of(draft);
+    }
+
+    private Optional<Limitation> toLimitation(
+            JsonNode node) {
+        String description = node
+                .path("description").asText("");
+        if (description.isBlank()) {
+            problems.add("a limitation was given"
+                + " with no description");
+            return Optional.empty();
+        }
+        try {
+            return Optional.of(new Limitation(
+                description,
+                textSet(node, "avoidPatterns"),
+                textSet(node, "avoidExercises"),
+                node.path("painful")
+                    .asBoolean(false)));
+        } catch (IllegalArgumentException e) {
+            problems.add(e.getMessage());
+            return Optional.empty();
+        }
+    }
+
+    private static Set<String> textSet(
+            JsonNode node, String field) {
+        Set<String> values =
+                new LinkedHashSet<>();
+        JsonNode array = node.get(field);
+        if (array != null && array.isArray()) {
+            for (JsonNode item : array) {
+                String text = item.asText("");
+                if (!text.isBlank()) {
+                    values.add(text);
+                }
+            }
+        }
+        return values;
+    }
+
+    /**
+     * One of an enum's constants by name,
+     * ignoring case and treating spaces and
+     * hyphens as underscores, since a model
+     * writes "upper lower" as readily as
+     * UPPER_LOWER.
+     */
+    private <E extends Enum<E>> Optional<E>
+            readEnum(JsonNode node,
+                     String field,
+                     Class<E> type) {
+        if (!node.hasNonNull(field)) {
+            return Optional.empty();
+        }
+        String name = node.get(field)
+                .asText("");
+        Optional<E> resolved =
+                constantOf(type, name);
+        if (resolved.isEmpty()
+                && !name.isBlank()) {
+            problems.add("\"" + name + "\" is"
+                + " not a " + field
+                + " Spotter knows about");
+        }
+        return resolved;
+    }
+
+    private static <E extends Enum<E>>
+            Optional<E> constantOf(
+                Class<E> type, String name) {
+        if (name == null || name.isBlank()) {
+            return Optional.empty();
+        }
+        String wanted = name.trim()
+                .toUpperCase(Locale.ROOT)
+                .replace(' ', '_')
+                .replace('-', '_');
+        for (E constant
+                : type.getEnumConstants()) {
+            if (constant.name()
+                    .equals(wanted)) {
+                return Optional.of(constant);
+            }
+        }
+        return Optional.empty();
     }
 
     /**
