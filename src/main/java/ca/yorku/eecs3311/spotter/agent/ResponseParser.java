@@ -17,6 +17,8 @@ import ca.yorku.eecs3311.spotter.domain.Exercise;
 import ca.yorku.eecs3311.spotter.domain
         .ExercisePrescription;
 import ca.yorku.eecs3311.spotter.domain
+        .ChatReply;
+import ca.yorku.eecs3311.spotter.domain
         .DietaryConstraints;
 import ca.yorku.eecs3311.spotter.domain.Equipment;
 import ca.yorku.eecs3311.spotter.domain
@@ -203,6 +205,53 @@ public final class ResponseParser {
                         .asText(null),
                     BlockOrigin.GENERATED,
                     weeks));
+        } catch (IllegalArgumentException e) {
+            problems.add(e.getMessage());
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * Reads a chat answer from a reply.
+     *
+     * The reply itself is prose and is taken as
+     * written, since there is nothing to resolve
+     * against the catalogues. The note beside it
+     * is kept separate rather than merged in,
+     * because the two are judged differently:
+     * the answer is shown to the lifter and the
+     * note has to pass the memory gate first.
+     *
+     * @param reply what the model said
+     */
+    public Optional<ChatReply> toChatReply(
+            String reply) {
+        problems.clear();
+        Optional<JsonNode> root =
+                extractJson(reply);
+        if (root.isEmpty()) {
+            problems.add("no JSON object was"
+                    + " found in the reply");
+            return Optional.empty();
+        }
+        JsonNode node = root.get();
+
+        String said = node.path("reply")
+                .asText("");
+        if (said.isBlank()) {
+            problems.add("the reply has no"
+                    + " \"reply\" text");
+            return Optional.empty();
+        }
+
+        String remember = node
+                .hasNonNull("remember")
+            ? node.get("remember").asText(null)
+            : null;
+
+        try {
+            return Optional.of(new ChatReply(
+                    said, remember));
         } catch (IllegalArgumentException e) {
             problems.add(e.getMessage());
             return Optional.empty();
