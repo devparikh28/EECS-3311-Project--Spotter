@@ -13,6 +13,8 @@ import ca.yorku.eecs3311.spotter.domain
 import ca.yorku.eecs3311.spotter.domain.Exercise;
 import ca.yorku.eecs3311.spotter.domain
         .ExercisePrescription;
+import ca.yorku.eecs3311.spotter.domain
+        .MeetAttempts;
 import ca.yorku.eecs3311.spotter.domain.Session;
 import ca.yorku.eecs3311.spotter.domain
         .Substitution;
@@ -167,6 +169,52 @@ public final class ResponseParser {
             problems.add(e.getMessage());
             return Optional.empty();
         }
+    }
+
+    /**
+     * Reads an explanation of meet attempts.
+     *
+     * The three weights are not read from the
+     * reply at all. They were calculated before
+     * the model was asked anything and are
+     * carried through untouched; only the words
+     * come from the reply. A model cannot change
+     * a competition attempt by talking about it.
+     *
+     * @param reply    what the model said
+     * @param attempts the calculated attempts
+     */
+    public Optional<MeetAttempts> toRationale(
+            String reply,
+            MeetAttempts attempts) {
+        problems.clear();
+        if (attempts == null) {
+            problems.add("there are no attempts"
+                    + " to explain");
+            return Optional.empty();
+        }
+        Optional<JsonNode> root =
+                extractJson(reply);
+        if (root.isEmpty()) {
+            problems.add("no JSON object was"
+                    + " found in the reply");
+            return Optional.empty();
+        }
+
+        String rationale = root.get()
+                .path("rationale").asText("");
+        if (rationale.isBlank()) {
+            problems.add("the reply has no"
+                + " \"rationale\" text");
+            return Optional.empty();
+        }
+
+        return Optional.of(new MeetAttempts(
+                attempts.lift(),
+                attempts.opener(),
+                attempts.second(),
+                attempts.third(),
+                rationale.strip()));
     }
 
     /**
