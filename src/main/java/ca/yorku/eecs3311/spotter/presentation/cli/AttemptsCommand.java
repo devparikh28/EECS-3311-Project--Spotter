@@ -28,6 +28,11 @@ import ca.yorku.eecs3311.spotter.domain
 import ca.yorku.eecs3311.spotter
         .infrastructure.config.SpotterConfig;
 
+import ca.yorku.eecs3311.spotter
+        .presentation.support.DemoReplies;
+import ca.yorku.eecs3311.spotter
+        .presentation.support.ModelAccess;
+
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;

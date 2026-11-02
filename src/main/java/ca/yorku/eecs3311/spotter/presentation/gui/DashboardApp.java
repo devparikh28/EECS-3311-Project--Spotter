@@ -16,6 +16,11 @@ import ca.yorku.eecs3311.spotter
         .presentation.gui.panels
         .DashboardPanel;
 import ca.yorku.eecs3311.spotter
+        .presentation.gui.panels.PlanPanel;
+import ca.yorku.eecs3311.spotter
+        .presentation.gui.panels
+        .ProfilePanel;
+import ca.yorku.eecs3311.spotter
         .presentation.gui.panels
         .RecoveryPanel;
 
@@ -76,8 +81,10 @@ public final class DashboardApp
 
         List<Panel> panels = List.of(
             new DashboardPanel(context),
+            new PlanPanel(context),
             new AnalyticsPanel(context),
-            new RecoveryPanel(context));
+            new RecoveryPanel(context),
+            new ProfilePanel(context));
 
         shell.setLeft(navigation(panels));
         shell.setCenter(contentArea());
