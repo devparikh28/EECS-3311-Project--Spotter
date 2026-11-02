@@ -164,6 +164,49 @@ public final class MemoryManager {
     }
 
     /**
+     * Whether a note would be kept, without
+     * keeping it.
+     *
+     * The chat agent's validator asks this so a
+     * note written in the coach's own voice is
+     * sent back for correction rather than
+     * silently dropped after the lifter has
+     * already been given the answer.
+     *
+     * @return empty when it would be kept,
+     *         otherwise the reason it would not
+     */
+    public Optional<String> wouldRefuse(
+            String content) {
+        if (content == null
+                || content.isBlank()) {
+            return Optional.empty();
+        }
+        String text = content.strip();
+
+        if (text.length() < MIN_LENGTH) {
+            return Optional.of("\"" + text
+                + "\" is too short to be a fact"
+                + " worth keeping");
+        }
+        if (text.length()
+                > MemoryNote.MAX_LENGTH) {
+            return Optional.of("that note is "
+                + text.length() + " characters,"
+                + " which is a summary rather"
+                + " than a fact");
+        }
+        if (isCoachVoice(text)) {
+            return Optional.of("that note is"
+                + " your own reasoning rather"
+                + " than something the lifter"
+                + " said. Only record what they"
+                + " told you.");
+        }
+        return Optional.empty();
+    }
+
+    /**
      * What to put in front of the model, newest
      * first.
      */
