@@ -21,6 +21,8 @@ import ca.yorku.eecs3311.spotter
         .presentation.gui.panels
         .ProfilePanel;
 import ca.yorku.eecs3311.spotter
+        .presentation.gui.panels.TodayPanel;
+import ca.yorku.eecs3311.spotter
         .presentation.gui.panels
         .RecoveryPanel;
 
@@ -81,6 +83,7 @@ public final class DashboardApp
 
         List<Panel> panels = List.of(
             new DashboardPanel(context),
+            new TodayPanel(context),
             new PlanPanel(context),
             new AnalyticsPanel(context),
             new RecoveryPanel(context),
