@@ -44,6 +44,8 @@ import ca.yorku.eecs3311.spotter
         .presentation.support.DemoReplies;
 import ca.yorku.eecs3311.spotter
         .presentation.support.ModelAccess;
+import ca.yorku.eecs3311.spotter
+        .presentation.support.UsageReport;
 
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -182,6 +184,7 @@ public final class PlanCommand
                         progression, from,
                         weeks, days));
 
+            wasLive = access.isLive();
             printHeader(out, profile,
                     progression, current,
                     access);
@@ -267,6 +270,8 @@ public final class PlanCommand
         out.println();
     }
 
+    private boolean wasLive;
+
     private void printTrace(
             PrintWriter out,
             AgentResult<TrainingBlock> result) {
@@ -275,6 +280,9 @@ public final class PlanCommand
                 : result.trace().steps()) {
             out.println("    " + step);
         }
+        out.println("    " + UsageReport
+                .describe(result.trace(),
+                        wasLive));
         out.println();
     }
 
