@@ -29,9 +29,24 @@ public record Range(
         }
     }
 
+    /**
+     * Smallest difference worth treating as a
+     * difference, in kilograms.
+     *
+     * Well under the lightest plate anyone owns.
+     * Without it a load of 66.0 kg could be
+     * refused against a range printed as 66.0 to
+     * 76.7, because the bound was 66.04 and
+     * rounding hid it. A rejection a lifter
+     * cannot see the sense of is worse than a
+     * hundredth of a kilo of slack.
+     */
+    public static final double TOLERANCE = 0.05;
+
     /** True when this load is acceptable. */
     public boolean contains(double kg) {
-        return kg >= minKg && kg <= maxKg;
+        return kg >= minKg - TOLERANCE
+            && kg <= maxKg + TOLERANCE;
     }
 
     /** The middle of the range. */
