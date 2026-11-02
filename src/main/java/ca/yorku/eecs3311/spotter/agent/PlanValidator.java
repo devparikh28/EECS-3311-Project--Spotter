@@ -14,7 +14,13 @@ import ca.yorku.eecs3311.spotter.domain.Equipment;
 import ca.yorku.eecs3311.spotter.domain.Exercise;
 import ca.yorku.eecs3311.spotter.domain
         .ExercisePrescription;
+import ca.yorku.eecs3311.spotter.domain
+        .DietaryConstraints;
 import ca.yorku.eecs3311.spotter.domain.Lift;
+import ca.yorku.eecs3311.spotter.domain
+        .MacroTotals;
+import ca.yorku.eecs3311.spotter.domain
+        .MealSuggestion;
 import ca.yorku.eecs3311.spotter.domain
         .MeetAttempts;
 import ca.yorku.eecs3311.spotter.domain
@@ -58,6 +64,33 @@ public final class PlanValidator {
 
     /** Most sessions one week may hold. */
     public static final int MAX_SESSIONS = 7;
+
+    /** Most foods one suggested meal may have. */
+    public static final int MAX_MEAL_FOODS = 6;
+
+    /** Smallest portion worth prescribing. */
+    public static final double MIN_PORTION_G =
+            10;
+
+    /** Largest portion of one food. */
+    public static final double MAX_PORTION_G =
+            600;
+
+    /**
+     * The most of the day's remaining calories
+     * one meal may use. A little over is
+     * tolerable, since portions are rounded.
+     */
+    public static final double
+            MAX_CALORIE_SHARE = 1.1;
+
+    /**
+     * The least it may use. A meal supplying
+     * almost nothing is not an answer to being
+     * hungry.
+     */
+    public static final double
+            MIN_CALORIE_SHARE = 0.15;
 
     /** Longest explanation of meet attempts. */
     public static final int
@@ -283,6 +316,108 @@ public final class PlanValidator {
 
     private static double round(double value) {
         return Math.round(value * 10.0) / 10.0;
+    }
+
+    /**
+     * Checks a suggested meal.
+     *
+     * The nutrition is never in question, because
+     * MealSuggestion computes it from the
+     * catalog rather than from anything the
+     * model said. What is checked is whether the
+     * meal suits the lifter: that every food is
+     * one they eat, that the portions are
+     * weights a person would actually serve, and
+     * that it fits what they have left for the
+     * day without using almost all of it or
+     * almost none.
+     *
+     * @param meal      what the model proposed
+     * @param remaining macros left for today
+     * @param diet      what the lifter eats
+     * @return empty when acceptable, otherwise
+     *         the reason, written for the model
+     */
+    public Optional<String> validateMeal(
+            MealSuggestion meal,
+            MacroTotals remaining,
+            DietaryConstraints diet) {
+
+        if (meal == null) {
+            return Optional.of(
+                    "No meal was produced.");
+        }
+        if (meal.foodCount() > MAX_MEAL_FOODS) {
+            return Optional.of("The meal has "
+                + meal.foodCount()
+                + " foods. Keep it to "
+                + MAX_MEAL_FOODS
+                + " or fewer.");
+        }
+
+        Optional<String> refused =
+                meal.firstNotPermitted(diet)
+                    .map(food -> "This lifter"
+                        + " does not eat "
+                        + food.name()
+                        + ". Use only foods the"
+                        + " available_foods tool"
+                        + " returned.");
+        if (refused.isPresent()) {
+            return refused;
+        }
+
+        for (MealSuggestion.Portion portion
+                : meal.portions()) {
+            if (portion.grams()
+                    < MIN_PORTION_G) {
+                return Optional.of(String.format(
+                    "%.0f g of %s is too little"
+                    + " to bother weighing."
+                    + " Use at least %.0f g.",
+                    portion.grams(),
+                    portion.food().name(),
+                    MIN_PORTION_G));
+            }
+            if (portion.grams()
+                    > MAX_PORTION_G) {
+                return Optional.of(String.format(
+                    "%.0f g of %s is more than"
+                    + " anyone serves. Stay at"
+                    + " or below %.0f g.",
+                    portion.grams(),
+                    portion.food().name(),
+                    MAX_PORTION_G));
+            }
+        }
+
+        if (remaining == null
+                || remaining.calories() <= 0) {
+            return Optional.empty();
+        }
+
+        MacroTotals totals = meal.totals();
+        double share = totals.calories()
+                / remaining.calories();
+
+        if (share > MAX_CALORIE_SHARE) {
+            return Optional.of(String.format(
+                "The meal comes to %.0f kcal but"
+                + " only %.0f remain today."
+                + " Make it smaller.",
+                totals.calories(),
+                remaining.calories()));
+        }
+        if (share < MIN_CALORIE_SHARE) {
+            return Optional.of(String.format(
+                "The meal is only %.0f kcal"
+                + " against %.0f remaining,"
+                + " which will not feed anyone."
+                + " Make it bigger.",
+                totals.calories(),
+                remaining.calories()));
+        }
+        return Optional.empty();
     }
 
     private void checkSession(

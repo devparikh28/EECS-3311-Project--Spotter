@@ -13,6 +13,9 @@ import ca.yorku.eecs3311.spotter.domain
 import ca.yorku.eecs3311.spotter.domain.Exercise;
 import ca.yorku.eecs3311.spotter.domain
         .ExercisePrescription;
+import ca.yorku.eecs3311.spotter.domain.FoodItem;
+import ca.yorku.eecs3311.spotter.domain
+        .MealSuggestion;
 import ca.yorku.eecs3311.spotter.domain
         .MeetAttempts;
 import ca.yorku.eecs3311.spotter.domain.Session;
@@ -25,6 +28,8 @@ import ca.yorku.eecs3311.spotter.domain
 import ca.yorku.eecs3311.spotter.domain.Week;
 import ca.yorku.eecs3311.spotter
         .infrastructure.catalog.ExerciseCatalog;
+import ca.yorku.eecs3311.spotter
+        .infrastructure.catalog.FoodCatalog;
 
 /**
  * Turns a model's reply into domain objects.
@@ -47,16 +52,31 @@ public final class ResponseParser {
     private final ObjectMapper json =
             new ObjectMapper();
     private final ExerciseCatalog catalog;
+    private final FoodCatalog foods;
     private final List<String> problems =
             new ArrayList<>();
 
     public ResponseParser(
             ExerciseCatalog catalog) {
+        this(catalog, null);
+    }
+
+    /**
+     * A parser that can also read meals.
+     *
+     * The food catalog is separate because most
+     * agents never touch food, and a parser for
+     * those should not require one.
+     */
+    public ResponseParser(
+            ExerciseCatalog catalog,
+            FoodCatalog foods) {
         if (catalog == null) {
             throw new IllegalArgumentException(
                     "A catalog is required");
         }
         this.catalog = catalog;
+        this.foods = foods;
     }
 
     /** Why the last parse failed, if it did. */
@@ -165,6 +185,87 @@ public final class ResponseParser {
                         .asText(null),
                     BlockOrigin.GENERATED,
                     weeks));
+        } catch (IllegalArgumentException e) {
+            problems.add(e.getMessage());
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * Reads a meal suggestion from a reply.
+     *
+     * Foods are resolved through the food
+     * catalog, so a model inventing one fails
+     * here. Nothing nutritional is read from the
+     * reply at all: only the food names and the
+     * portions in grams. Whatever the model
+     * believes a chicken breast contains is
+     * discarded in favour of what the catalog
+     * says, and the meal's totals are then
+     * arithmetic.
+     *
+     * @param reply what the model said
+     */
+    public Optional<MealSuggestion> toMeal(
+            String reply) {
+        problems.clear();
+        if (foods == null) {
+            problems.add("this parser was not"
+                + " given a food catalog");
+            return Optional.empty();
+        }
+        Optional<JsonNode> root =
+                extractJson(reply);
+        if (root.isEmpty()) {
+            problems.add("no JSON object was"
+                    + " found in the reply");
+            return Optional.empty();
+        }
+        JsonNode node = root.get();
+
+        JsonNode foodsNode = node.get("foods");
+        if (foodsNode == null
+                || !foodsNode.isArray()
+                || foodsNode.isEmpty()) {
+            problems.add("the reply has no"
+                    + " \"foods\" array");
+            return Optional.empty();
+        }
+
+        List<MealSuggestion.Portion> portions =
+                new ArrayList<>();
+        for (JsonNode foodNode : foodsNode) {
+            String name = foodNode.path("name")
+                    .asText("");
+            Optional<FoodItem> food =
+                    this.foods.byName(name);
+            if (food.isEmpty()) {
+                problems.add("there is no food"
+                    + " called \"" + name
+                    + "\" in the catalog");
+                return Optional.empty();
+            }
+            double grams = foodNode
+                    .path("grams").asDouble(0);
+            try {
+                portions.add(
+                    new MealSuggestion.Portion(
+                        food.get(), grams));
+            } catch (IllegalArgumentException e) {
+                problems.add("\"" + name
+                    + "\": " + e.getMessage());
+                return Optional.empty();
+            }
+        }
+
+        try {
+            return Optional.of(
+                new MealSuggestion(
+                    node.path("name")
+                        .asText(null),
+                    portions,
+                    node.path("rationale")
+                        .asText(null)));
         } catch (IllegalArgumentException e) {
             problems.add(e.getMessage());
             return Optional.empty();
