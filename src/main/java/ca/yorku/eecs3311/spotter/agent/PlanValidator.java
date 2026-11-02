@@ -5,12 +5,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import ca.yorku.eecs3311.spotter.domain
+        .AttemptCalculator;
 import ca.yorku.eecs3311.spotter.domain.Equipment;
 import ca.yorku.eecs3311.spotter.domain.Exercise;
 import ca.yorku.eecs3311.spotter.domain
         .ExercisePrescription;
 import ca.yorku.eecs3311.spotter.domain.Lift;
+import ca.yorku.eecs3311.spotter.domain
+        .MeetAttempts;
 import ca.yorku.eecs3311.spotter.domain
         .ProgressionStrategy;
 import ca.yorku.eecs3311.spotter.domain.Range;
@@ -52,6 +58,23 @@ public final class PlanValidator {
 
     /** Most sessions one week may hold. */
     public static final int MAX_SESSIONS = 7;
+
+    /** Longest explanation of meet attempts. */
+    public static final int
+            MAX_RATIONALE_CHARS = 600;
+
+    /**
+     * How close a figure in an explanation must
+     * be to a calculated one to count as the
+     * same number.
+     */
+    public static final double FIGURE_TOLERANCE =
+            0.05;
+
+    /** Any number written in an explanation. */
+    private static final Pattern FIGURE =
+            Pattern.compile(
+                "\\d+(?:\\.\\d+)?");
 
     /**
      * Checks a generated block.
@@ -108,6 +131,158 @@ public final class PlanValidator {
             ? Optional.empty()
             : Optional.of(
                 String.join(" ", problems));
+    }
+
+    /**
+     * Checks an explanation of meet attempts.
+     *
+     * The attempts themselves are arithmetic and
+     * were decided before the model was asked
+     * anything. All it supplies is the words, so
+     * the only thing worth checking is that the
+     * words do not contradict the numbers.
+     *
+     * Every figure appearing in the explanation
+     * must be one Spotter actually calculated. A
+     * model writing "open at 142.5 and jump to
+     * 155" when the plan says 140 and 150 is
+     * giving the lifter wrong numbers in a
+     * confident voice, which is worse than
+     * giving them none, and it is the failure
+     * this method exists to catch.
+     *
+     * @param rationale what the model wrote
+     * @param attempts  the calculated attempts
+     * @param e1rm      the maximum they came from
+     * @return empty when acceptable, otherwise
+     *         the reason, written for the model
+     */
+    public Optional<String> validateRationale(
+            String rationale,
+            MeetAttempts attempts,
+            double e1rm) {
+
+        if (attempts == null) {
+            return Optional.of("There are no"
+                + " attempts to explain.");
+        }
+        if (rationale == null
+                || rationale.isBlank()) {
+            return Optional.of("No explanation"
+                + " was written.");
+        }
+        if (rationale.length()
+                > MAX_RATIONALE_CHARS) {
+            return Optional.of("The explanation"
+                + " is "
+                + rationale.length()
+                + " characters. Keep it under "
+                + MAX_RATIONALE_CHARS + ".");
+        }
+
+        List<Double> allowed = List.of(
+                attempts.opener(),
+                attempts.second(),
+                attempts.third(),
+                round(e1rm),
+                attempts.totalJump(),
+                attempts.second()
+                    - attempts.opener(),
+                attempts.third()
+                    - attempts.second(),
+                AttemptCalculator.OPENER_PCT
+                    * 100,
+                AttemptCalculator.SECOND_PCT
+                    * 100,
+                AttemptCalculator.THIRD_PCT
+                    * 100,
+                AttemptCalculator
+                    .PLATE_INCREMENT,
+                1.0, 2.0, 3.0);
+
+        Matcher numbers = FIGURE.matcher(
+                rationale);
+        while (numbers.find()) {
+            String token = numbers.group();
+            double value;
+            try {
+                value = Double.parseDouble(
+                        token);
+            } catch (IllegalArgumentException e) {
+                continue;
+            }
+            if (!isAllowed(value, allowed)) {
+                return Optional.of("The figure "
+                    + token + " is not one of"
+                    + " the calculated numbers."
+                    + " Use only "
+                    + describe(attempts)
+                    + ", and do not work out"
+                    + " any figure yourself.");
+            }
+        }
+
+        if (!mentionsAll(rationale, attempts)) {
+            return Optional.of("The explanation"
+                + " must name all three"
+                + " attempts: "
+                + describe(attempts) + ".");
+        }
+        return Optional.empty();
+    }
+
+    private static boolean isAllowed(
+            double value, List<Double> allowed) {
+        for (double candidate : allowed) {
+            if (Math.abs(value - candidate)
+                    < FIGURE_TOLERANCE) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean mentionsAll(
+            String rationale,
+            MeetAttempts attempts) {
+        return mentions(rationale,
+                    attempts.opener())
+            && mentions(rationale,
+                    attempts.second())
+            && mentions(rationale,
+                    attempts.third());
+    }
+
+    private static boolean mentions(
+            String rationale, double figure) {
+        Matcher numbers =
+                FIGURE.matcher(rationale);
+        while (numbers.find()) {
+            try {
+                if (Math.abs(Double.parseDouble(
+                        numbers.group())
+                        - figure)
+                        < FIGURE_TOLERANCE) {
+                    return true;
+                }
+            } catch (IllegalArgumentException e) {
+                // not a figure after all
+            }
+        }
+        return false;
+    }
+
+    private static String describe(
+            MeetAttempts attempts) {
+        return String.format(
+            "%.1f kg, %.1f kg and %.1f kg",
+            attempts.opener(),
+            attempts.second(),
+            attempts.third());
+    }
+
+    private static double round(double value) {
+        return Math.round(value * 10.0) / 10.0;
     }
 
     private void checkSession(
