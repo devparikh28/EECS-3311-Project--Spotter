@@ -170,6 +170,121 @@ public final class ResponseParser {
     }
 
     /**
+     * Reads an adjusted session from a reply.
+     *
+     * Only the sets and the load of prescriptions
+     * already in the session can be changed.
+     * Exercises are matched by the id they came
+     * with, so a reply cannot add a movement,
+     * rename one, or address a prescription that
+     * is not in today's session. That is what
+     * makes this safe to apply without consulting
+     * the catalog at all.
+     *
+     * A prescription the reply does not mention
+     * keeps what it had.
+     *
+     * @param reply    what the model said
+     * @param original today's session
+     */
+    public Optional<Session> toAdjustedSession(
+            String reply, Session original) {
+        problems.clear();
+        if (original == null) {
+            problems.add("there is no session"
+                    + " to adjust");
+            return Optional.empty();
+        }
+        Optional<JsonNode> root =
+                extractJson(reply);
+        if (root.isEmpty()) {
+            problems.add("no JSON object was"
+                    + " found in the reply");
+            return Optional.empty();
+        }
+        JsonNode node = root.get();
+
+        JsonNode exercisesNode =
+                node.get("exercises");
+        if (exercisesNode == null
+                || !exercisesNode.isArray()) {
+            problems.add("the reply has no"
+                    + " \"exercises\" array");
+            return Optional.empty();
+        }
+
+        List<ExercisePrescription> adjusted =
+                new ArrayList<>(
+                    original.prescriptions());
+
+        for (JsonNode exerciseNode
+                : exercisesNode) {
+            JsonNode idNode =
+                    exerciseNode.get("id");
+            if (idNode == null
+                    || !idNode.canConvertToInt()) {
+                problems.add("an entry has no"
+                    + " numeric \"id\", so"
+                    + " there is no way to tell"
+                    + " which exercise it"
+                    + " means");
+                return Optional.empty();
+            }
+            int id = idNode.asInt();
+
+            int index = indexOf(adjusted, id);
+            if (index < 0) {
+                problems.add("today's session"
+                    + " has no exercise with id "
+                    + id);
+                return Optional.empty();
+            }
+
+            ExercisePrescription before =
+                    adjusted.get(index);
+            double loadKg = exerciseNode
+                    .path("loadKg")
+                    .asDouble(before.loadKg());
+            int sets = exerciseNode.path("sets")
+                    .asInt(before.sets());
+
+            try {
+                adjusted.set(index,
+                    before.withLoad(loadKg)
+                        .withSets(sets));
+            } catch (IllegalArgumentException e) {
+                problems.add(before.exercise()
+                    .name() + ": "
+                    + e.getMessage());
+                return Optional.empty();
+            }
+        }
+
+        Session session = new Session(
+                original.id(), original.date(),
+                original.focus().orElse(null),
+                adjusted);
+        String note = node.path("note")
+                .asText(null);
+        if (note != null && !note.isBlank()) {
+            session.setAdjustmentNote(
+                    note.strip());
+        }
+        return Optional.of(session);
+    }
+
+    private static int indexOf(
+            List<ExercisePrescription> list,
+            int id) {
+        for (int i = 0; i < list.size(); i++) {
+            if (list.get(i).id() == id) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    /**
      * Reads a substitution from a reply.
      *
      * The replacement is resolved through the
