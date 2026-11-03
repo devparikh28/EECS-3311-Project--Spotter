@@ -26,6 +26,18 @@ import ca.yorku.eecs3311.spotter
 import ca.yorku.eecs3311.spotter
         .infrastructure.catalog.FoodCatalog;
 import ca.yorku.eecs3311.spotter
+        .infrastructure.persistence
+        .BlockRepository;
+import ca.yorku.eecs3311.spotter
+        .infrastructure.persistence
+        .ProfileRepository;
+import ca.yorku.eecs3311.spotter
+        .infrastructure.persistence
+        .SqliteBlockRepository;
+import ca.yorku.eecs3311.spotter
+        .infrastructure.persistence
+        .SqliteProfileRepository;
+import ca.yorku.eecs3311.spotter
         .infrastructure.catalog
         .SqliteFoodCatalog;
 import ca.yorku.eecs3311.spotter
@@ -82,6 +94,8 @@ public final class CoachController
     private final Database database;
     private final ExerciseCatalog catalog;
     private final FoodCatalog foods;
+    private final ProfileRepository profiles;
+    private final BlockRepository blocks;
     private final WorkoutRepository workouts;
     private final StrengthAnalytics analytics;
     private final AttemptCalculator attempts;
@@ -107,6 +121,12 @@ public final class CoachController
             new SqliteExerciseCatalog(database);
         this.foods =
             new SqliteFoodCatalog(database);
+        this.profiles =
+            new SqliteProfileRepository(
+                    database);
+        this.blocks =
+            new SqliteBlockRepository(database,
+                    catalog);
         this.workouts =
             new SqliteWorkoutRepository(
                 database, catalog);
@@ -156,6 +176,16 @@ public final class CoachController
                     .ifPresent(flags::add);
         }
         return List.copyOf(flags);
+    }
+
+    /** The lifter's profile (F01, F13). */
+    public ProfileRepository profiles() {
+        return profiles;
+    }
+
+    /** Stored training blocks (F05, F14). */
+    public BlockRepository blocks() {
+        return blocks;
     }
 
     /** The food catalog, for F09 and F10. */

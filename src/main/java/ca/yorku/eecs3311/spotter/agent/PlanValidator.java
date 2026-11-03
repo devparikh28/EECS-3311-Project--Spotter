@@ -20,6 +20,8 @@ import ca.yorku.eecs3311.spotter.domain.Lift;
 import ca.yorku.eecs3311.spotter.domain
         .MacroTotals;
 import ca.yorku.eecs3311.spotter.domain
+        .LifterProfile;
+import ca.yorku.eecs3311.spotter.domain
         .MealSuggestion;
 import ca.yorku.eecs3311.spotter.domain
         .MeetAttempts;
@@ -91,6 +93,23 @@ public final class PlanValidator {
      */
     public static final double
             MIN_CALORIE_SHARE = 0.15;
+
+    /**
+     * The most of a current maximum an adopted
+     * block may prescribe.
+     *
+     * A generated block is held to the range the
+     * lifter's progression allows. An adopted
+     * one cannot be, because nobody's
+     * progression produced it and a coach is
+     * entitled to program differently. What is
+     * still worth refusing is a load nobody
+     * could lift, which usually means the text
+     * was misread rather than that the coach is
+     * bold.
+     */
+    public static final double
+            MAX_ADOPTED_SHARE = 1.1;
 
     /** Longest explanation of meet attempts. */
     public static final int
@@ -418,6 +437,174 @@ public final class PlanValidator {
                 remaining.calories()));
         }
         return Optional.empty();
+    }
+
+    /**
+     * Checks a block the lifter brought with
+     * them.
+     *
+     * Deliberately a different gate from
+     * validateBlock. An adopted block was
+     * written by somebody else, so holding it to
+     * the lifter's progression would reject
+     * every programme that does not happen to
+     * match the scheme Spotter would have
+     * chosen, which is most of them. That would
+     * not be validation; it would be refusing to
+     * adopt anything.
+     *
+     * What is checked instead is that the block
+     * is possible: the movements exist and can
+     * be performed, the week is not busier than
+     * the lifter said they train, and no load is
+     * one nobody could lift. A load far above a
+     * current maximum almost always means the
+     * text was misread, not that the coach is
+     * bold.
+     *
+     * @param block       the parsed programme
+     * @param profile     the lifter, for
+     *                    equipment and training
+     *                    days
+     * @param currentE1RM estimated maxima, which
+     *                    may be empty
+     * @return empty when acceptable, otherwise
+     *         the reason, written for the model
+     */
+    public Optional<String> validateAdoptedBlock(
+            TrainingBlock block,
+            LifterProfile profile,
+            Map<Lift, Double> currentE1RM) {
+
+        if (block == null) {
+            return Optional.of("No programme was"
+                    + " read.");
+        }
+        if (block.weeks().isEmpty()) {
+            return Optional.of("The programme"
+                + " has no weeks in it. If the"
+                + " text describes a single"
+                + " week, return it as week"
+                + " one.");
+        }
+
+        List<String> problems =
+                new ArrayList<>();
+
+        for (Week week : block.weeks()) {
+            checkAdoptedWeek(week, profile,
+                    currentE1RM, problems);
+        }
+
+        return problems.isEmpty()
+            ? Optional.empty()
+            : Optional.of(String.join(" ",
+                    problems));
+    }
+
+    private void checkAdoptedWeek(
+            Week week,
+            LifterProfile profile,
+            Map<Lift, Double> currentE1RM,
+            List<String> problems) {
+
+        if (week.sessions().isEmpty()) {
+            problems.add("Week " + week.number()
+                + " has no sessions in it.");
+            return;
+        }
+        if (week.sessions().size()
+                > MAX_SESSIONS) {
+            problems.add("Week " + week.number()
+                + " has " + week.sessions().size()
+                + " sessions, which is more than"
+                + " a week holds.");
+        }
+        if (profile != null
+                && week.sessions().size()
+                    > profile
+                        .trainingDaysPerWeek()) {
+            problems.add("Week " + week.number()
+                + " has " + week.sessions().size()
+                + " sessions but this lifter"
+                + " trains "
+                + profile.trainingDaysPerWeek()
+                + " days a week. Combine or drop"
+                + " sessions rather than adding"
+                + " days.");
+        }
+
+        for (Session session
+                : week.sessions()) {
+            for (ExercisePrescription p
+                    : session.prescriptions()) {
+                checkAdoptedPrescription(p,
+                    week, profile, currentE1RM,
+                    problems);
+            }
+        }
+    }
+
+    private void checkAdoptedPrescription(
+            ExercisePrescription prescription,
+            Week week,
+            LifterProfile profile,
+            Map<Lift, Double> currentE1RM,
+            List<String> problems) {
+
+        Exercise exercise =
+                prescription.exercise();
+
+        if (profile != null
+                && !profile.canPerform(
+                        exercise)) {
+            problems.add(exercise.name()
+                + " in week " + week.number()
+                + " cannot be performed with"
+                + " this lifter's equipment."
+                + " Choose something they can"
+                + " do, or leave it out.");
+        }
+        if (prescription.sets() > MAX_SETS) {
+            problems.add(exercise.name()
+                + " in week " + week.number()
+                + " has " + prescription.sets()
+                + " sets, which is more than"
+                + " anyone programmes.");
+        }
+        if (prescription.reps() > MAX_REPS) {
+            problems.add(exercise.name()
+                + " in week " + week.number()
+                + " has " + prescription.reps()
+                + " reps, which is more than"
+                + " anyone programmes.");
+        }
+
+        if (currentE1RM == null) {
+            return;
+        }
+        Optional<Lift> lift =
+                exercise.competitionLift();
+        if (lift.isEmpty()) {
+            return;
+        }
+        Double e1rm = currentE1RM.get(lift.get());
+        if (e1rm == null || e1rm <= 0) {
+            return;
+        }
+        double ceiling = e1rm
+                * MAX_ADOPTED_SHARE;
+        if (prescription.loadKg() > ceiling) {
+            problems.add(String.format(
+                "%s in week %d is prescribed"
+                + " %.1f kg against an estimated"
+                + " maximum of %.1f kg. Nothing"
+                + " above %.1f kg is plausible,"
+                + " so read that line again.",
+                exercise.name(), week.number(),
+                prescription.loadKg(), e1rm,
+                ceiling));
+        }
     }
 
     private void checkSession(

@@ -34,18 +34,18 @@ passing.
 | F11 | Coaching Chat with Memory | Done | GUI Coach |
 | F12 | Plan Adherence and Progression | Partial | not yet reachable |
 | F13 | Guided Onboarding | Done, differently | GUI Profile screen |
-| F14 | Adopt an Existing Programme | Not built | — |
+| F14 | Adopt an Existing Programme | Partial | `spotter adopt` |
 
 Eleven features are complete as designed, one is
 complete in substance but built differently from
-the Stage 1 specification, one is half built and
-one was dropped.
+the Stage 1 specification, and two are partial.
+Nothing was dropped entirely.
 
-The two that fell short, F12 and F14, are the
-ones the Stage 2 plan named in advance as the
-first to go, so this is the order of sacrifice
-the plan set rather than a rationalisation made
-afterwards.
+F12 and F14 are the two the Stage 2 plan named in
+advance as the first to go. Both have a working
+half: F12 has the adherence arithmetic without
+the review agent, and F14 has the route that
+needed a model without the two that did not.
 
 F02 remains partial. Its import half is complete
 and its manual entry half is missing, which is a
@@ -320,14 +320,51 @@ about to work out for itself.
 
 | | |
 |---|---|
-| **Designed** | Parsing an existing written programme and adopting it as a block |
-| **Implemented** | Nothing |
-| **Status** | Not built |
+| **Designed** | Three routes: `ProgrammeImportService.fromManualEntry()`, `fromCsv()` with a column mapping, and `ProgrammeParserAgent` for pasted text, all gated by `PlanValidator.validateAdoptedBlock()` |
+| **Implemented** | `agent/agents/ProgrammeParserAgent`, `PlanValidator.validateAdoptedBlock`, `ResponseParser.toBlock` with an origin, `presentation/cli/AdoptCommand` |
+| **Status** | Partial: the free text route only |
 
-Named in the Stage 2 plan as the hardest item in
-the design and the first to drop. It was dropped.
-Twelve working features was judged better than
-fourteen half built ones.
+Stage 1 called this the hardest feature in the
+design, and the Stage 2 plan named it the first
+to drop. The free text route turned out to be the
+cheap one, which is worth recording because the
+reason is a design decision made two months
+earlier.
+
+`CoachAgent` supplies the retry. `ResponseParser`
+already resolves exercise names through the
+catalogue and already builds weeks and sessions
+from JSON. `BlockRepository` already stores a
+block and `BlockOrigin.ADOPTED` already existed.
+What had to be written was a prompt, a gate and a
+command. That saving is the whole argument for
+Template Method, arriving two months after the
+decision to use it.
+
+The gate is deliberately not the one generated
+blocks face. An adopted programme was written by
+somebody else, so holding it to the lifter's
+progression would reject every programme that
+does not match the scheme Spotter would have
+chosen, which is most of them. `validateAdoptedBlock`
+checks possibility instead: the movements exist
+and can be performed, the week is not busier than
+the lifter said they train, and no load is one
+nobody could lift. A load far above a current
+maximum nearly always means the text was misread
+rather than that the coach is bold.
+
+Not built: the manual entry and CSV routes.
+`fromCsv` would need `GenericCsvAdapter` and
+`ColumnMapping` from F02, which are also unbuilt,
+so that route is two missing features stacked
+rather than one.
+
+This is also the only feature with no prepared
+reply for running without an API key. Reading an
+arbitrary document is not something keyword
+matching can fake, and the command says so
+outright rather than pretending.
 
 ---
 
