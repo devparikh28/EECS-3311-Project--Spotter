@@ -139,6 +139,31 @@ public final class ResponseParser {
      */
     public Optional<TrainingBlock> toBlock(
             String reply, LocalDate startDate) {
+        return toBlock(reply, startDate,
+                BlockOrigin.GENERATED);
+    }
+
+    /**
+     * Reads a block, recording where it came
+     * from.
+     *
+     * An adopted block is parsed by exactly the
+     * same code as a generated one, because the
+     * structure is the same and the only
+     * difference is provenance. What differs is
+     * the gate afterwards: a generated block is
+     * checked against the progression that
+     * produced it, and an adopted one cannot be,
+     * because nobody's progression produced it.
+     *
+     * @param reply     what the model said
+     * @param startDate the block's first day
+     * @param origin    generated or adopted
+     */
+    public Optional<TrainingBlock> toBlock(
+            String reply,
+            LocalDate startDate,
+            BlockOrigin origin) {
         problems.clear();
         Optional<JsonNode> root =
                 extractJson(reply);
@@ -203,7 +228,9 @@ public final class ResponseParser {
                         .asText(null),
                     node.path("splitName")
                         .asText(null),
-                    BlockOrigin.GENERATED,
+                    origin == null
+                        ? BlockOrigin.GENERATED
+                        : origin,
                     weeks));
         } catch (IllegalArgumentException e) {
             problems.add(e.getMessage());
