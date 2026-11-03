@@ -30,10 +30,16 @@ import ca.yorku.eecs3311.spotter
         .BlockRepository;
 import ca.yorku.eecs3311.spotter
         .infrastructure.persistence
+        .ImportProfileRepository;
+import ca.yorku.eecs3311.spotter
+        .infrastructure.persistence
         .ProfileRepository;
 import ca.yorku.eecs3311.spotter
         .infrastructure.persistence
         .SqliteBlockRepository;
+import ca.yorku.eecs3311.spotter
+        .infrastructure.persistence
+        .SqliteImportProfileRepository;
 import ca.yorku.eecs3311.spotter
         .infrastructure.persistence
         .SqliteProfileRepository;
@@ -96,6 +102,8 @@ public final class CoachController
     private final FoodCatalog foods;
     private final ProfileRepository profiles;
     private final BlockRepository blocks;
+    private final ImportProfileRepository
+            importProfiles;
     private final WorkoutRepository workouts;
     private final StrengthAnalytics analytics;
     private final AttemptCalculator attempts;
@@ -127,6 +135,9 @@ public final class CoachController
         this.blocks =
             new SqliteBlockRepository(database,
                     catalog);
+        this.importProfiles =
+            new SqliteImportProfileRepository(
+                    database);
         this.workouts =
             new SqliteWorkoutRepository(
                 database, catalog);
@@ -155,6 +166,25 @@ public final class CoachController
      */
     public ImportReport importFile(Path file) {
         return imports.importFile(file);
+    }
+
+    /**
+     * Imports a file Spotter does not recognise,
+     * through a mapping a person supplied (F02).
+     */
+    public ImportReport importMapped(
+            Path file,
+            ca.yorku.eecs3311.spotter
+                .infrastructure.csv.ColumnMapping
+                    mapping) {
+        return imports.importMapped(file,
+                mapping);
+    }
+
+    /** Saved column mappings (F02). */
+    public ImportProfileRepository
+            importProfiles() {
+        return importProfiles;
     }
 
     public RecoveryRepository recovery() {

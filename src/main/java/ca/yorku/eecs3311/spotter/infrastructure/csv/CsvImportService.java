@@ -69,6 +69,28 @@ public final class CsvImportService {
         return importAs(file, kind);
     }
 
+    /**
+     * Imports a file through a mapping a person
+     * supplied.
+     *
+     * The path below this is identical to a
+     * recognised export: the same resolution
+     * through the catalog, the same duplicate
+     * handling, the same report. Only the
+     * reading differs, which is what the Adapter
+     * interface exists to make true.
+     *
+     * @param file    the export
+     * @param mapping which column means what
+     */
+    public ImportReport importMapped(
+            Path file,
+            ColumnMapping mapping) {
+        return importWorkouts(
+            factory.createMapped(mapping),
+            file);
+    }
+
     /** Imports a file read as a given export. */
     public ImportReport importAs(
             Path file, SourceKind kind) {

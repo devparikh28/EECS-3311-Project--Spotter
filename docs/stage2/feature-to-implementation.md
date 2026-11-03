@@ -22,7 +22,7 @@ passing.
 | ID | Feature | Status | Reachable from |
 |---|---|---|---|
 | F01 | Lifter Profile and Constraints | Done | GUI Profile screen |
-| F02 | Workout Logging and Import | Partial | `spotter import` |
+| F02 | Workout Logging and Import | Done | `spotter import`, `spotter log` |
 | F03 | Recovery Input | Done | `spotter import`, `spotter checkin`, GUI Recovery |
 | F04 | Strength Analytics | Done | `spotter analytics`, GUI Analytics |
 | F05 | Training Block Generation | Done | `spotter plan`, GUI Plan |
@@ -77,28 +77,39 @@ and accumulating duplicate equipment.
 | | |
 |---|---|
 | **Designed** | `DataSource`, `HevyCsvAdapter`, `GenericCsvAdapter`, `ColumnMapping`, `CsvImportService`, `DataSourceFactory` |
-| **Implemented** | `infrastructure/csv/DataSource`, `HevyCsvAdapter`, `CsvFileReader`, `CsvImportService`, `DataSourceFactory`, `presentation/cli/ImportCommand` |
-| **Status** | Partial |
+| **Implemented** | `infrastructure/csv/DataSource`, `HevyCsvAdapter`, `GenericCsvAdapter`, `ColumnMapping`, `CsvFileReader`, `CsvImportService`, `DataSourceFactory`, `infrastructure/persistence/ImportProfileRepository`, `SqliteImportProfileRepository`, `presentation/cli/ImportCommand`, `LogCommand` |
+| **Status** | Done |
 
-Four parts of the Stage 1 specification are not
-built, and all four concern input that is not a
-Hevy file.
+Reads a real 7318 row Hevy export, skipping 31
+rows and reporting why. Four wrong assumptions in
+the Stage 1 design were corrected by meeting that
+file, recorded in commit `f40b2ef`.
 
-`GenericCsvAdapter` and `ColumnMapping` were to
-let a lifter map the columns of an unrecognised
-export, with the mapping saved as a named import
-profile for next time. The `import_profile` table
-exists in the schema and nothing writes to it.
+`GenericCsvAdapter` reads an export from an
+application Spotter does not know, through a
+mapping a person supplied. Stage 1 put that
+conversation behind a dialog; on the command line
+it is three options. Spotter suggests a mapping
+from the header, `--set field=column` corrects
+it, and `--save-as` means the question is never
+asked again for that application. The suggestion
+guesses the unit too, so an export in pounds is
+converted without being told.
 
-Manual entry of a session, and Log as Prescribed,
-which records a planned session as performed with
-only the deviations typed in, are also absent.
+A mapping naming a column the file does not have
+is refused rather than read, because the
+alternative is importing nothing and reporting
+success, which is the worst outcome available.
 
-The Hevy adapter handles the real exports this
-project was built around. The rest would have
-been a second import feature rather than a
-completion of the first, and nothing else in the
-system depends on them.
+`spotter log` records training without an export,
+either one movement typed in, with the closest
+catalogue names offered when the spelling is
+wrong, or `--as-prescribed`, which records
+today's planned session as performed. The second
+is the one that gets used: typing out a session
+you have just completed exactly as it was written
+down for you is the kind of work that makes
+people stop logging.
 
 Reads a real 7318 row export, skipping 31 rows
 and reporting why. Four wrong assumptions in the
