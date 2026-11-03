@@ -4,6 +4,8 @@ package ca.yorku.eecs3311.spotter
 import java.nio.file.Path;
 import java.util.List;
 
+import ca.yorku.eecs3311.spotter.domain
+        .WorkoutSession;
 import ca.yorku.eecs3311.spotter
         .infrastructure.catalog.ExerciseCatalog;
 
@@ -49,6 +51,22 @@ public final class DataSourceFactory {
     }
 
     /** The adapter for a known export. */
+    /**
+     * An adapter for a format nobody recognises,
+     * built from a mapping a person supplied.
+     *
+     * The same factory as the recognised kinds,
+     * because the thing being made is the same
+     * thing: something that satisfies
+     * DataSource. What differs is that this one
+     * is told the answer rather than knowing it.
+     */
+    public DataSource<WorkoutSession>
+            createMapped(ColumnMapping mapping) {
+        return new GenericCsvAdapter(catalog,
+                mapping);
+    }
+
     public DataSource<?> create(
             SourceKind kind) {
         return switch (kind) {

@@ -32,6 +32,7 @@ import picocli.CommandLine.Command;
         StatusCommand.class,
         SeedCommand.class,
         ImportCommand.class,
+        LogCommand.class,
         AnalyticsCommand.class,
         RecoveryCommand.class,
         PlanCommand.class,
