@@ -24,6 +24,8 @@ import ca.yorku.eecs3311.spotter.domain
 import ca.yorku.eecs3311.spotter.domain
         .MealSuggestion;
 import ca.yorku.eecs3311.spotter.domain
+        .PlanAdherence;
+import ca.yorku.eecs3311.spotter.domain
         .MeetAttempts;
 import ca.yorku.eecs3311.spotter.domain
         .ProgressionStrategy;
@@ -110,6 +112,20 @@ public final class PlanValidator {
      */
     public static final double
             MAX_ADOPTED_SHARE = 1.1;
+
+    /**
+     * The most a load may rise from one week to
+     * the next, as a fraction.
+     *
+     * A revision that adds ten percent a week
+     * produces a plan nobody can finish. The cap
+     * is on the revision rather than on training
+     * in general, because a lifter is free to
+     * have a good week; what is being checked is
+     * a proposal made in advance.
+     */
+    public static final double
+            MAX_WEEKLY_INCREASE = 0.05;
 
     /** Longest explanation of meet attempts. */
     public static final int
@@ -605,6 +621,222 @@ public final class PlanValidator {
                 prescription.loadKg(), e1rm,
                 ceiling));
         }
+    }
+
+    /**
+     * Checks a revision of a block already
+     * being trained.
+     *
+     * Three things matter. A revision may not
+     * quietly drop work, so every session and
+     * every competition lift in the original
+     * must survive. A lift that fell short of
+     * its plan may not be given more, because
+     * the reason it fell short is rarely that it
+     * was too easy. And no load may jump by more
+     * than a week's worth, because a revision
+     * that adds ten percent a week produces a
+     * plan nobody can finish.
+     *
+     * @param revised   what the model proposed
+     * @param original  the block being trained
+     * @param adherence how it has gone so far
+     * @return empty when acceptable, otherwise
+     *         the reason, written for the model
+     */
+    public Optional<String> validateProgression(
+            TrainingBlock revised,
+            TrainingBlock original,
+            PlanAdherence adherence) {
+
+        if (revised == null) {
+            return Optional.of("No revision was"
+                    + " produced.");
+        }
+        if (original == null) {
+            return Optional.empty();
+        }
+
+        List<String> problems =
+                new ArrayList<>();
+
+        for (Session before
+                : original.allSessions()) {
+            Optional<Session> after =
+                    sessionOn(revised,
+                        before.date());
+            if (after.isEmpty()) {
+                problems.add("The session on "
+                    + before.date()
+                    + " is missing from the"
+                    + " revision. Keep every"
+                    + " session.");
+                continue;
+            }
+            compareSessions(before, after.get(),
+                    adherence, problems);
+        }
+
+        checkWeeklyJumps(revised, problems);
+
+        return problems.isEmpty()
+            ? Optional.empty()
+            : Optional.of(String.join(" ",
+                    problems));
+    }
+
+    private static Optional<Session> sessionOn(
+            TrainingBlock block,
+            java.time.LocalDate date) {
+        for (Session session
+                : block.allSessions()) {
+            if (session.date().equals(date)) {
+                return Optional.of(session);
+            }
+        }
+        return Optional.empty();
+    }
+
+    private void compareSessions(
+            Session before,
+            Session after,
+            PlanAdherence adherence,
+            List<String> problems) {
+
+        for (ExercisePrescription was
+                : before.prescriptions()) {
+            Optional<Lift> lift = was.exercise()
+                    .competitionLift();
+            Optional<ExercisePrescription> now =
+                    find(after, was.exercise());
+
+            if (now.isEmpty()) {
+                if (lift.isPresent()) {
+                    problems.add(was.exercise()
+                        .name() + " was dropped"
+                        + " from the session on "
+                        + before.date()
+                        + ". Competition lifts"
+                        + " stay.");
+                }
+                continue;
+            }
+
+            if (lift.isEmpty()
+                    || adherence == null) {
+                continue;
+            }
+            boolean short_ = adherence
+                .liftsShortOfPlan()
+                .contains(lift.get());
+            if (short_ && now.get().loadKg()
+                    > was.loadKg()
+                        + Range.TOLERANCE) {
+                problems.add(String.format(
+                    "%s fell short of its plan,"
+                    + " so %.1f kg on %s cannot"
+                    + " rise to %.1f kg. Hold"
+                    + " or reduce it.",
+                    lift.get(), was.loadKg(),
+                    before.date(),
+                    now.get().loadKg()));
+            }
+        }
+    }
+
+    private static
+            Optional<ExercisePrescription> find(
+                Session session,
+                Exercise exercise) {
+        for (ExercisePrescription p
+                : session.prescriptions()) {
+            if (p.exercise().equals(exercise)) {
+                return Optional.of(p);
+            }
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * No exercise may rise by more than
+     * MAX_WEEKLY_INCREASE from one week to the
+     * next.
+     */
+    private void checkWeeklyJumps(
+            TrainingBlock revised,
+            List<String> problems) {
+
+        for (int i = 1;
+                i < revised.weeks().size();
+                i++) {
+            Week earlier =
+                    revised.weeks().get(i - 1);
+            Week later =
+                    revised.weeks().get(i);
+
+            for (Session session
+                    : later.sessions()) {
+                for (ExercisePrescription p
+                        : session
+                            .prescriptions()) {
+                    heaviestIn(earlier,
+                            p.exercise())
+                        .ifPresent(before -> {
+                            double ceiling =
+                                before * (1
+                                + MAX_WEEKLY_INCREASE);
+                            if (p.loadKg()
+                                    > ceiling
+                                    + Range.TOLERANCE) {
+                                problems.add(
+                                    String.format(
+                                    "%s rises from"
+                                    + " %.1f kg in"
+                                    + " week %d to"
+                                    + " %.1f kg in"
+                                    + " week %d,"
+                                    + " which is"
+                                    + " more than"
+                                    + " %.0f"
+                                    + " percent."
+                                    + " Stay at or"
+                                    + " below %.1f"
+                                    + " kg.",
+                                    p.exercise()
+                                        .name(),
+                                    before,
+                                    earlier.number(),
+                                    p.loadKg(),
+                                    later.number(),
+                                    MAX_WEEKLY_INCREASE
+                                        * 100,
+                                    ceiling));
+                            }
+                        });
+                }
+            }
+        }
+    }
+
+    private static java.util.OptionalDouble
+            heaviestIn(Week week,
+                       Exercise exercise) {
+        double heaviest = -1;
+        for (Session session
+                : week.sessions()) {
+            for (ExercisePrescription p
+                    : session.prescriptions()) {
+                if (p.exercise().equals(exercise)
+                        && p.loadKg()
+                            > heaviest) {
+                    heaviest = p.loadKg();
+                }
+            }
+        }
+        return heaviest < 0
+            ? java.util.OptionalDouble.empty()
+            : java.util.OptionalDouble.of(
+                    heaviest);
     }
 
     private void checkSession(
