@@ -32,7 +32,7 @@ passing.
 | F09 | Macro Targets and Adherence | Done | GUI Nutrition |
 | F10 | Meal Suggestion | Done | `spotter meal`, GUI Nutrition |
 | F11 | Coaching Chat with Memory | Done | GUI Coach |
-| F12 | Plan Adherence and Progression | Partial | not yet reachable |
+| F12 | Plan Adherence and Progression | Done | `spotter review` |
 | F13 | Guided Onboarding | Done, differently | GUI Profile screen |
 | F14 | Adopt an Existing Programme | Partial | `spotter adopt` |
 
@@ -255,25 +255,40 @@ architecture was right.
 | | |
 |---|---|
 | **Designed** | `PlanAdherence.compare()` assigning per prescription verdicts such as `COMPLETED_BELOW_TARGET_RPE` and `MISSED_REPS`, a `ProgressionAgent`, `AdherenceTool`, `PlanValidator.validateProgression()`, `ApplyProgressionCommand` |
-| **Implemented** | `domain/PlanAdherence` with nine tests |
-| **Status** | Partial |
+| **Implemented** | `domain/PlanAdherence`, `agent/tools/AdherenceTool`, `agent/agents/ProgressionAgent`, `PlanValidator.validateProgression`, `presentation/cli/ReviewCommand` |
+| **Status** | Done |
 
-The deterministic half is built and tested, but
-simpler than designed. Stage 1 called for a
-verdict per prescription; the implementation
-compares planned against logged tonnage per
-session, plus the heaviest load reached against
-the heaviest prescribed per lift. That is enough
-to separate a block that is not working from a
-block that was not done, which is what the
-progression decision turns on, and it needs no
-judgement about what a near miss on one set
-means.
+The adherence arithmetic is simpler than
+designed. Stage 1 called for a verdict per
+prescription, such as `COMPLETED_BELOW_TARGET_RPE`
+or `MISSED_REPS`; the implementation compares
+planned against logged tonnage per session, plus
+the heaviest load reached against the heaviest
+prescribed per lift. That is enough to separate a
+block that is not working from one that was not
+done, which is what the progression decision
+turns on, and it needs no judgement about what a
+near miss on a single set means.
 
-Not built: `ProgressionAgent`, `AdherenceTool`,
-`validateProgression` and the command that would
-apply a revision. Nothing reaches `PlanAdherence`
-from the CLI or the GUI.
+`validateProgression` is the tightest gate in the
+project, because this is the only agent that
+rewrites training the lifter is part way through.
+A revision may not drop a session or a
+competition lift, may not add load to a lift that
+fell short of its plan, and may not raise
+anything by more than five percent in a week. The
+middle rule is the one that carries the feature:
+a lift falling behind is rarely a sign that it
+was too easy.
+
+`spotter review` reports adherence with no model
+involved, and `--revise` asks the coach to
+rewrite the remaining weeks. The report stands on
+its own when there is no API key, because it was
+measured rather than generated.
+
+Not implemented: `ApplyProgressionCommand`, since
+there is no undo stack.
 
 ## F13 Guided Onboarding
 
