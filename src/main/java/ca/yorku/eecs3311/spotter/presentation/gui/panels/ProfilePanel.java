@@ -13,6 +13,8 @@ import ca.yorku.eecs3311.spotter.domain
         .Limitation;
 import ca.yorku.eecs3311.spotter.domain
         .ProfileDraft;
+import ca.yorku.eecs3311.spotter.domain
+        .StartingStrength;
 import ca.yorku.eecs3311.spotter
         .presentation.gui.GuiContext;
 import ca.yorku.eecs3311.spotter
@@ -105,9 +107,12 @@ public final class ProfilePanel
         save.setDisable(draft == null
                 || !draft.isComplete());
 
-        context.profile().ifPresent(profile ->
+        context.profile().ifPresent(profile -> {
             root.getChildren().add(
-                    existing(profile)));
+                    existing(profile));
+            root.getChildren().add(
+                    firstStep());
+        });
 
         VBox entry = Cards.card(
             "DESCRIBE YOURSELF", description,
@@ -146,6 +151,29 @@ public final class ProfilePanel
         card.getChildren().add(
             Cards.note("Describing yourself"
                 + " again replaces this."));
+        return card;
+    }
+
+    /**
+     * What to do next, once a profile exists.
+     *
+     * Onboarding otherwise ends with a saved
+     * profile and nothing to train from, which is
+     * the moment someone decides the application
+     * is not for them.
+     */
+    private Node firstStep() {
+        StartingStrength starting =
+                new StartingStrength();
+        int sessions = context.controller()
+                .workouts().findAll().size();
+
+        VBox card = Cards.card("FIRST STEP");
+        card.getChildren().add(Cards.note(
+            starting.describe(
+                context.controller()
+                    .currentE1RMs(),
+                sessions)));
         return card;
     }
 

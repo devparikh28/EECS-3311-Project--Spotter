@@ -23,7 +23,7 @@ passing.
 |---|---|---|---|
 | F01 | Lifter Profile and Constraints | Done | GUI Profile screen |
 | F02 | Workout Logging and Import | Partial | `spotter import` |
-| F03 | Recovery Input | Partial | `spotter import`, GUI Recovery |
+| F03 | Recovery Input | Done | `spotter import`, `spotter checkin`, GUI Recovery |
 | F04 | Strength Analytics | Done | `spotter analytics`, GUI Analytics |
 | F05 | Training Block Generation | Done | `spotter plan`, GUI Plan |
 | F06 | Equipment Substitution | Done | `spotter substitute`, GUI Today |
@@ -36,7 +36,7 @@ passing.
 | F13 | Guided Onboarding | Done, differently | GUI Profile screen |
 | F14 | Adopt an Existing Programme | Not built | — |
 
-Ten features are complete as designed, two are
+Eleven features are complete as designed, one is
 complete in substance but built differently from
 the Stage 1 specification, one is half built and
 one was dropped.
@@ -47,15 +47,12 @@ first to go, so this is the order of sacrifice
 the plan set rather than a rationalisation made
 afterwards.
 
-The two marked partial, F02 and F03, have their
-import halves complete and their manual entry
-halves missing. That is a deliberate narrowing
-rather than an oversight: both features were
-specified to accept typed input as well as a
-file, and a lifter who already exports from Hevy
-and Whoop never types a set in by hand. It is
-recorded here rather than quietly rounded up to
-done.
+F02 remains partial. Its import half is complete
+and its manual entry half is missing, which is a
+deliberate narrowing rather than an oversight: a
+lifter who already exports from Hevy never types
+a set in by hand. It is recorded here rather than
+quietly rounded up to done.
 
 ---
 
@@ -120,13 +117,18 @@ Reads a real Whoop physiological cycles export,
 216 rows, keeping the longest sleep cycle per
 date.
 
-`RecoverySource.MANUAL_CHECK_IN` exists in the
-domain and nothing produces one. Stage 1
-specified a check in for soreness and energy on
-days with no wearable data, and the rule engine
-already reads both fields; only the way in is
-missing. This is the smallest gap in the project
-and the easiest to close.
+`spotter checkin` records soreness, energy and
+sleep for a day with no wearable data, as
+`RecoverySource.MANUAL_CHECK_IN`, and prints the
+rule engine's verdict immediately. Without it the
+recovery feature was conditional on owning a
+particular device: a lifter without a Whoop could
+log months of training and never have a session
+questioned.
+
+Deliberately three numbers rather than a
+questionnaire, because anything longer gets
+skipped on exactly the mornings it matters.
 
 ## F04 Strength Analytics
 
@@ -201,11 +203,14 @@ the words must be one the calculator produced,
 which is the narrowest and clearest division in
 the project.
 
-`TestDayPlan` and `projectTestDay` are built and
-tested for the lifter with no meet date, and
-reachable from `CoachController`, but no command
-or screen calls them. Stage 1 specified
-`spotter test plan`; it was not written.
+`spotter testday` plans a heavy single with warm
+ups for the lifter with no meet date, which is
+most of them. The arithmetic had existed since
+the attempt calculator landed and only the way in
+was missing, so a feature built for everybody was
+reachable only by someone preparing to compete.
+Stage 1 called the command `spotter test plan`;
+it is one word rather than two.
 
 ## F09 Macro Targets and Adherence Tracking
 
@@ -295,14 +300,21 @@ unanswered questions are listed rather than
 asked, so the flow is shorter without guessing
 anything.
 
-Two designed pieces are absent.
-`validateProfileDraft` became `ProfileValidator`,
-recorded in the design changes log. And
-`StartingStrength.needsCalibration()`, which
-would decide whether to ask for known maxes or
-offer a calibration week, is not built, so a
-lifter with no training history finishes
-onboarding without a first step.
+One designed piece changed name:
+`validateProfileDraft` became
+`ProfileValidator`, recorded in the design
+changes log.
+
+`StartingStrength` is built and shown on the
+Profile screen once a profile is saved, so
+onboarding ends with something to do rather than
+with an empty application. It distinguishes a
+lifter with nothing logged, who must supply
+something before anything can be planned, from
+one with a little history, who only has to keep
+going. Telling the second group to type in their
+maxima would be asking for numbers Spotter is
+about to work out for itself.
 
 ## F14 Adopt an Existing Programme
 

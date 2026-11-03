@@ -36,6 +36,8 @@ import picocli.CommandLine.Command;
         RecoveryCommand.class,
         PlanCommand.class,
         AttemptsCommand.class,
+        TestDayCommand.class,
+        CheckInCommand.class,
         SubstituteCommand.class,
         AdjustCommand.class,
         MealCommand.class
