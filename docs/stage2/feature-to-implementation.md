@@ -22,8 +22,8 @@ passing.
 | ID | Feature | Status | Reachable from |
 |---|---|---|---|
 | F01 | Lifter Profile and Constraints | Done | GUI Profile screen |
-| F02 | Workout Import | Done | `spotter import` |
-| F03 | Recovery Import | Done | `spotter import`, GUI Recovery |
+| F02 | Workout Logging and Import | Partial | `spotter import` |
+| F03 | Recovery Input | Partial | `spotter import`, GUI Recovery |
 | F04 | Strength Analytics | Done | `spotter analytics`, GUI Analytics |
 | F05 | Training Block Generation | Done | `spotter plan`, GUI Plan |
 | F06 | Equipment Substitution | Done | `spotter substitute`, GUI Today |
@@ -33,15 +33,29 @@ passing.
 | F10 | Meal Suggestion | Done | `spotter meal`, GUI Nutrition |
 | F11 | Coaching Chat with Memory | Done | GUI Coach |
 | F12 | Plan Adherence and Progression | Partial | not yet reachable |
-| F13 | Guided Onboarding | Done | GUI Profile screen |
+| F13 | Guided Onboarding | Done, differently | GUI Profile screen |
 | F14 | Adopt an Existing Programme | Not built | — |
 
-Twelve of the fourteen are complete, one is half
-built and one was dropped. The two that fell
-short are F12 and F14, which the Stage 2 plan
-named in advance as the first to go, so this is
-the order of sacrifice the plan set rather than a
-rationalisation made afterwards.
+Ten features are complete as designed, two are
+complete in substance but built differently from
+the Stage 1 specification, one is half built and
+one was dropped.
+
+The two that fell short, F12 and F14, are the
+ones the Stage 2 plan named in advance as the
+first to go, so this is the order of sacrifice
+the plan set rather than a rationalisation made
+afterwards.
+
+The two marked partial, F02 and F03, have their
+import halves complete and their manual entry
+halves missing. That is a deliberate narrowing
+rather than an oversight: both features were
+specified to accept typed input as well as a
+file, and a lifter who already exports from Hevy
+and Whoop never types a set in by hand. It is
+recorded here rather than quietly rounded up to
+done.
 
 ---
 
@@ -67,15 +81,27 @@ and accumulating duplicate equipment.
 |---|---|
 | **Designed** | `DataSource`, `HevyCsvAdapter`, `GenericCsvAdapter`, `ColumnMapping`, `CsvImportService`, `DataSourceFactory` |
 | **Implemented** | `infrastructure/csv/DataSource`, `HevyCsvAdapter`, `CsvFileReader`, `CsvImportService`, `DataSourceFactory`, `presentation/cli/ImportCommand` |
-| **Status** | Done, less the generic adapter |
+| **Status** | Partial |
 
-`GenericCsvAdapter` and `ColumnMapping` were
-designed to let a lifter map the columns of an
-unrecognised export. They are not built. The Hevy
-adapter handles the real exports this project was
-built around, and the mapping feature would have
+Four parts of the Stage 1 specification are not
+built, and all four concern input that is not a
+Hevy file.
+
+`GenericCsvAdapter` and `ColumnMapping` were to
+let a lifter map the columns of an unrecognised
+export, with the mapping saved as a named import
+profile for next time. The `import_profile` table
+exists in the schema and nothing writes to it.
+
+Manual entry of a session, and Log as Prescribed,
+which records a planned session as performed with
+only the deviations typed in, are also absent.
+
+The Hevy adapter handles the real exports this
+project was built around. The rest would have
 been a second import feature rather than a
-completion of the first.
+completion of the first, and nothing else in the
+system depends on them.
 
 Reads a real 7318 row export, skipping 31 rows
 and reporting why. Four wrong assumptions in the
@@ -88,11 +114,19 @@ file, recorded in commit `f40b2ef`.
 |---|---|
 | **Designed** | `WhoopCsvAdapter`, `RecoveryDay`, `RecoveryRepository` |
 | **Implemented** | `infrastructure/csv/WhoopCsvAdapter`, `domain/RecoveryDay`, `domain/RecoverySource`, `infrastructure/persistence/RecoveryRepository`, `SqliteRecoveryRepository`, `presentation/cli/RecoveryCommand`, `presentation/gui/panels/RecoveryPanel` |
-| **Status** | Done |
+| **Status** | Partial |
 
 Reads a real Whoop physiological cycles export,
 216 rows, keeping the longest sleep cycle per
 date.
+
+`RecoverySource.MANUAL_CHECK_IN` exists in the
+domain and nothing produces one. Stage 1
+specified a check in for soreness and energy on
+days with no wearable data, and the rule engine
+already reads both fields; only the way in is
+missing. This is the smallest gap in the project
+and the easiest to close.
 
 ## F04 Strength Analytics
 
@@ -167,6 +201,12 @@ the words must be one the calculator produced,
 which is the narrowest and clearest division in
 the project.
 
+`TestDayPlan` and `projectTestDay` are built and
+tested for the lifter with no meet date, and
+reachable from `CoachController`, but no command
+or screen calls them. Stage 1 specified
+`spotter test plan`; it was not written.
+
 ## F09 Macro Targets and Adherence Tracking
 
 | | |
@@ -234,9 +274,35 @@ from the CLI or the GUI.
 
 | | |
 |---|---|
-| **Designed** | An onboarding interview agent producing a profile |
+| **Designed** | `OnboardingAgent` asking at most eight questions one at a time and adapting to the answers, `ProfileDraft`, `PlanValidator.validateProfileDraft()`, `StartingStrength.needsCalibration()` |
 | **Implemented** | `agent/agents/OnboardingAgent`, `domain/ProfileDraft`, `agent/ProfileValidator`, `presentation/support/PreparedProfile`, `presentation/gui/panels/ProfilePanel` |
-| **Status** | Done |
+| **Status** | Done, differently |
+
+Stage 1 designed an interview: up to eight
+questions, asked one at a time, adapting to what
+had been answered. The implementation reads a
+single paragraph and reports what it understood
+alongside what the lifter has not said.
+
+The change was made because the interview is the
+expensive version of the same thing. Eight
+adaptive questions is eight model calls and eight
+screens; a paragraph is one call and one screen,
+and a lifter who leaves something out is asked
+for exactly that, which is what the adaptive part
+of the interview existed to achieve. The
+unanswered questions are listed rather than
+asked, so the flow is shorter without guessing
+anything.
+
+Two designed pieces are absent.
+`validateProfileDraft` became `ProfileValidator`,
+recorded in the design changes log. And
+`StartingStrength.needsCalibration()`, which
+would decide whether to ask for known maxes or
+offer a calibration week, is not built, so a
+lifter with no training history finishes
+onboarding without a first step.
 
 ## F14 Adopt an Existing Programme
 
