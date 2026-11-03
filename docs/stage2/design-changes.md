@@ -262,7 +262,32 @@ one directory and a command from another produces
 two databases and a great deal of confusion about
 why an import did not appear.
 
-## 12. Known limitation: competition lift variations
+## 12. Validation moved into the agents
+
+**Commits** `31f4e98`, `28b71b7`, `606712b`
+
+Stage 1 put every check on `PlanValidator`:
+`validateSubstitution`, `validateProgression` and
+the rest. In the implementation the substitution
+and adjustment checks live in their own agents
+instead, as `validate` overrides on the template.
+
+The reason is that the template already demands a
+validate step from every agent, so a check that
+belongs to exactly one agent has a natural home
+there, and putting it on a shared class would
+mean passing that agent's context into a class
+with no other use for it. The checks that stayed
+on `PlanValidator` are the ones a second caller
+could reasonably want: block loads, meal limits,
+and the figures in an attempt explanation.
+
+The gate is in the same place conceptually, which
+is between the model and the lifter. It is simply
+not all in one class, and the mapping document
+records exactly where each check now lives.
+
+## 13. Known limitation: competition lift variations
 
 **Found** 3 November, not yet fixed
 
