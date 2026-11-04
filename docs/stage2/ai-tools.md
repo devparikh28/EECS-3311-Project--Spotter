@@ -47,23 +47,22 @@ Spotter reports what every run cost, through `presentation/support/UsageReport`,
 
 The reported figure is an upper bound rather than an exact cost, and deliberately so. A single pair of rates is configured, 3 and 15 dollars per million input and output tokens, which are the reasoning model's published rates. The ordinary model is cheaper, at 1 and 5, so any run that used the ordinary tier is reported as costing more than it did. The reasoning is written into `.env.example`: a cost that overstates and says so is worth more than one that looks precise and is not.
 
-Measured usage:
+What it cost:
 
 | What | Calls | Input tokens | Output tokens | Cost |
 |---|---|---|---|---|
 | First live run of the agents, including every call that failed or was refused | 9 | not recorded | not recorded | roughly 24 cents, measured |
-| Whole project, 2 November onward | `TO FILL IN` | `TO FILL IN` | `TO FILL IN` | `TO FILL IN` |
+| Whole project, every live call ever made | not shown by the console | 56,326 | 45,807 | $0.82 |
 
-<!-- FILL IN: Anthropic console, Usage, filtered from 2 November 2026.
-     Take total cost, total input tokens, total output tokens, and the
-     number of requests if it shows one. Replace the four cells above and
-     delete this comment. -->
+Those are the account totals from the Anthropic console, and they are the project's totals because this key was never used for anything else. All of it falls on one day, 2 November 2026, which is the day the agents were first run against the real API. The console shows no usage before it and none since.
 
-The first row was measured by the application itself. `UsageReport` reads the token counts out of `AgentTrace` and prices them, so any command run with `--trace` prints what that run cost, and `--json` reports the counts under `trace.usage`.
+The first row was measured by the application itself, through the reporting described above. The second row has to come from the Anthropic console rather than from the repository, because responses are not persisted. `RecordingLLMClient` exists precisely to capture them and was not switched on during the live sessions. That was a mistake: it would have cost nothing to enable and would have made this table exact rather than a reading taken from an account page.
 
-The second row has to come from the Anthropic console rather than from the repository, because responses are not persisted. `RecordingLLMClient` exists precisely to capture them and was not switched on during the live sessions. That was a mistake: it would have cost nothing to enable and would have made this table exact rather than a reading taken from an account page.
+One caveat, and it works in the reader's favour. The figure counts every call, including the ones that failed against retired model identifiers and the ones whose proposals the validator refused. That is the honest number, because a refused proposal costs exactly what an accepted one costs, and this project refuses a lot of them by design.
 
-Two caveats on the console figure. It is the account total for the period, so it includes anything else on the same key, and the project was the only thing using it. And it counts every call, including the ones that failed against retired model identifiers and the ones whose proposals the validator refused, which is the honest number to report: a refused proposal costs the same as an accepted one.
+The two rows are consistent with each other. The nine call session was measured by the application at roughly 24 cents, and the console puts every live call ever made at 82 cents, which is about the right multiple for the handful of sessions that followed.
+
+The totals also check out against the published rates, which is worth doing because the application's own cost reporting depends on them. At the reasoning model's rates of 3 and 15 dollars per million, 56,326 input tokens and 45,807 output tokens come to 86 cents. The console says 82. The small difference is the calls that went to the fast model at 1 and 5, which is also what you would expect from the tiering: the ordinary agents are cheap and short, and the output heavy work is block generation and programme parsing, both on the reasoning tier.
 
 ### Why the cost is as low as it is
 
