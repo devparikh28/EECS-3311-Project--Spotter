@@ -4,14 +4,6 @@ Dev Parikh, 219957794. EECS 3311 Software Design, Stage 2.
 
 Repository: https://github.com/devparikh28/EECS-3311-Project--Spotter
 
-> DRAFT. Sessions 7, 8 and 9 are written from a full record of those
-> sessions. Sessions 1 to 6 are reconstructed from the commit history, the
-> code and the design changes log, so the decisions are real and
-> checkable but the attribution of some of them needs confirming before
-> this is submitted. The paragraphs to check are listed at the bottom
-> under "Entries still to confirm". Delete this note and that section
-> once they are settled.
-
 ## What this document is
 
 Stage 2 asks for a representative log of the collaboration rather than a transcript, so this is one entry per working session, nine in all, covering ninety four commits between 28 September and 4 November 2026. Each entry says what was asked for, what the model produced, what I did with it, and what actually ended up in the repository.
@@ -130,13 +122,15 @@ Commits `5c12814` to `b6ec235`, twenty seven commits. The longest session.
 
 **Produced.** Seven agents, eight dashboard panels, the memory layer, nutrition storage and the cost report.
 
-**Reviewed and changed.** Three things I pushed back on.
+**Reviewed and changed.** One thing I pushed back on, and two I was argued into.
 
 The limits in the validator were first set against the test catalogue rather than against anything real, which is design change 4. Twelve sets, thirty reps, seven sessions a week: numbers chosen because the tests passed with them. I had them reset against what a plan for an actual lifter can contain, and the reasoning written down, because a limit nobody can explain is a limit nobody can change safely.
 
-Conversations are not stored, which is design change 8, and that was my decision against the first proposal. The chat coach was going to persist the whole conversation. I had it persist facts the lifter states and nothing else, through `MemoryManager`, because storing a conversation means storing everything a model said, including whatever it got wrong, and then reading it back as though it were true.
+The two memory decisions went the other way, and this entry says so because a log that credits the human for everything is not worth reading. I had assumed the chat coach would persist the conversation, which is what a chat feature normally does. The assistant proposed not storing it: persist facts the lifter states and nothing else, through `MemoryManager`, on the argument that storing a conversation means storing everything the model said, including whatever it got wrong, and then reading it back later as though it were true. I accepted that, and it is design change 8.
 
-The memory gate, design change 9, followed from that: what gets remembered is gated rather than accepted, because the thing writing to memory is the same thing that might hallucinate the fact.
+The memory gate, design change 9, came from the same proposal and I accepted it for the same reason: the thing writing to memory is the same thing that might hallucinate the fact, so what gets remembered has to be gated rather than taken at face value.
+
+Both were good calls and neither was mine. What I did do was make them explicit in the design changes log rather than leaving them as implementation detail, which is why they can be checked now.
 
 **Landed.** `BlockGenerationAgent`, `SubstitutionAgent`, `AdjustmentAgent`, `AttemptRationaleAgent`, `MealSuggestionAgent`, `OnboardingAgent`, `ChatAgent`, the eight panels, `MemoryManager` and the usage report.
 
@@ -206,29 +200,11 @@ Observer changed existing behaviour rather than adding structure beside it. Pane
 
 ---
 
-## Entries still to confirm
-
-These are the claims in sessions 1 to 6 that were reconstructed rather than recorded. Each one is supported by a commit or by a design changes entry, so the change itself happened; what needs confirming is whether the decision was mine, and whether the reason given is the reason I had at the time.
-
-Session 1. That the four redirections (the stack switch, the optional meet date, the explicit split, working with any tracking application) were mine rather than suggested, and that F12, F13 and F14 were added at my request after reading the first draft.
-
-Session 2. That the architecture diagram was redrawn because the first version implied dependencies the design does not have.
-
-Session 3. That taking `--env` on every command was my call, and that the reason was keeping the test suite out of the working directory.
-
-Session 4. That the split between `RecoveryRuleEngine` deciding whether a day is flagged and a separate fallback deciding what to do was my rejection of a combined first version.
-
-Session 5. That splitting `ProfileValidator` out of `PlanValidator` and moving validation inside the agents were both my decisions.
-
-Session 6. That not storing conversations, and gating what goes into memory, were my decisions against a first proposal that persisted everything.
-
-Anything on this list that turns out to have gone the other way should be rewritten as the model proposing and me accepting, which is just as legitimate an entry and a good deal more useful than a log that overstates the human half.
-
 ## What I would do differently
 
 Three things.
 
-I should have kept this log as the work happened rather than reconstructing it from ninety four commits. The Stage 2 plan I wrote on 30 September says exactly that, in those words, and I did not follow it. The reconstruction is accurate because the commit messages are detailed and the design changes were recorded at the time, but it took a session to write and some of the detail from the earlier sessions is thinner than it should be.
+I should have kept this log as the work happened rather than reconstructing it from ninety four commits. The Stage 2 plan I wrote on 30 September says exactly that, in those words, and I did not follow it. The reconstruction held up: the commit messages are detailed and the design changes were recorded at the time, so going back through the earlier sessions I could confirm every decision in them but one, where the assistant had written up the memory design as my call and it was in fact its proposal that I accepted. That entry is corrected. But it took a session to write, and one misattribution out of six is a reminder that this is not a document anyone should be reconstructing.
 
 I should have run against the real API earlier. Session seven found six real problems in under two hours, three of them in our own code and three in assumptions about the model. Every one of them would have been cheaper to find in session five than in session seven.
 
