@@ -4,703 +4,791 @@
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>1680</x>
+      <x>1520</x>
       <y>20</y>
-      <w>270</w>
-      <h>100</h>
+      <w>360</w>
+      <h>220</h>
     </coordinates>
-    <panel_attributes>DashboardGUI
+    <panel_attributes>DashboardApp
+--
+_+ WIDTH : double = 1040_
+_+ HEIGHT : double = 720_
+- context : GuiContext
+- stale : Set&lt;Panel&gt;
+- drawn : Set&lt;Panel&gt;
+- showing : Panel
+--
++ start(stage : Stage) : void
++ stop() : void
+- subscribe(panels : List&lt;Panel&gt;) : void
+- changed(panel : Panel) : void
+- show(panel : Panel, index : int) : void</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>2650</x>
+      <y>300</y>
+      <w>290</w>
+      <h>130</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;interface&gt;&gt;
+Panel
+--
++ title() : String
++ description() : String
++ node() : Node
++ refresh() : void
++ changedBy() : Set&lt;SpotterEvent&gt;</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1370</x>
+      <y>500</y>
+      <w>330</w>
+      <h>200</h>
+    </coordinates>
+    <panel_attributes>GuiContext
 --
 - controller : CoachController
-- panels : List&lt;BasePanel&gt;
+- events : EventBus
+- tasks : FxTaskRunner
 --
-+ show() : void</panel_attributes>
++ controller() : CoachController
++ events() : EventBus
++ tasks() : FxTaskRunner
++ profile() : Optional&lt;LifterProfile&gt;
++ hasModel() : boolean
++ model() : Optional&lt;LLMClient&gt;
++ close() : void</panel_attributes>
     <additional_attributes />
   </element>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>1670</x>
-      <y>180</y>
-      <w>290</w>
-      <h>100</h>
-    </coordinates>
-    <panel_attributes>/BasePanel/
---
-# controller : CoachController
---
-/+ refresh() : void/
-+ onEvent(e : DomainEvent) : void</panel_attributes>
-    <additional_attributes />
-  </element>
-  <element>
-    <id>UMLClass</id>
-    <coordinates>
-      <x>2530</x>
-      <y>620</y>
-      <w>220</w>
-      <h>60</h>
-    </coordinates>
-    <panel_attributes>ProfilePanel
---
-+ onSaveClicked() : void</panel_attributes>
-    <additional_attributes />
-  </element>
-  <element>
-    <id>UMLClass</id>
-    <coordinates>
-      <x>20</x>
-      <y>610</y>
-      <w>300</w>
+      <x>1510</x>
+      <y>940</y>
+      <w>710</w>
       <h>90</h>
     </coordinates>
-    <panel_attributes>LogPanel
+    <panel_attributes>FxTaskRunner
 --
-+ onImportWorkoutsClicked() : void
-+ onImportRecoveryClicked() : void
-+ onManualEntrySubmitted() : void</panel_attributes>
++ run(work : Supplier&lt;T&gt;, onDone : Consumer&lt;T&gt;, onError : Consumer&lt;Throwable&gt;) : void
+_+ onInterfaceThread(r : Runnable) : void_
++ close() : void</panel_attributes>
     <additional_attributes />
   </element>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>360</x>
-      <y>620</y>
-      <w>320</w>
+      <x>1930</x>
+      <y>80</y>
+      <w>600</w>
+      <h>100</h>
+    </coordinates>
+    <panel_attributes>ModelAccess
+--
+_+ open(c : SpotterConfig, demo : boolean, prepared : String) : Access_
++ isLive() : boolean
++ explanation() : String
++ client() : LLMClient</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>2570</x>
+      <y>100</y>
+      <w>610</w>
       <h>60</h>
     </coordinates>
-    <panel_attributes>AnalyticsPanel
+    <panel_attributes>UsageReport
 --
-+ onLiftSelected(lift : Lift) : void</panel_attributes>
+_+ describe(t : AgentTrace, inPerM : double, outPerM : double) : String_</panel_attributes>
     <additional_attributes />
   </element>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>730</x>
-      <y>590</y>
-      <w>460</w>
-      <h>120</h>
+      <x>3660</x>
+      <y>580</y>
+      <w>140</w>
+      <h>50</h>
+    </coordinates>
+    <panel_attributes>DashboardPanel
+--</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>3840</x>
+      <y>540</y>
+      <w>410</w>
+      <h>130</h>
+    </coordinates>
+    <panel_attributes>TodayPanel
+--
+_+ FLAG_WEEKS : int = 1_
+- history : PlanEditHistory
+--
+- onSwapClicked(p : ExercisePrescription) : void
+- onEaseOffClicked(f : RecoveryFlag) : void
+- onUndoClicked() : void</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1830</x>
+      <y>560</y>
+      <w>250</w>
+      <h>80</h>
     </coordinates>
     <panel_attributes>PlanPanel
 --
-+ onGenerateClicked() : void
-+ onAdoptProgrammeClicked(src : AdoptionSource) : void
-+ onSubstituteClicked(prescriptionId : int) : void
-+ onAdjustClicked(sessionId : int) : void
-+ onUndoClicked() : void</panel_attributes>
-    <additional_attributes />
-  </element>
-  <element>
-    <id>UMLClass</id>
-    <coordinates>
-      <x>1230</x>
-      <y>620</y>
-      <w>260</w>
-      <h>60</h>
-    </coordinates>
-    <panel_attributes>MeetPanel
---
-+ onCalculateClicked() : void</panel_attributes>
-    <additional_attributes />
-  </element>
-  <element>
-    <id>UMLClass</id>
-    <coordinates>
-      <x>1530</x>
-      <y>610</y>
-      <w>280</w>
-      <h>80</h>
-    </coordinates>
-    <panel_attributes>NutritionPanel
---
-+ onLogIntakeClicked() : void
-+ onSuggestMealClicked() : void</panel_attributes>
-    <additional_attributes />
-  </element>
-  <element>
-    <id>UMLClass</id>
-    <coordinates>
-      <x>1860</x>
-      <y>620</y>
-      <w>220</w>
-      <h>60</h>
-    </coordinates>
-    <panel_attributes>ChatPanel
---
-+ onSendClicked() : void</panel_attributes>
+- onGenerateClicked() : void
+- onKeepClicked() : void</panel_attributes>
     <additional_attributes />
   </element>
   <element>
     <id>UMLClass</id>
     <coordinates>
       <x>2120</x>
-      <y>610</y>
-      <w>370</w>
-      <h>80</h>
-    </coordinates>
-    <panel_attributes>OnboardingPanel
---
-+ onAnswerSubmitted(answer : String) : void
-+ onConfirmProfileClicked() : void</panel_attributes>
-    <additional_attributes />
-  </element>
-  <element>
-    <id>UMLClass</id>
-    <coordinates>
-      <x>3410</x>
-      <y>190</y>
-      <w>290</w>
-      <h>90</h>
-    </coordinates>
-    <panel_attributes>CoachCLI
---
-- controller : CoachController
---
-+ run(argv : List&lt;String&gt;) : int</panel_attributes>
-    <additional_attributes />
-  </element>
-  <element>
-    <id>UMLClass</id>
-    <coordinates>
-      <x>3060</x>
-      <y>350</y>
-      <w>1000</w>
-      <h>610</h>
-    </coordinates>
-    <panel_attributes>&lt;&lt;Facade&gt;&gt;
-CoachController
---
-- profiles : ProfileRepository
-- workouts : WorkoutRepository
-- recovery : RecoveryRepository
-- blocks : BlockRepository
-- intake : IntakeRepository
-- importer : CsvImportService
-- analytics : StrengthAnalytics
-- attempts : AttemptCalculator
-- macros : MacroTracker
-- ruleEngine : RecoveryRuleEngine
-- agents : AgentRegistry
-- events : EventBus
-- editHistory : PlanEditHistory
---
-+ saveProfile(p : LifterProfile) : void
-+ importWorkouts(path : String) : ImportReport
-+ importRecovery(path : String) : ImportReport
-+ logWorkout(s : WorkoutSession) : void
-+ logSessionAsPrescribed(sessionId : int, deviations : List&lt;SetEntry&gt;) : WorkoutSession
-+ recordCheckIn(d : RecoveryDay) : RecoveryFlag [0..1]
-+ importWithMapping(path : String, m : ColumnMapping) : ImportReport
-+ saveImportProfile(m : ColumnMapping) : void
-+ getAnalytics(lift : Lift) : AnalyticsSummary
-+ generateBlock(weeks : int) : AgentResult&lt;TrainingBlock&gt;
-+ suggestSubstitute(prescriptionId : int, reason : SubstitutionReason, note : String) : AgentResult&lt;ExercisePrescription&gt;
-+ setStartingStrength(lift : Lift, kg : double) : void
-+ startCalibrationWeek() : TrainingBlock
-+ runOnboarding() : AgentResult&lt;ProfileDraft&gt;
-+ adoptProgramme(source : String, kind : AdoptionSource) : AgentResult&lt;TrainingBlock&gt;
-+ flagSessions() : List&lt;RecoveryFlag&gt;
-+ adjustSession(sessionId : int) : AgentResult&lt;Session&gt;
-+ calculateAttempts() : List&lt;MeetAttempts&gt;
-+ logIntake(e : FoodEntry) : MacroTotals
-+ suggestMeal() : AgentResult&lt;MealSuggestion&gt;
-+ reviewAdherence(weekNumber : int) : AdherenceReport
-+ progressPlan(weekNumber : int) : AgentResult&lt;TrainingBlock&gt;
-+ chat(message : String) : AgentResult&lt;String&gt;
-+ applyEdit(cmd : PlanEditCommand) : void
-+ undoLastEdit() : void</panel_attributes>
-    <additional_attributes />
-  </element>
-  <element>
-    <id>UMLClass</id>
-    <coordinates>
-      <x>4180</x>
-      <y>1080</y>
-      <w>710</w>
+      <y>570</y>
+      <w>320</w>
       <h>60</h>
     </coordinates>
-    <panel_attributes>FxTaskRunner
+    <panel_attributes>AnalyticsPanel
 --
-+ run(work : Supplier&lt;T&gt;, onDone : Consumer&lt;T&gt;, onError : Consumer&lt;Throwable&gt;) : void</panel_attributes>
+- onLiftSelected(lift : Lift) : void</panel_attributes>
     <additional_attributes />
   </element>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>2880</x>
-      <y>1040</y>
-      <w>460</w>
-      <h>130</h>
+      <x>2480</x>
+      <y>580</y>
+      <w>130</w>
+      <h>50</h>
     </coordinates>
-    <panel_attributes>&lt;&lt;Observer: Subject&gt;&gt;
-EventBus
---
-- listeners : Map&lt;EventType, List&lt;EventListener&gt;&gt;
---
-+ subscribe(t : EventType, l : EventListener) : void
-+ unsubscribe(t : EventType, l : EventListener) : void
-+ publish(e : DomainEvent) : void</panel_attributes>
+    <panel_attributes>RecoveryPanel
+--</panel_attributes>
     <additional_attributes />
   </element>
   <element>
     <id>UMLClass</id>
     <coordinates>
       <x>2660</x>
-      <y>1270</y>
+      <y>560</y>
+      <w>280</w>
+      <h>80</h>
+    </coordinates>
+    <panel_attributes>NutritionPanel
+--
+- onLogIntakeClicked() : void
+- onSuggestMealClicked() : void</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>2980</x>
+      <y>570</y>
+      <w>220</w>
+      <h>60</h>
+    </coordinates>
+    <panel_attributes>CoachPanel
+--
+- onSendClicked() : void</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>3240</x>
+      <y>560</y>
       <w>290</w>
+      <h>80</h>
+    </coordinates>
+    <panel_attributes>ProfilePanel
+--
+- onRunOnboardingClicked() : void
+- onSaveClicked() : void</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>450</x>
+      <y>560</y>
+      <w>590</w>
+      <h>80</h>
+    </coordinates>
+    <panel_attributes>CoachCLI
+--
++ run(argv : List&lt;String&gt;) : int
++ run(argv : List&lt;String&gt;, out : PrintWriter, err : PrintWriter) : int</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>20</x>
+      <y>940</y>
+      <w>880</w>
+      <h>100</h>
+    </coordinates>
+    <panel_attributes>JsonOutput
+--
+_+ write(out : PrintWriter, command : String, r : AgentResult&lt;T&gt;, value : object, steps : boolean) : void_
+_+ refusal(out : PrintWriter, command : String, why : String) : void_
+_+ block(b : TrainingBlock) : Map&lt;String, Object&gt;_
+_+ session(s : Session) : Map&lt;String, Object&gt;_</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>940</x>
+      <y>760</y>
+      <w>520</w>
+      <h>450</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;Facade&gt;&gt;
+CoachController
+--
+_+ RECENT_WEEKS : int = 8_
+- database : Database
+- importer : CsvImportService
+- analytics : StrengthAnalytics
+- attempts : AttemptCalculator
+- ruleEngine : RecoveryRuleEngine
+--
++ profiles() : ProfileRepository
++ workouts() : WorkoutRepository
++ recovery() : RecoveryRepository
++ blocks() : BlockRepository
++ catalog() : ExerciseCatalog
++ foods() : FoodCatalog
++ importProfiles() : ImportProfileRepository
++ detect(file : Path) : SourceKind
++ importFile(file : Path) : ImportReport
++ importMapped(file : Path, m : ColumnMapping) : ImportReport
++ getAnalytics(lift : Lift) : AnalyticsSummary
++ currentE1RMs() : Map&lt;Lift, Double&gt;
++ allTimeE1RMs() : Map&lt;Lift, Double&gt;
++ trendFor(lift : Lift) : Optional&lt;Double&gt;
++ calculateAttempts(lift : Lift) : Optional&lt;MeetAttempts&gt;
++ projectTestDay(lift : Lift) : Optional&lt;TestDayPlan&gt;
++ recoveryFlags(since : LocalDate) : List&lt;RecoveryFlag&gt;
++ hasTrainingHistory() : boolean
++ loadSampleData(today : LocalDate) : int
++ loadSampleFoods() : int
++ close() : void</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>2260</x>
+      <y>890</y>
+      <w>630</w>
+      <h>190</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;Observer: Subject&gt;&gt;
+EventBus
+--
+- listeners : Map&lt;SpotterEvent, List&lt;EventListener&gt;&gt;
+- failures : List&lt;RuntimeException&gt;
+--
++ subscribe(e : SpotterEvent, l : EventListener) : void
++ subscribeAll(events : Collection&lt;SpotterEvent&gt;, l : EventListener) : void
++ publish(e : SpotterEvent) : void
++ subscriberCount(e : SpotterEvent) : int
++ failures() : List&lt;RuntimeException&gt;
++ clear() : void</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1480</x>
+      <y>1300</y>
+      <w>300</w>
       <h>90</h>
     </coordinates>
     <panel_attributes>&lt;&lt;interface&gt;&gt;
 &lt;&lt;Observer&gt;&gt;
 EventListener
 --
-+ onEvent(e : DomainEvent) : void</panel_attributes>
++ onEvent(e : SpotterEvent) : void</panel_attributes>
     <additional_attributes />
   </element>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>3000</x>
-      <y>1270</y>
-      <w>250</w>
-      <h>90</h>
-    </coordinates>
-    <panel_attributes>DomainEvent
---
-+ type : EventType
-+ payload : object
-+ timestamp : LocalDateTime</panel_attributes>
-    <additional_attributes />
-  </element>
-  <element>
-    <id>UMLClass</id>
-    <coordinates>
-      <x>2000</x>
-      <y>20</y>
-      <w>140</w>
+      <x>2990</x>
+      <y>1290</y>
+      <w>170</w>
       <h>100</h>
     </coordinates>
     <panel_attributes>&lt;&lt;enum&gt;&gt;
-AdoptionSource
+SpotterEvent
 --
-MANUAL_ENTRY
-CSV_FILE
-PASTED_TEXT</panel_attributes>
+BLOCK_CHANGED
+PROFILE_CHANGED
+NUTRITION_CHANGED</panel_attributes>
     <additional_attributes />
   </element>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>3000</x>
-      <y>1440</y>
-      <w>160</w>
-      <h>130</h>
-    </coordinates>
-    <panel_attributes>&lt;&lt;enum&gt;&gt;
-EventType
---
-PROFILE_UPDATED
-DATA_IMPORTED
-PLAN_UPDATED
-RECOVERY_FLAGGED
-INTAKE_LOGGED</panel_attributes>
-    <additional_attributes />
-  </element>
-  <element>
-    <id>UMLClass</id>
-    <coordinates>
-      <x>3390</x>
-      <y>1040</y>
-      <w>340</w>
-      <h>130</h>
+      <x>3850</x>
+      <y>870</y>
+      <w>400</w>
+      <h>240</h>
     </coordinates>
     <panel_attributes>&lt;&lt;Command: Invoker&gt;&gt;
 PlanEditHistory
 --
-- undoStack : List&lt;PlanEditCommand&gt;
+_+ MAX_EDITS : int = 20_
+- done : Deque&lt;PlanEditCommand&gt;
+- current : TrainingBlock
 --
-+ execute(cmd : PlanEditCommand) : void
-+ undo() : void
-+ canUndo() : boolean</panel_attributes>
++ current() : TrainingBlock
++ apply(cmd : PlanEditCommand) : TrainingBlock
++ canUndo() : boolean
++ nextToUndo() : Optional&lt;String&gt;
++ undo() : Optional&lt;TrainingBlock&gt;
++ describe() : List&lt;String&gt;
++ size() : int
++ rebase(b : TrainingBlock) : void
++ clear() : void</panel_attributes>
     <additional_attributes />
   </element>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>3500</x>
-      <y>1260</y>
-      <w>200</w>
+      <x>3860</x>
+      <y>1280</y>
+      <w>370</w>
       <h>120</h>
     </coordinates>
     <panel_attributes>&lt;&lt;interface&gt;&gt;
 &lt;&lt;Command&gt;&gt;
 PlanEditCommand
 --
-+ execute() : void
-+ undo() : void
++ describe() : String
++ apply(b : TrainingBlock) : TrainingBlock
++ undo(b : TrainingBlock) : TrainingBlock</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>3800</x>
+      <y>1470</y>
+      <w>370</w>
+      <h>130</h>
+    </coordinates>
+    <panel_attributes>/ReplaceSessionCommand/
+--
+- replacement : Session
+- previous : Session
+--
++ apply(b : TrainingBlock) : TrainingBlock
++ undo(b : TrainingBlock) : TrainingBlock
+# replacement() : Session</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>3730</x>
+      <y>1660</y>
+      <w>260</w>
+      <h>90</h>
+    </coordinates>
+    <panel_attributes>SwapExerciseCommand
+--
+- substitution : Substitution
+--
 + describe() : String</panel_attributes>
     <additional_attributes />
   </element>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>4020</x>
-      <y>1460</y>
-      <w>220</w>
-      <h>100</h>
-    </coordinates>
-    <panel_attributes>SwapExerciseCommand
---
-- block : TrainingBlock
-- prescriptionId : int
-- newExercise : Exercise
-- previous : Exercise</panel_attributes>
-    <additional_attributes />
-  </element>
-  <element>
-    <id>UMLClass</id>
-    <coordinates>
-      <x>3200</x>
-      <y>1460</y>
-      <w>230</w>
-      <h>100</h>
-    </coordinates>
-    <panel_attributes>ChangeLoadCommand
---
-- block : TrainingBlock
-- prescriptionId : int
-- newLoadKg : double
-- previousLoadKg : double</panel_attributes>
-    <additional_attributes />
-  </element>
-  <element>
-    <id>UMLClass</id>
-    <coordinates>
-      <x>3470</x>
-      <y>1460</y>
-      <w>250</w>
-      <h>90</h>
-    </coordinates>
-    <panel_attributes>ApplyProgressionCommand
---
-- block : TrainingBlock
-- revisedWeeks : List&lt;Week&gt;
-- previousWeeks : List&lt;Week&gt;</panel_attributes>
-    <additional_attributes />
-  </element>
-  <element>
-    <id>UMLClass</id>
-    <coordinates>
-      <x>3770</x>
-      <y>1460</y>
+      <x>4290</x>
+      <y>1660</y>
       <w>210</w>
       <h>90</h>
     </coordinates>
     <panel_attributes>ApplyAdjustmentCommand
 --
-- block : TrainingBlock
-- adjusted : Session
-- original : Session</panel_attributes>
+- before : double
+--
++ describe() : String</panel_attributes>
     <additional_attributes />
   </element>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>3770</x>
-      <y>1020</y>
+      <x>4210</x>
+      <y>1470</y>
       <w>370</w>
-      <h>170</h>
+      <h>130</h>
     </coordinates>
-    <panel_attributes>AgentRegistry
+    <panel_attributes>ApplyProgressionCommand
 --
-+ blockGen : BlockGenerationAgent
-+ substitution : SubstitutionAgent
-+ adjustment : AdjustmentAgent
-+ attemptRationale : AttemptRationaleAgent
-+ meal : MealSuggestionAgent
-+ onboarding : OnboardingAgent
-+ programmeParser : ProgrammeParserAgent
-+ progression : ProgressionAgent
-+ chat : ChatAgent</panel_attributes>
+- revised : TrainingBlock
+- previous : TrainingBlock
+--
++ describe() : String
++ apply(b : TrainingBlock) : TrainingBlock
++ undo(b : TrainingBlock) : TrainingBlock</panel_attributes>
     <additional_attributes />
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>1800</x>
-      <y>110</y>
-      <w>20</w>
-      <h>80</h>
+      <x>1870</x>
+      <y>160</y>
+      <w>790</w>
+      <h>190</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-
 m1=1
-m2=7</panel_attributes>
-    <additional_attributes>15.0;10.0;15.0;70.0</additional_attributes>
+m2=8</panel_attributes>
+    <additional_attributes>10.0;8.6;780.0;173.9</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>1900</x>
-      <y>270</y>
-      <w>690</w>
-      <h>360</h>
-    </coordinates>
-    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
-    <additional_attributes>13.2;10.0;681.1;350.0</additional_attributes>
-  </element>
-  <element>
-    <id>Relation</id>
-    <coordinates>
-      <x>310</x>
-      <y>260</y>
-      <w>1370</w>
-      <h>370</h>
-    </coordinates>
-    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
-    <additional_attributes>1360.0;7.5;10.0;356.2</additional_attributes>
-  </element>
-  <element>
-    <id>Relation</id>
-    <coordinates>
-      <x>600</x>
-      <y>270</y>
-      <w>1080</w>
-      <h>360</h>
-    </coordinates>
-    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
-    <additional_attributes>1070.0;7.0;12.5;350.0</additional_attributes>
-  </element>
-  <element>
-    <id>Relation</id>
-    <coordinates>
-      <x>1070</x>
-      <y>270</y>
-      <w>650</w>
-      <h>330</h>
-    </coordinates>
-    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
-    <additional_attributes>643.2;10.0;12.1;320.0</additional_attributes>
-  </element>
-  <element>
-    <id>Relation</id>
-    <coordinates>
-      <x>1380</x>
-      <y>270</y>
-      <w>390</w>
-      <h>360</h>
-    </coordinates>
-    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
-    <additional_attributes>380.8;10.0;12.5;350.0</additional_attributes>
-  </element>
-  <element>
-    <id>Relation</id>
-    <coordinates>
-      <x>1670</x>
-      <y>270</y>
-      <w>130</w>
-      <h>350</h>
-    </coordinates>
-    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
-    <additional_attributes>127.7;10.0;13.8;340.0</additional_attributes>
-  </element>
-  <element>
-    <id>Relation</id>
-    <coordinates>
-      <x>1820</x>
-      <y>270</y>
-      <w>150</w>
-      <h>360</h>
-    </coordinates>
-    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
-    <additional_attributes>13.5;10.0;138.9;350.0</additional_attributes>
-  </element>
-  <element>
-    <id>Relation</id>
-    <coordinates>
-      <x>1860</x>
-      <y>270</y>
-      <w>410</w>
-      <h>350</h>
-    </coordinates>
-    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
-    <additional_attributes>13.3;10.0;398.3;340.0</additional_attributes>
-  </element>
-  <element>
-    <id>Relation</id>
-    <coordinates>
-      <x>1850</x>
-      <y>270</y>
-      <w>920</w>
-      <h>1010</h>
+      <x>2930</x>
+      <y>390</y>
+      <w>740</w>
+      <h>200</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;.</panel_attributes>
-    <additional_attributes>913.9;1000.0;10.6;10.0</additional_attributes>
+    <additional_attributes>10.0;12.2;730.0;197.0</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>1950</x>
-      <y>260</y>
-      <w>1120</w>
-      <h>290</h>
+      <x>2930</x>
+      <y>380</y>
+      <w>920</w>
+      <h>190</h>
     </coordinates>
-    <panel_attributes>lt=&lt;-
-m1=1
-m2=*</panel_attributes>
-    <additional_attributes>1110.0;273.2;10.0;5.3</additional_attributes>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>10.0;12.8;910.0;185.6</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>3550</x>
-      <y>270</y>
+      <x>2070</x>
+      <y>400</y>
+      <w>590</w>
+      <h>180</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>580.0;5.6;10.0;165.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>2340</x>
+      <y>420</y>
+      <w>330</w>
+      <h>160</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>312.6;10.0;5.7;150.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>2560</x>
+      <y>420</y>
+      <w>180</w>
+      <h>170</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>167.3;10.0;11.0;160.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>2790</x>
+      <y>420</y>
       <w>20</w>
-      <h>90</h>
+      <h>150</h>
     </coordinates>
-    <panel_attributes>lt=&lt;-
-m1=1</panel_attributes>
-    <additional_attributes>6.4;80.0;5.5;10.0</additional_attributes>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>6.4;10.0;9.1;140.0</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>3160</x>
-      <y>950</y>
-      <w>100</w>
-      <h>100</h>
+      <x>2870</x>
+      <y>420</y>
+      <w>200</w>
+      <h>160</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>6.6;10.0;182.3;150.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>2930</x>
+      <y>410</y>
+      <w>360</w>
+      <h>160</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>10.0;12.8;354.6;150.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>2800</x>
+      <y>420</y>
+      <w>270</w>
+      <h>880</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;.
+names in changedBy &gt;</panel_attributes>
+    <additional_attributes>260.6;870.0;13.7;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1560</x>
+      <y>230</y>
+      <w>110</w>
+      <h>280</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-
 m2=1</panel_attributes>
-    <additional_attributes>95.0;10.0;15.0;90.0</additional_attributes>
+    <additional_attributes>101.4;10.0;10.1;270.0</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>3550</x>
-      <y>950</y>
-      <w>20</w>
-      <h>100</h>
+      <x>1800</x>
+      <y>230</y>
+      <w>690</w>
+      <h>670</h>
     </coordinates>
-    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-
-m2=1</panel_attributes>
-    <additional_attributes>10.0;10.0;10.0;90.0</additional_attributes>
+    <panel_attributes>lt=&lt;.
+subscribes panels &gt;</panel_attributes>
+    <additional_attributes>677.8;660.0;12.6;10.0</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>3820</x>
-      <y>950</y>
+      <x>1620</x>
+      <y>230</y>
+      <w>80</w>
+      <h>1080</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>12.6;1070.0;73.7;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1390</x>
+      <y>690</y>
       <w>70</w>
       <h>80</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-
 m2=1</panel_attributes>
-    <additional_attributes>7.7;10.0;60.4;70.0</additional_attributes>
+    <additional_attributes>58.0;10.0;5.8;70.0</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>4050</x>
-      <y>880</y>
-      <w>430</w>
-      <h>210</h>
+      <x>1690</x>
+      <y>650</y>
+      <w>640</w>
+      <h>250</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-
+m2=1</panel_attributes>
+    <additional_attributes>10.0;11.1;628.4;240.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1610</x>
+      <y>690</y>
+      <w>230</w>
+      <h>260</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-
+m2=1</panel_attributes>
+    <additional_attributes>10.7;10.0;216.4;250.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1690</x>
+      <y>380</y>
+      <w>970</w>
+      <h>200</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+m1=1
+m2=*</panel_attributes>
+    <additional_attributes>10.0;189.2;960.0;12.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>4040</x>
+      <y>660</y>
+      <w>20</w>
+      <h>220</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-
+m2=1</panel_attributes>
+    <additional_attributes>5.8;10.0;8.4;210.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>3860</x>
+      <y>660</y>
+      <w>190</w>
+      <h>1010</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;.
+creates</panel_attributes>
+    <additional_attributes>7.6;1000.0;174.1;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>4060</x>
+      <y>660</y>
+      <w>340</w>
+      <h>1010</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;.
+creates</panel_attributes>
+    <additional_attributes>320.7;1000.0;5.7;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>780</x>
+      <y>630</y>
+      <w>170</w>
+      <h>140</h>
     </coordinates>
     <panel_attributes>lt=&lt;-
 m1=1</panel_attributes>
-    <additional_attributes>420.7;200.0;10.0;8.3</additional_attributes>
+    <additional_attributes>160.0;135.0;12.3;10.0</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>2860</x>
-      <y>1160</y>
-      <w>170</w>
-      <h>120</h>
+      <x>490</x>
+      <y>630</y>
+      <w>240</w>
+      <h>320</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;.</panel_attributes>
+    <additional_attributes>6.5;310.0;225.8;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1740</x>
+      <y>1070</y>
+      <w>600</w>
+      <h>240</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;&lt;&lt;-
 m1=1
 m2=*
 notifies &gt;</panel_attributes>
-    <additional_attributes>155.6;10.0;10.4;110.0</additional_attributes>
+    <additional_attributes>585.6;10.0;8.1;230.0</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>3100</x>
-      <y>1160</y>
-      <w>30</w>
-      <h>120</h>
+      <x>2700</x>
+      <y>1070</y>
+      <w>320</w>
+      <h>230</h>
     </coordinates>
     <panel_attributes>lt=&lt;.</panel_attributes>
-    <additional_attributes>21.8;110.0;14.6;10.0</additional_attributes>
+    <additional_attributes>304.6;220.0;8.8;10.0</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>3090</x>
-      <y>1350</y>
-      <w>40</w>
-      <h>100</h>
-    </coordinates>
-    <panel_attributes>lt=&lt;-</panel_attributes>
-    <additional_attributes>5.4;90.0;24.3;10.0</additional_attributes>
-  </element>
-  <element>
-    <id>Relation</id>
-    <coordinates>
-      <x>3560</x>
-      <y>1160</y>
-      <w>40</w>
-      <h>110</h>
+      <x>4040</x>
+      <y>1100</y>
+      <w>20</w>
+      <h>190</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;&lt;&lt;-
 m1=1
 m2=*</panel_attributes>
-    <additional_attributes>12.1;10.0;28.8;100.0</additional_attributes>
+    <additional_attributes>8.3;10.0;5.9;180.0</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>3690</x>
-      <y>1350</y>
-      <w>340</w>
-      <h>130</h>
+      <x>4000</x>
+      <y>1390</y>
+      <w>40</w>
+      <h>90</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;.</panel_attributes>
-    <additional_attributes>10.0;5.8;330.0;120.6</additional_attributes>
+    <additional_attributes>26.5;10.0;5.0;80.0</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>3380</x>
-      <y>1370</y>
-      <w>140</w>
-      <h>100</h>
+      <x>4140</x>
+      <y>1390</y>
+      <w>150</w>
+      <h>90</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;.</panel_attributes>
-    <additional_attributes>130.0;10.0;10.0;90.0</additional_attributes>
+    <additional_attributes>12.7;10.0;138.3;80.0</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>3680</x>
-      <y>1370</y>
-      <w>140</w>
-      <h>100</h>
+      <x>3880</x>
+      <y>1590</y>
+      <w>60</w>
+      <h>80</h>
     </coordinates>
-    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
-    <additional_attributes>9.2;10.0;128.1;90.0</additional_attributes>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>57.2;10.0;13.1;70.0</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>3590</x>
-      <y>1370</y>
-      <w>20</w>
-      <h>100</h>
+      <x>4130</x>
+      <y>1590</y>
+      <w>170</w>
+      <h>80</h>
     </coordinates>
-    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
-    <additional_attributes>8.4;10.0;6.2;90.0</additional_attributes>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>11.8;10.0;160.0;71.5</additional_attributes>
   </element>
 </diagram>

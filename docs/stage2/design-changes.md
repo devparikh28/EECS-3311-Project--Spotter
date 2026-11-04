@@ -37,7 +37,12 @@ project.
 | 9 | Memory notes free form | Notes refused when written in the coach's voice | A coach that remembers its own advice as the lifter's words cannot be corrected |
 | 10 | Model identifiers fixed in config defaults | Updated twice, now pinned with an explanation | The identifiers written in Stage 1 were retired before Stage 2 called them |
 | 11 | `spotter.db` beside the working directory | Unchanged, but `--env` added throughout | Running the GUI and the CLI against different databases was too easy |
-| 12 | Competition lift load checks apply to any exercise mapped to a lift | Known limitation, fix identified, not yet made | A close grip bench is held to competition bench loads, which is wrong |
+| 12 | Validation called from the command layer after the agent returns | Validation moved inside the agents | A rejected proposal has to go back to the model with the reason attached, and the retry loop can only live where the conversation lives |
+| 13 | Competition lift load checks apply to any exercise mapped to a lift | Known limitation, fix identified, not yet made | A close grip bench is held to competition bench loads, which is wrong |
+| 14 | Undo stack, lifetime unspecified | Held in the window, bounded at twenty edits | The case it exists for happens inside one sitting, and a persisted history is a feature nobody asked for |
+| 15 | Panels refresh every time they are opened | Panels refresh when something they display has changed | Walking the navigation column re-queried the database for figures nothing had touched |
+| 16 | Commands print prose | Eight commands also take `--json` | Stage 3 drives the application from a harness, and scraping prose would make every wording change a breaking change |
+| 17 | `CoachController` wraps every agent, one method each | Facade covers the repositories and deterministic services only | The agents take different inputs, so a method per agent would be a second interface kept in step by hand |
 
 ---
 
@@ -417,3 +422,48 @@ The trace reports counts always and the steps
 only with `--trace`. The steps are the most
 useful part of a trace for a person to read and
 the least useful to assert on.
+
+## 17. A narrower Facade
+
+Stage 1 drew `CoachController` with about
+twenty five methods, one for each thing the
+application can do, including one per agent:
+`generateBlock`, `suggestSubstitute`,
+`adjustSession`, `suggestMeal`, `progressPlan`,
+`chat`, `adoptProgramme`. Every screen and every
+command would have gone through it.
+
+The implemented Facade is narrower. It gives one
+way to reach the repositories, the catalogues and
+the deterministic services, and it does not wrap
+the agents at all. A screen or a command builds
+the agent it needs and calls `run()` on it.
+
+The reason is that the agents do not have a
+common shape. `BlockGenerationAgent` needs a
+profile, a catalogue, a history, a progression
+strategy, a start date and a number of weeks.
+`AttemptRationaleAgent` needs a set of calculated
+attempts and an estimated maximum. A method per
+agent on the Facade would have been a second
+interface carrying the same parameters, kept in
+step with the first by hand, and every new agent
+would have meant editing the Facade as well as
+writing the agent. That is the change the Open
+Closed Principle is about.
+
+What the Facade still earns its place for is the
+part that is uniform: there is exactly one way to
+get a repository, one `importFile`, one
+`getAnalytics`, one `currentE1RMs`. Nothing else
+in the application opens a database connection or
+constructs a repository, which is what the
+pattern was wanted for.
+
+The cost is that the presentation layer knows the
+agent constructors. That is visible in
+`PlanPanel` and `PlanCommand`, which both build a
+`BlockGenerationAgent`. `GuiContext` and
+`ModelAccess` exist to keep that from being
+repeated: the shared dependencies are assembled
+once and handed to whoever needs them.
