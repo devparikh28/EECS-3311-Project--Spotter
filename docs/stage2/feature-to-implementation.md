@@ -509,3 +509,28 @@ edit and the description it prints, but has no
 stack to offer, since the process exits. Persisting
 the history would be the next step if anyone wanted
 undo across restarts, and nobody has asked for it.
+
+## Machine readable output
+
+Stage 3 drives the application from a harness
+rather than from a terminal, so the eight commands
+that answer a question take `--json` and print one
+object instead of prose: `plan`, `substitute`,
+`adjust`, `meal`, `attempts`, `review`, `adopt`
+and `checkin`.
+
+| | |
+|---|---|
+| **Implemented** | `presentation/cli/JsonOutput`, a `--json` option on the eight commands above, `presentation/cli/JsonOutputTest` |
+| **Status** | Done |
+
+Every command prints the same four keys:
+`command`, `ok`, `value` and, for the commands
+that call a model, `trace`. A refusal prints `ok`
+false with a reason and keeps the exit code the
+prose path used, so a harness can read either
+signal. `JsonOutputTest` runs all eight through
+the real command objects against a temporary
+database, which means a stray print statement
+anywhere in the prose path shows up as a parse
+failure here rather than as a surprise in Stage 3.

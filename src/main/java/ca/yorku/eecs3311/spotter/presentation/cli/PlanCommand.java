@@ -131,6 +131,14 @@ public final class PlanCommand
     boolean trace;
 
     @Option(
+        names = {"--json"},
+        description =
+            "Print the result as JSON instead of"
+            + " prose, for a harness rather than"
+            + " a person.")
+    boolean json;
+
+    @Option(
         names = {"--env"},
         paramLabel = "FILE",
         description = "Configuration file.")
@@ -151,6 +159,14 @@ public final class PlanCommand
             Map<Lift, Double> current =
                     controller.currentE1RMs();
             if (current.isEmpty()) {
+                if (json) {
+                    JsonOutput.refusal(out,
+                        "plan",
+                        "there is no training"
+                        + " history to plan"
+                        + " from");
+                    return EXIT_NO_DATA;
+                }
                 out.println(
                     "There is no training"
                     + " history to plan from.");
@@ -184,9 +200,11 @@ public final class PlanCommand
                         weeks, days));
 
             wasLive = access.isLive();
-            printHeader(out, profile,
-                    progression, current,
-                    access);
+            if (!json) {
+                printHeader(out, profile,
+                        progression, current,
+                        access);
+            }
 
             BlockGenerationAgent agent =
                 new BlockGenerationAgent(
@@ -198,6 +216,19 @@ public final class PlanCommand
 
             AgentResult<TrainingBlock> result =
                     agent.run();
+
+            if (json) {
+                JsonOutput.write(out, "plan",
+                    result,
+                    result.succeeded()
+                        ? JsonOutput.block(
+                            result.value()
+                                .orElseThrow())
+                        : null,
+                    trace);
+                return result.succeeded()
+                    ? 0 : EXIT_REFUSED;
+            }
 
             if (trace) {
                 printTrace(out, result);

@@ -373,3 +373,47 @@ that this bus cannot hear. And a listener that
 throws does not stop the others from being told,
 because one broken panel should not silently
 freeze the rest of the window.
+
+## 16. Machine readable output on every command
+    that answers a question
+
+Stage 3 runs Spotter from a harness rather than
+by reading a terminal, so eight commands now take
+`--json` and print one object instead of prose:
+plan, substitute, adjust, meal, attempts, review,
+adopt and checkin.
+
+The shape is the same for all of them, which is
+the point. `command` names the command, `ok` says
+whether it produced what was asked for, `value`
+carries the result and `trace` carries what the
+agent did. A harness reads `ok`, not the wording,
+so improving a sentence is no longer a breaking
+change.
+
+Three decisions are worth recording.
+
+A refusal is a successful run that produced
+nothing, so it prints `ok` false with a reason
+rather than failing. The exit code is unchanged
+from the prose path, which means a harness can
+use either signal.
+
+`value` can appear alongside a failure, and that
+is deliberate. When the coach refuses to explain
+a set of meet attempts, the attempts themselves
+were calculated rather than generated and still
+stand, so they are reported with `ok` false
+beside them.
+
+Domain objects are mapped by hand in `JsonOutput`
+rather than handed to Jackson. They carry
+Optionals and no annotations, but the real reason
+is that the wire shape is a contract Stage 3
+depends on: it should change when someone decides
+to change it, not when someone renames a field.
+
+The trace reports counts always and the steps
+only with `--trace`. The steps are the most
+useful part of a trace for a person to read and
+the least useful to assert on.

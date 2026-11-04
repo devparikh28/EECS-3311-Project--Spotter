@@ -150,6 +150,14 @@ public final class AdoptCommand
     boolean trace;
 
     @Option(
+        names = {"--json"},
+        description =
+            "Print the result as JSON instead of"
+            + " prose, for a harness rather than"
+            + " a person.")
+    boolean json;
+
+    @Option(
         names = {"--env"},
         paramLabel = "FILE",
         description = "Configuration file.")
@@ -167,6 +175,15 @@ public final class AdoptCommand
 
         if (!deterministic
                 && !config.hasApiKey()) {
+            if (json) {
+                JsonOutput.refusal(out,
+                    "adopt",
+                    "adopting a programme as"
+                    + " prose needs a model,"
+                    + " and no API key is"
+                    + " configured");
+                return EXIT_NO_MODEL;
+            }
             out.println("Adopting a programme as"
                 + " prose needs a model.");
             out.println("  Interpreting prose"
@@ -195,6 +212,13 @@ public final class AdoptCommand
         String programme = read(out);
         if (programme == null
                 || programme.isBlank()) {
+            if (json) {
+                JsonOutput.refusal(out,
+                    "adopt",
+                    "nothing was given to"
+                    + " read");
+                return EXIT_NOTHING;
+            }
             out.println("Nothing was given to"
                     + " read.");
             out.println("  Try: spotter adopt"
@@ -235,6 +259,27 @@ public final class AdoptCommand
 
             AgentResult<TrainingBlock> result =
                     agent.run();
+
+            if (json) {
+                java.util.Map<String, Object>
+                        value = null;
+                if (result.succeeded()) {
+                    TrainingBlock adopted =
+                        result.value()
+                            .orElseThrow();
+                    value = adopted(adopted,
+                        keep
+                            ? keepIt(controller,
+                                adopted)
+                            : false,
+                        java.util.List.of(),
+                        "model");
+                }
+                JsonOutput.write(out, "adopt",
+                        result, value, trace);
+                return result.succeeded()
+                    ? 0 : EXIT_REFUSED;
+            }
 
             if (trace) {
                 out.println("  What the agent"
@@ -407,28 +452,49 @@ public final class AdoptCommand
             java.util.Optional<TrainingBlock>
                 read;
             if (!entries.isEmpty()) {
-                out.printf("Reading %d entered"
-                        + " line(s).%n",
+                if (!json) {
+                    out.printf("Reading %d"
+                        + " entered line(s).%n",
                         entries.size());
+                }
                 read = reader.fromManualEntry(
                         entries, from);
             } else {
                 if (file == null) {
+                    if (json) {
+                        JsonOutput.refusal(out,
+                            "adopt",
+                            "give the"
+                            + " spreadsheet to"
+                            + " read");
+                        return EXIT_NOTHING;
+                    }
                     out.println("Give the"
                         + " spreadsheet to"
                         + " read.");
                     out.flush();
                     return EXIT_NOTHING;
                 }
-                out.printf("Reading %s as a"
+                if (!json) {
+                    out.printf("Reading %s as a"
                         + " programme"
                         + " spreadsheet.%n",
                         file.getFileName());
+                }
                 read = reader.fromCsv(file,
                         mappingFor(), from);
             }
 
             if (read.isEmpty()) {
+                if (json) {
+                    JsonOutput.refusal(out,
+                        "adopt",
+                        "the programme could"
+                        + " not be read: "
+                        + String.join("; ",
+                            reader.problems()));
+                    return EXIT_REFUSED;
+                }
                 out.println();
                 out.println("The programme could"
                         + " not be read.");
@@ -449,6 +515,12 @@ public final class AdoptCommand
                         controller
                             .currentE1RMs());
             if (refused.isPresent()) {
+                if (json) {
+                    JsonOutput.refusal(out,
+                        "adopt",
+                        refused.get());
+                    return EXIT_REFUSED;
+                }
                 out.println();
                 out.println("The programme was"
                         + " not accepted.");
@@ -456,6 +528,21 @@ public final class AdoptCommand
                         + refused.get());
                 out.flush();
                 return EXIT_REFUSED;
+            }
+
+            if (json) {
+                JsonOutput.write(out, "adopt",
+                    true,
+                    adopted(block,
+                        keep
+                            ? keepIt(controller,
+                                block)
+                            : false,
+                        reader.problems(),
+                        entries.isEmpty()
+                            ? "spreadsheet"
+                            : "typedEntry"));
+                return 0;
             }
 
             if (!reader.problems().isEmpty()) {
@@ -493,6 +580,49 @@ public final class AdoptCommand
             out.flush();
         }
         return 0;
+    }
+
+    /**
+     * Keeps the adopted block and activates it.
+     *
+     * @return true, so the caller can record
+     *         that it was kept in one expression
+     */
+    private static boolean keepIt(
+            CoachController controller,
+            TrainingBlock block) {
+        TrainingBlock saved = controller
+                .blocks().save(block);
+        controller.blocks().activate(
+                saved.id());
+        return true;
+    }
+
+    /**
+     * The adopted block, and how it got here.
+     *
+     * The route matters to a harness: the same
+     * command adopts a programme three ways, and
+     * only one of them involves a model. A run
+     * that passed over rows says so, because a
+     * programme read with half its rows skipped
+     * is not the programme that was handed over.
+     */
+    private static java.util.Map<String, Object>
+            adopted(TrainingBlock block,
+                    boolean kept,
+                    java.util.List<String>
+                            passedOver,
+                    String route) {
+        java.util.Map<String, Object> described =
+                new java.util.LinkedHashMap<>();
+        described.put("route", route);
+        described.put("kept", kept);
+        described.put("rowsPassedOver",
+                passedOver);
+        described.put("block",
+                JsonOutput.block(block));
+        return described;
     }
 
     /** The mapping for a programme spreadsheet. */
