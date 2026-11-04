@@ -338,3 +338,38 @@ description of what changed, but it has no stack
 to offer because the process exits. Persisting
 the history is the obvious next step if undo
 across restarts is ever wanted.
+
+## 15. Panels refresh on a change, not on a visit
+
+The dashboard used to refresh a panel every time
+it was opened. That was correct and wasteful: an
+import on one screen does change the numbers on
+another, but walking down the navigation column
+re-queried the database for figures nothing had
+touched, and a panel that had just finished
+drawing threw the result away the moment the
+lifter came back to it.
+
+With the event bus in place the rule is narrower.
+A panel names the kinds of change it displays. A
+panel that saves something publishes rather than
+refreshing itself. The shell refreshes the panel
+on screen immediately and marks the others stale,
+and a stale panel redraws the next time it is
+opened.
+
+Stage 1 put this behaviour on a `BasePanel`
+superclass. It is on the `Panel` interface
+instead, as a default `changedBy()` method, so a
+screen does not have to inherit from anything in
+order to be heard.
+
+Two cases needed deciding. A panel that names no
+event is refreshed on every visit, as before,
+because the shell cannot reason about it:
+Analytics is computed from logged sets, which
+arrive from `spotter log` in a separate process
+that this bus cannot hear. And a listener that
+throws does not stop the others from being told,
+because one broken panel should not silently
+freeze the rest of the window.

@@ -417,8 +417,7 @@ outright rather than pretending.
 ## Design patterns
 
 Stage 1 named eight patterns and the course
-requires five. Seven are implemented, which meets
-the requirement, and one is not.
+requires five. All eight are implemented.
 
 | Pattern | Designed classes | Implemented | Status |
 |---|---|---|---|
@@ -428,7 +427,7 @@ the requirement, and one is not.
 | Adapter | `DataSource`, CSV adapters | `infrastructure/csv/DataSource`, `HevyCsvAdapter`, `WhoopCsvAdapter` | Done |
 | Factory Method | `createToolset()`, `DataSourceFactory`, `ProgressionStrategyFactory` | All three present | Done |
 | Decorator | `LLMClientDecorator`, `CachingLLMClient`, `RecordingLLMClient` | All three present | Done |
-| Observer | `EventBus`, `EventListener`, `BasePanel` | Not built | Not built |
+| Observer | `EventBus`, `EventListener`, `BasePanel` | `application/event/EventBus`, `EventListener`, `SpotterEvent`, `Panel.changedBy()` | Done |
 | Command | `PlanEditCommand`, `PlanEditHistory`, three concrete commands | `application/plan/PlanEditCommand`, `PlanEditHistory`, `ReplaceSessionCommand`, `SwapExerciseCommand`, `ApplyAdjustmentCommand`, `ApplyProgressionCommand` | Done |
 
 Two supporting patterns from Stage 1 are also
@@ -437,18 +436,44 @@ present: Builder in `PromptBuilder`,
 and Repository in `Repository<T>` and the five
 implementations.
 
-**Why Observer was not built.** Stage 1 had
-`BasePanel` subclasses listening on an `EventBus`
-so that saving a profile refreshed every
-dependent panel. The implementation has no
-`BasePanel` either: `Panel` is an interface, and
-the shell calls `refresh()` on a panel when it is
-shown. For a single window showing one panel at a
-time that produces the same result with far less
-machinery, and nothing can go stale because
-nothing is visible to go stale. An event bus
-would earn its place the moment two panels are
-visible at once.
+**Observer.** Stage 1 had `BasePanel`
+subclasses listening on an `EventBus` so that
+saving a profile refreshed every dependent panel.
+The bus is built; the base class is not. `Panel`
+stayed an interface with a default
+`changedBy()` returning the kinds of change that
+screen displays, which gives the same
+subscription without making every screen inherit
+from a shared parent in order to listen.
+
+What the bus changed is the refresh rule. Before,
+opening a panel refreshed it, every time, which
+was correct and wasteful: walking the navigation
+column re-queried the database for figures that
+nothing had touched. Now a panel saving a plan
+publishes `BLOCK_CHANGED` and does not refresh
+itself; the shell refreshes the panel on screen at
+once and marks the others stale, so they redraw
+the next time they are opened and not before.
+
+Three events exist, and only three, because those
+are the changes the application makes to itself
+while it is running: a plan saved, a profile
+saved, food or a macro target recorded. Logging a
+set and importing recovery readings change a
+screen too, but both arrive from `spotter log`
+and `spotter import` in a separate process, where
+a bus in this window cannot hear them. A panel
+that names no event is refreshed on every visit
+as before, which is what Analytics does and why
+its figures are never stale.
+
+One rule in `EventBus` is worth naming: a
+listener that throws does not stop the rest from
+being told, and the failure is kept rather than
+swallowed. A panel failing to redraw is a bad
+panel; it should not also become the reason every
+other screen quietly stops updating.
 
 **Command.** Stage 1 put every plan edit on an
 undo stack: `SwapExerciseCommand` for a

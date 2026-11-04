@@ -37,6 +37,9 @@ import ca.yorku.eecs3311.spotter
 import ca.yorku.eecs3311.spotter
         .presentation.support.ModelAccess;
 
+import ca.yorku.eecs3311.spotter.application
+        .event.SpotterEvent;
+
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -93,6 +96,19 @@ public final class PlanPanel implements Panel {
                 generate());
         keep.setOnAction(event -> keep());
         keep.setDisable(true);
+    }
+
+    /**
+     * The plan it lists, and the profile it
+     * generates from. A profile saved on another
+     * screen changes what this one would
+     * produce.
+     */
+    @Override
+    public java.util.Set<SpotterEvent>
+            changedBy() {
+        return java.util.Set.of(SpotterEvent.BLOCK_CHANGED,
+            SpotterEvent.PROFILE_CHANGED);
     }
 
     @Override
@@ -433,10 +449,12 @@ public final class PlanPanel implements Panel {
                 return saved;
             },
             saved -> {
+                context.events().publish(
+                    SpotterEvent
+                        .BLOCK_CHANGED);
                 status.setText("Saved. This is"
                     + " now the block you are"
                     + " training.");
-                refresh();
             },
             failure -> {
                 keep.setDisable(false);

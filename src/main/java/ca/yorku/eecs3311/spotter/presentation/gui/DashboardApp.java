@@ -3,7 +3,9 @@ package ca.yorku.eecs3311.spotter
 
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import ca.yorku.eecs3311.spotter
         .infrastructure.config.SpotterConfig;
@@ -52,11 +54,16 @@ import javafx.stage.Stage;
  * any panel contains, so adding a screen is a new
  * class and one line here.
  *
- * Opening a panel refreshes it rather than
- * trusting what it drew last time, because an
- * import on one screen changes the numbers on
- * another and a dashboard showing stale figures
- * is worse than one that pauses.
+ * A panel is refreshed the first time it is
+ * opened, and after that only when something it
+ * shows has changed. The shell learns that from
+ * the event bus rather than by guessing: a panel
+ * names the kinds of change that concern it, the
+ * panel on screen redraws at once, and the others
+ * are marked stale and redrawn the next time they
+ * are opened. Refreshing on every visit also
+ * worked, and queried the database for figures
+ * that nothing had touched.
  */
 public final class DashboardApp
         extends Application {
@@ -79,6 +86,11 @@ public final class DashboardApp
     private final Label panelDescription =
             Cards.styled("",
                     "panel-description");
+    private final Set<Panel> stale =
+            new HashSet<>();
+    private final Set<Panel> drawn =
+            new HashSet<>();
+    private Panel showing;
 
     @Override
     public void start(Stage stage) {
@@ -96,6 +108,7 @@ public final class DashboardApp
             new CoachPanel(context),
             new ProfilePanel(context));
 
+        subscribe(panels);
         shell.setLeft(navigation(panels));
         shell.setCenter(contentArea());
 
@@ -176,6 +189,40 @@ public final class DashboardApp
         return scroll;
     }
 
+    /**
+     * Tells the bus which panels care about what.
+     *
+     * The shell does the subscribing so that a
+     * panel is not responsible for remembering to
+     * register itself, which is the usual way an
+     * event bus ends up with one screen that
+     * quietly never updates.
+     */
+    private void subscribe(List<Panel> panels) {
+        for (Panel panel : panels) {
+            context.events().subscribeAll(
+                panel.changedBy(),
+                event -> changed(panel));
+        }
+    }
+
+    /**
+     * Something a panel shows has changed.
+     *
+     * The panel on screen is redrawn now because
+     * the lifter is looking at it. The rest are
+     * marked and redrawn when they are next
+     * opened, which is the first moment anyone
+     * could notice.
+     */
+    private void changed(Panel panel) {
+        if (panel == showing) {
+            panel.refresh();
+            return;
+        }
+        stale.add(panel);
+    }
+
     /** Puts one panel on screen. */
     private void show(Panel panel, int index) {
         for (int i = 0; i < navButtons.size();
@@ -195,7 +242,15 @@ public final class DashboardApp
 
         content.getChildren().clear();
         content.getChildren().add(panel.node());
-        panel.refresh();
+        showing = panel;
+
+        boolean first = drawn.add(panel);
+        boolean unwatched =
+                panel.changedBy().isEmpty();
+        if (first || unwatched
+                || stale.remove(panel)) {
+            panel.refresh();
+        }
     }
 
     @Override

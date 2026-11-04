@@ -24,6 +24,9 @@ import ca.yorku.eecs3311.spotter
 import ca.yorku.eecs3311.spotter
         .presentation.support.PreparedProfile;
 
+import ca.yorku.eecs3311.spotter.application
+        .event.SpotterEvent;
+
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -82,6 +85,16 @@ public final class ProfilePanel
         read.setOnAction(event -> readIt());
         save.setOnAction(event -> saveIt());
         save.setDisable(true);
+    }
+
+    /**
+     * Its own saves, and onboarding's. Both
+     * write the profile this screen is showing.
+     */
+    @Override
+    public java.util.Set<SpotterEvent>
+            changedBy() {
+        return java.util.Set.of(SpotterEvent.PROFILE_CHANGED);
     }
 
     @Override
@@ -341,11 +354,13 @@ public final class ProfilePanel
             () -> context.profiles()
                     .save(profile),
             saved -> {
+                draft = null;
+                context.events().publish(
+                    SpotterEvent
+                        .PROFILE_CHANGED);
                 status.setText("Saved. Plans"
                     + " will be built for you"
                     + " from now on.");
-                draft = null;
-                refresh();
             },
             failure -> {
                 save.setDisable(false);

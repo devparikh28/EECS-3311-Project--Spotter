@@ -17,6 +17,8 @@ import ca.yorku.eecs3311.spotter.agent
         .ResponseParser;
 import ca.yorku.eecs3311.spotter.application
         .CoachController;
+import ca.yorku.eecs3311.spotter.application
+        .event.EventBus;
 import ca.yorku.eecs3311.spotter.domain
         .LifterProfile;
 import ca.yorku.eecs3311.spotter
@@ -80,6 +82,8 @@ public final class GuiContext
     private final ProfileValidator
             profileValidator =
                 new ProfileValidator();
+    private final EventBus events =
+            new EventBus();
 
     public GuiContext(SpotterConfig config) {
         if (config == null) {
@@ -112,6 +116,17 @@ public final class GuiContext
 
     public CoachController controller() {
         return controller;
+    }
+
+    /**
+     * Where a panel announces what it changed.
+     *
+     * Shared, because the point of a bus is that
+     * the panel saving a plan and the panel
+     * showing one never have to meet.
+     */
+    public EventBus events() {
+        return events;
     }
 
     public ProfileRepository profiles() {

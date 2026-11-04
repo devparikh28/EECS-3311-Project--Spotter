@@ -34,6 +34,9 @@ import ca.yorku.eecs3311.spotter
         .presentation.support.ModelAccess;
 
 import javafx.collections.FXCollections;
+import ca.yorku.eecs3311.spotter.application
+        .event.SpotterEvent;
+
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
@@ -105,6 +108,17 @@ public final class NutritionPanel
                     return null;
                 }
             });
+    }
+
+    /**
+     * Food and targets, and the profile the
+     * targets belong to.
+     */
+    @Override
+    public java.util.Set<SpotterEvent>
+            changedBy() {
+        return java.util.Set.of(SpotterEvent.NUTRITION_CHANGED,
+            SpotterEvent.PROFILE_CHANGED);
     }
 
     @Override
@@ -208,7 +222,9 @@ public final class NutritionPanel
                             protein.getValue(),
                             carbs.getValue(),
                             fat.getValue())),
-                saved -> refresh(),
+                saved -> context.events()
+                    .publish(SpotterEvent
+                        .NUTRITION_CHANGED),
                 failure -> status.setText(
                     "Could not save: "
                     + failure.getMessage())));
@@ -363,7 +379,9 @@ public final class NutritionPanel
         context.tasks().run(
             () -> context.nutrition().log(
                     LocalDate.now(), entry),
-            saved -> refresh(),
+            saved -> context.events()
+                    .publish(SpotterEvent
+                        .NUTRITION_CHANGED),
             failure -> status.setText(
                 "Could not log that: "
                 + failure.getMessage()));
@@ -542,7 +560,9 @@ public final class NutritionPanel
                 }
                 return day;
             },
-            saved -> refresh(),
+            saved -> context.events()
+                    .publish(SpotterEvent
+                        .NUTRITION_CHANGED),
             failure -> status.setText(
                 "Could not log the meal: "
                 + failure.getMessage()));
