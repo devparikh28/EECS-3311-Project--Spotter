@@ -21,176 +21,217 @@ hide empty members
 
 ' ---------------- Presentation ----------------
 package "presentation" $pres {
-  class DashboardGUI $pres {
+  class DashboardApp $pres {
+    + {static} WIDTH : double = 1040
+    + {static} HEIGHT : double = 720
+    - context : GuiContext
+    - stale : Set<Panel>
+    - drawn : Set<Panel>
+    - showing : Panel
+    + start(stage : Stage) : void
+    + stop() : void
+    - subscribe(panels : List<Panel>) : void
+    - changed(panel : Panel) : void
+    - show(panel : Panel, index : int) : void
+  }
+  interface Panel $pres {
+    + title() : String
+    + description() : String
+    + node() : Node
+    + refresh() : void
+    + changedBy() : Set<SpotterEvent>
+  }
+  class GuiContext $pres {
     - controller : CoachController
-    - panels : List<BasePanel>
-    + show() : void
+    - events : EventBus
+    - tasks : FxTaskRunner
+    + controller() : CoachController
+    + events() : EventBus
+    + tasks() : FxTaskRunner
+    + profile() : Optional<LifterProfile>
+    + hasModel() : boolean
+    + model() : Optional<LLMClient>
+    + close() : void
   }
-  abstract class BasePanel $pres {
-    # controller : CoachController
-    + {abstract} refresh() : void
-    + onEvent(e : DomainEvent) : void
+  class FxTaskRunner $pres {
+    + run(work : Supplier<T>, onDone : Consumer<T>, onError : Consumer<Throwable>) : void
+    + {static} onInterfaceThread(r : Runnable) : void
+    + close() : void
   }
-  class ProfilePanel $pres {
-    + onSaveClicked() : void
+  class ModelAccess $pres {
+    + {static} open(c : SpotterConfig, demo : boolean, prepared : String) : Access
+    + isLive() : boolean
+    + explanation() : String
+    + client() : LLMClient
   }
-  class LogPanel $pres {
-    + onImportWorkoutsClicked() : void
-    + onImportRecoveryClicked() : void
-    + onManualEntrySubmitted() : void
+  class UsageReport $pres {
+    + {static} describe(t : AgentTrace, inPerM : double, outPerM : double) : String
   }
-  class AnalyticsPanel $pres {
-    + onLiftSelected(lift : Lift) : void
+  class DashboardPanel $pres
+  class TodayPanel $pres {
+    + {static} FLAG_WEEKS : int = 1
+    - history : PlanEditHistory
+    - onSwapClicked(p : ExercisePrescription) : void
+    - onEaseOffClicked(f : RecoveryFlag) : void
+    - onUndoClicked() : void
   }
   class PlanPanel $pres {
-    + onGenerateClicked() : void
-    + onAdoptProgrammeClicked(src : AdoptionSource) : void
-    + onSubstituteClicked(prescriptionId : int) : void
-    + onAdjustClicked(sessionId : int) : void
-    + onUndoClicked() : void
+    - onGenerateClicked() : void
+    - onKeepClicked() : void
   }
-  class MeetPanel $pres {
-    + onCalculateClicked() : void
+  class AnalyticsPanel $pres {
+    - onLiftSelected(lift : Lift) : void
   }
+  class RecoveryPanel $pres
   class NutritionPanel $pres {
-    + onLogIntakeClicked() : void
-    + onSuggestMealClicked() : void
+    - onLogIntakeClicked() : void
+    - onSuggestMealClicked() : void
   }
-  class ChatPanel $pres {
-    + onSendClicked() : void
+  class CoachPanel $pres {
+    - onSendClicked() : void
   }
-  class OnboardingPanel $pres {
-    + onAnswerSubmitted(answer : String) : void
-    + onConfirmProfileClicked() : void
+  class ProfilePanel $pres {
+    - onRunOnboardingClicked() : void
+    - onSaveClicked() : void
   }
   class CoachCLI $pres {
-    - controller : CoachController
     + run(argv : List<String>) : int
+    + run(argv : List<String>, out : PrintWriter, err : PrintWriter) : int
   }
+  class JsonOutput $pres {
+    + {static} write(out : PrintWriter, command : String, r : AgentResult<T>, value : object, steps : boolean) : void
+    + {static} refusal(out : PrintWriter, command : String, why : String) : void
+    + {static} block(b : TrainingBlock) : Map<String, Object>
+    + {static} session(s : Session) : Map<String, Object>
+  }
+  note as N_CLI
+    CoachCLI is a picocli command with fifteen
+    subcommand classes, one per command, each a
+    Callable<Integer>: status, seed, import, log,
+    analytics, recovery, checkin, attempts,
+    testday, review, plan, substitute, adjust,
+    meal, adopt. They are named rather than drawn
+    because fifteen identical boxes add nothing.
+    docs/stage2/feature-to-implementation.md maps
+    each one to its feature.
+  end note
+  note as N_HELPERS
+    Omitted from this view, as the Stage 1
+    convention omits trivia: Cards (shared
+    widgets), DemoReplies, PreparedChat and
+    PreparedProfile (prepared replies for --demo).
+  end note
 }
 
 ' ---------------- Application ----------------
 package "application" $app {
   class CoachController <<Facade>> $app {
-    - profiles : ProfileRepository
-    - workouts : WorkoutRepository
-    - recovery : RecoveryRepository
-    - blocks : BlockRepository
-    - intake : IntakeRepository
+    + {static} RECENT_WEEKS : int = 8
+    - database : Database
     - importer : CsvImportService
     - analytics : StrengthAnalytics
     - attempts : AttemptCalculator
-    - macros : MacroTracker
     - ruleEngine : RecoveryRuleEngine
-    - agents : AgentRegistry
-    - events : EventBus
-    - editHistory : PlanEditHistory
-    + saveProfile(p : LifterProfile) : void
-    + importWorkouts(path : String) : ImportReport
-    + importRecovery(path : String) : ImportReport
-    + logWorkout(s : WorkoutSession) : void
-    + logSessionAsPrescribed(sessionId : int, deviations : List<SetEntry>) : WorkoutSession
-    + recordCheckIn(d : RecoveryDay) : RecoveryFlag [0..1]
-    + importWithMapping(path : String, m : ColumnMapping) : ImportReport
-    + saveImportProfile(m : ColumnMapping) : void
+    + profiles() : ProfileRepository
+    + workouts() : WorkoutRepository
+    + recovery() : RecoveryRepository
+    + blocks() : BlockRepository
+    + catalog() : ExerciseCatalog
+    + foods() : FoodCatalog
+    + importProfiles() : ImportProfileRepository
+    + detect(file : Path) : SourceKind
+    + importFile(file : Path) : ImportReport
+    + importMapped(file : Path, m : ColumnMapping) : ImportReport
     + getAnalytics(lift : Lift) : AnalyticsSummary
-    + generateBlock(weeks : int) : AgentResult<TrainingBlock>
-    + suggestSubstitute(prescriptionId : int, reason : SubstitutionReason, note : String) : AgentResult<ExercisePrescription>
-    + setStartingStrength(lift : Lift, kg : double) : void
-    + startCalibrationWeek() : TrainingBlock
-    + runOnboarding() : AgentResult<ProfileDraft>
-    + adoptProgramme(source : String, kind : AdoptionSource) : AgentResult<TrainingBlock>
-    + flagSessions() : List<RecoveryFlag>
-    + adjustSession(sessionId : int) : AgentResult<Session>
-    + calculateAttempts() : List<MeetAttempts>
-    + logIntake(e : FoodEntry) : MacroTotals
-    + suggestMeal() : AgentResult<MealSuggestion>
-    + reviewAdherence(weekNumber : int) : AdherenceReport
-    + progressPlan(weekNumber : int) : AgentResult<TrainingBlock>
-    + chat(message : String) : AgentResult<String>
-    + applyEdit(cmd : PlanEditCommand) : void
-    + undoLastEdit() : void
+    + currentE1RMs() : Map<Lift, Double>
+    + allTimeE1RMs() : Map<Lift, Double>
+    + trendFor(lift : Lift) : Optional<Double>
+    + calculateAttempts(lift : Lift) : Optional<MeetAttempts>
+    + projectTestDay(lift : Lift) : Optional<TestDayPlan>
+    + recoveryFlags(since : LocalDate) : List<RecoveryFlag>
+    + hasTrainingHistory() : boolean
+    + loadSampleData(today : LocalDate) : int
+    + loadSampleFoods() : int
+    + close() : void
   }
-  class FxTaskRunner $app {
-    + run(work : Supplier<T>, onDone : Consumer<T>, onError : Consumer<Throwable>) : void
-  }
-  note as N_FX
-    Agent calls take seconds, so CoachController
-    runs them through FxTaskRunner on a background
-    thread. Results and events reach the panels on
-    the JavaFX Application Thread via Platform.runLater,
-    so the window never blocks.
+  note as N_FACADE
+    Narrower than the Stage 1 design. The Facade
+    gives one way to reach the repositories and
+    the deterministic services, and does not
+    wrap the agents. A screen or a command builds
+    the agent it needs and calls run() on it,
+    because every agent takes different inputs
+    and a method per agent on the Facade would be
+    a second interface to keep in step with the
+    first. See design-changes.md entry 17.
   end note
   class EventBus <<Observer: Subject>> $app {
-    - listeners : Map<EventType, List<EventListener>>
-    + subscribe(t : EventType, l : EventListener) : void
-    + unsubscribe(t : EventType, l : EventListener) : void
-    + publish(e : DomainEvent) : void
+    - listeners : Map<SpotterEvent, List<EventListener>>
+    - failures : List<RuntimeException>
+    + subscribe(e : SpotterEvent, l : EventListener) : void
+    + subscribeAll(events : Collection<SpotterEvent>, l : EventListener) : void
+    + publish(e : SpotterEvent) : void
+    + subscriberCount(e : SpotterEvent) : int
+    + failures() : List<RuntimeException>
+    + clear() : void
   }
   interface EventListener <<Observer>> $app {
-    + onEvent(e : DomainEvent) : void
+    + onEvent(e : SpotterEvent) : void
   }
-  class DomainEvent $app {
-    + type : EventType
-    + payload : object
-    + timestamp : LocalDateTime
-  }
-  enum AdoptionSource $app {
-    MANUAL_ENTRY
-    CSV_FILE
-    PASTED_TEXT
-  }
-  enum EventType $app {
-    PROFILE_UPDATED
-    DATA_IMPORTED
-    PLAN_UPDATED
-    RECOVERY_FLAGGED
-    INTAKE_LOGGED
+  enum SpotterEvent $app {
+    BLOCK_CHANGED
+    PROFILE_CHANGED
+    NUTRITION_CHANGED
   }
   class PlanEditHistory <<Command: Invoker>> $app {
-    - undoStack : List<PlanEditCommand>
-    + execute(cmd : PlanEditCommand) : void
-    + undo() : void
+    + {static} MAX_EDITS : int = 20
+    - done : Deque<PlanEditCommand>
+    - current : TrainingBlock
+    + current() : TrainingBlock
+    + apply(cmd : PlanEditCommand) : TrainingBlock
     + canUndo() : boolean
+    + nextToUndo() : Optional<String>
+    + undo() : Optional<TrainingBlock>
+    + describe() : List<String>
+    + size() : int
+    + rebase(b : TrainingBlock) : void
+    + clear() : void
   }
   interface PlanEditCommand <<Command>> $app {
-    + execute() : void
-    + undo() : void
     + describe() : String
+    + apply(b : TrainingBlock) : TrainingBlock
+    + undo(b : TrainingBlock) : TrainingBlock
+  }
+  abstract class ReplaceSessionCommand $app {
+    - replacement : Session
+    - previous : Session
+    + apply(b : TrainingBlock) : TrainingBlock
+    + undo(b : TrainingBlock) : TrainingBlock
+    # replacement() : Session
   }
   class SwapExerciseCommand $app {
-    - block : TrainingBlock
-    - prescriptionId : int
-    - newExercise : Exercise
-    - previous : Exercise
-  }
-  class ChangeLoadCommand $app {
-    - block : TrainingBlock
-    - prescriptionId : int
-    - newLoadKg : double
-    - previousLoadKg : double
-  }
-  class ApplyProgressionCommand $app {
-    - block : TrainingBlock
-    - revisedWeeks : List<Week>
-    - previousWeeks : List<Week>
+    - substitution : Substitution
+    + describe() : String
   }
   class ApplyAdjustmentCommand $app {
-    - block : TrainingBlock
-    - adjusted : Session
-    - original : Session
+    - before : double
+    + describe() : String
   }
-  class AgentRegistry $app {
-    + blockGen : BlockGenerationAgent
-    + substitution : SubstitutionAgent
-    + adjustment : AdjustmentAgent
-    + attemptRationale : AttemptRationaleAgent
-    + meal : MealSuggestionAgent
-    + onboarding : OnboardingAgent
-    + programmeParser : ProgrammeParserAgent
-    + progression : ProgressionAgent
-    + chat : ChatAgent
+  class ApplyProgressionCommand $app {
+    - revised : TrainingBlock
+    - previous : TrainingBlock
+    + describe() : String
+    + apply(b : TrainingBlock) : TrainingBlock
+    + undo(b : TrainingBlock) : TrainingBlock
   }
+  note as N_CMD
+    A command returns a new block rather than
+    mutating the one it was given, which is why
+    undo keeps the old value instead of reversing
+    arithmetic. The history is bounded at twenty
+    edits and lives in the window, not the
+    database. See design-changes.md entry 14.
+  end note
 }
 
 ' ---------------- Domain ----------------
@@ -198,25 +239,36 @@ package "domain" $dom {
   class LifterProfile $dom {
     + id : int
     + bodyweightKg : double
-    + weightClassKg : double
+    + weightClassKg : double [0..1]
     + goal : TrainingGoal
     + experience : ExperienceLevel
     + splitPreference : SplitPreference = AUTO
     + displayUnit : WeightUnit = KG
+    + diet : DietaryConstraints
     + limitations : List<Limitation>
     + meetDate : LocalDate [0..1]
     + trainingDaysPerWeek : int
     + equipment : Set<Equipment>
+    + {static} with(g : TrainingGoal, e : ExperienceLevel) : Builder
     + hasMeetDate() : boolean
     + weeksUntilMeet(today : LocalDate) : Optional<Integer>
     + hasEquipment(e : Equipment) : boolean
+    + canPerform(x : Exercise) : boolean
+  }
+  class Builder <<Builder>> $dom {
+    + bodyweightKg(v : double) : Builder
+    + equipment(s : Set<Equipment>) : Builder
+    + addLimitation(l : Limitation) : Builder
+    + build() : LifterProfile
   }
   class ProfileDraft $dom {
-    + answers : Map<String, String>
-    + unanswered : List<String>
-    + confident : boolean
-    + toProfile() : LifterProfile
+    + bodyweightKg(v : double) : ProfileDraft
+    + goal(g : TrainingGoal) : ProfileDraft
+    + addEquipment(e : Equipment) : ProfileDraft
+    + addLimitation(l : Limitation) : ProfileDraft
+    + isComplete() : boolean
     + missingRequired() : List<String>
+    + toProfile() : LifterProfile
   }
   class DietaryConstraints $dom {
     + vegetarian : boolean
@@ -278,7 +330,7 @@ package "domain" $dom {
     + id : int
     + name : String
     + muscleGroups : Set<String>
-    + movementPattern : String
+    + movementPattern : String [0..1]
     + requiredEquipment : Set<Equipment>
     + competitionLift : Lift [0..1]
   }
@@ -286,12 +338,20 @@ package "domain" $dom {
     + id : int
     + date : LocalDate
     + source : String
+    + externalId : String [0..1]
+    + title : String [0..1]
+    + setsFor(lift : Lift) : List<SetEntry>
     + totalTonnage() : double
+    + tonnageFor(lift : Lift) : double
   }
   class SetEntry $dom {
     + weightKg : double
     + reps : int
     + rpe : double [0..1]
+    + {static} of(x : Exercise, kg : double, reps : int, rpe : double) : SetEntry
+    + {static} withoutRpe(x : Exercise, kg : double, reps : int) : SetEntry
+    + hasRpe() : boolean
+    + tonnage() : double
   }
   class RecoveryDay $dom {
     + date : LocalDate
@@ -301,6 +361,7 @@ package "domain" $dom {
     + sleepHours : double [0..1]
     + soreness : int [0..1]
     + energy : int [0..1]
+    + {static} on(d : LocalDate, s : RecoverySource) : Builder
     + hasObjectiveScore() : boolean
   }
   enum RecoverySource $dom {
@@ -310,27 +371,51 @@ package "domain" $dom {
   class TrainingBlock $dom {
     + id : int
     + startDate : LocalDate
-    + progression : String
-    + splitName : String
+    + progression : String [0..1]
+    + splitName : String [0..1]
     + origin : BlockOrigin
-    + findSession(id : int) : Session
-    + findPrescription(id : int) : ExercisePrescription
+    + weekCount() : int
+    + findWeek(number : int) : Optional<Week>
+    + findSession(id : int) : Optional<Session>
+    + findPrescription(id : int) : Optional<ExercisePrescription>
+    + sessionContaining(prescriptionId : int) : Optional<Session>
+    + allSessions() : List<Session>
   }
   class Week $dom {
     + number : int
+    + plannedTonnage() : double
   }
   class Session $dom {
     + id : int
     + date : LocalDate
-    + focus : String
+    + focus : String [0..1]
     + adjustmentNote : String [0..1]
+    + wasAdjusted() : boolean
+    + findPrescription(id : int) : Optional<ExercisePrescription>
+    + replacePrescription(p : ExercisePrescription) : void
+    + plannedTonnage() : double
   }
   class ExercisePrescription $dom {
     + id : int
     + sets : int
     + reps : int
-    + targetRpe : double
+    + targetRpe : double [0..1]
     + loadKg : double
+    + plannedTonnage() : double
+    + withLoad(kg : double) : ExercisePrescription
+    + withExercise(x : Exercise) : ExercisePrescription
+    + withSets(n : int) : ExercisePrescription
+  }
+  class Substitution $dom {
+    + loadKg : double
+    + reason : SubstitutionReason
+    + rationale : String [0..1]
+    + replaced() : Exercise
+    + replacement() : Exercise
+    + isNoChange() : boolean
+    + loadRatio() : Optional<Double>
+    + trainsSomethingSimilar() : boolean
+    + apply() : ExercisePrescription
   }
   class MeetAttempts $dom {
     + lift : Lift
@@ -338,6 +423,7 @@ package "domain" $dom {
     + second : double
     + third : double
     + rationale : String
+    + totalJump() : double
   }
   class MacroTarget $dom {
     + calories : int
@@ -365,7 +451,10 @@ package "domain" $dom {
     + proteinG : double
     + carbsG : double
     + fatG : double
+    + plus(o : MacroTotals) : MacroTotals
     + minus(o : MacroTotals) : MacroTotals
+    + scaled(factor : double) : MacroTotals
+    + isEmpty() : boolean
   }
   class AnalyticsSummary $dom {
     + lift : Lift
@@ -382,21 +471,47 @@ package "domain" $dom {
   class Range $dom {
     + minKg : double
     + maxKg : double
+    + {static} TOLERANCE : double = 0.05
     + contains(kg : double) : boolean
+    + midpoint() : double
+    + width() : double
   }
   class MealSuggestion $dom {
-    + rationale : String
+    + name : String
+    + rationale : String [0..1]
     + totals() : MacroTotals
+    + foodCount() : int
+    + permittedBy(d : DietaryConstraints) : boolean
+    + firstNotPermitted(d : DietaryConstraints) : Optional<FoodItem>
+  }
+  class Portion $dom {
+    + food : FoodItem
+    + grams : double
+    + totals() : MacroTotals
+  }
+  class ChatReply $dom {
+    + text : String
+    + note : String [0..1]
+    + {static} MAX_REPLY : int = 1200
+    + isTooLong() : boolean
+  }
+  class MemoryNote $dom {
+    + content : String
+    + {static} MAX_LENGTH : int = 300
+    + {static} of(content : String) : MemoryNote
+    + saysTheSameAs(other : MemoryNote) : boolean
   }
 
   ' domain services
   class StrengthAnalytics $dom {
     - rpeChart : RPEChart
     + computeE1RM(s : SetEntry) : double
+    + canEstimate(s : SetEntry) : boolean
     + e1rmSeries(lift : Lift, h : List<WorkoutSession>) : List<Point>
     + weeklyTonnage(lift : Lift, h : List<WorkoutSession>) : List<Point>
-    + bestSet(lift : Lift, h : List<WorkoutSession>) : SetEntry
-    + currentE1RMs(h : List<WorkoutSession>) : Map<Lift, double>
+    + bestSet(lift : Lift, h : List<WorkoutSession>) : Optional<SetEntry>
+    + currentE1RMs(h : List<WorkoutSession>) : Map<Lift, Double>
+    + trend(lift : Lift, h : List<WorkoutSession>) : Optional<Double>
   }
   class StartingStrength $dom {
     + fromStatedMax(lift : Lift, kg : double, confidence : String) : double
@@ -408,68 +523,72 @@ package "domain" $dom {
     + percentOf1RM(reps : int, rpe : double) : double
   }
   class AttemptCalculator $dom {
-    - openerPct : double = 0.91
-    - secondPct : double = 0.96
-    - thirdPct : double = 1.01
+    + {static} OPENER_PCT : double = 0.91
+    + {static} SECOND_PCT : double = 0.96
+    + {static} THIRD_PCT : double = 1.01
+    + {static} PLATE_INCREMENT : double = 2.5
     + calculateMeetAttempts(lift : Lift, e1rm : double) : MeetAttempts
     + projectTestDay(lift : Lift, e1rm : double) : TestDayPlan
-    - roundToPlate(kg : double) : double
+    + roundToPlate(kg : double) : double
   }
   class TestDayPlan $dom {
     + lift : Lift
     + topSingle : double
     + warmups : List<Double>
     + rationale : String
+    + totalSingles() : int
   }
   class MacroTracker $dom {
     - target : MacroTarget
+    + {static} WEEK_LENGTH : int = 7
     + recordIntake(date : LocalDate, e : FoodEntry) : MacroTotals
+    + consumedOn(date : LocalDate) : MacroTotals
     + getRemaining(date : LocalDate) : MacroTotals
+    + intakeOn(date : LocalDate) : Optional<DailyIntake>
+    + daysLogged(weekStart : LocalDate) : int
     + weeklyAdherence(weekStart : LocalDate) : double
   }
   class PlanAdherence $dom {
-    - repTolerance : int = 0
-    - rpeTolerance : double = 0.5
-    + compare(b : TrainingBlock, logged : List<WorkoutSession>, from : LocalDate, to : LocalDate) : AdherenceReport
-    - matchSession(s : Session, logged : List<WorkoutSession>) : WorkoutSession [0..1]
-    - verdictFor(p : ExercisePrescription, actual : List<SetEntry>) : AdherenceVerdict
+    + {static} LOAD_TOLERANCE : double = 0.05
+    + {static} of(b : TrainingBlock, logged : List<WorkoutSession>, upTo : LocalDate) : PlanAdherence
+    + sessions() : List<SessionOutcome>
+    + planned() : int
+    + completed() : int
+    + missed() : int
+    + sessionRate() : double
+    + plannedTonnage() : double
+    + actualTonnage() : double
+    + tonnageRate() : double
+    + plannedTopLoads() : Map<Lift, Double>
+    + actualTopLoads() : Map<Lift, Double>
+    + liftsShortOfPlan() : List<Lift>
+    + isEmpty() : boolean
+    + describe() : String
   }
-  class AdherenceReport $dom {
-    + weekNumber : int
-    + completionRate : double
-    + entries : List<AdherenceEntry>
-    + summary() : String
-    + hasShortfall() : boolean
-  }
-  class AdherenceEntry $dom {
-    + exercise : Exercise
-    + prescribedSets : int
-    + completedSets : int
-    + prescribedReps : int
-    + completedReps : int
-    + targetRpe : double
-    + actualRpe : double [0..1]
-    + loadKg : double
-    + verdict : AdherenceVerdict
-  }
-  enum AdherenceVerdict $dom {
-    COMPLETED_BELOW_TARGET_RPE
-    COMPLETED_AT_TARGET
-    COMPLETED_ABOVE_TARGET_RPE
-    MISSED_REPS
-    MISSED_SESSION
+  class SessionOutcome $dom {
+    + date : LocalDate
+    + plannedTonnage : double
+    + actualTonnage : double
+    + completion() : double
   }
   class RecoveryRuleEngine $dom {
-    - minRecoveryScore : int = 33
-    - minSleepHours : double = 6.0
-    - maxSoreness : int = 4
-    - minEnergy : int = 2
-    + evaluate(d : RecoveryDay) : RecoveryFlag [0..1]
+    + {static} MIN_RECOVERY_SCORE : int = 33
+    + {static} MIN_SLEEP_HOURS : double = 6.0
+    + {static} MAX_SORENESS : int = 4
+    + {static} MIN_ENERGY : int = 2
+    + evaluate(d : RecoveryDay) : Optional<RecoveryFlag>
     + fallbackAdjustment(s : Session) : Session
   }
   class RecoveryFlag $dom {
     + date : LocalDate
     + reasons : List<String>
+    + severity : Severity
+    + isSignificant() : boolean
+    + summary() : String
+  }
+  enum Severity $dom {
+    MILD
+    SIGNIFICANT
   }
   class ProgressionStrategyFactory <<Factory>> $dom {
     + forGoal(g : TrainingGoal, e : ExperienceLevel) : ProgressionStrategy
@@ -477,6 +596,10 @@ package "domain" $dom {
   interface ProgressionStrategy <<Strategy>> $dom {
     + loadRange(e1rm : double, reps : int, rpe : double, week : int) : Range
     + describe() : String
+  }
+  abstract class AbstractProgression $dom {
+    + loadRange(e1rm : double, reps : int, rpe : double, week : int) : Range
+    # {abstract} percentFor(reps : int, rpe : double, week : int) : double
   }
   class RPEProgression $dom
   class LinearProgression $dom
@@ -488,234 +611,332 @@ package "domain" $dom {
 package "agent" $agent {
   note as N_COST
     Cost and latency are design concerns here:
-    each agent declares a ModelTier, so simple tasks
-    (substitution, rationale, meal) use the fast model
-    and only block generation uses the stronger one.
-    CachingLLMClient returns a stored reply for an
-    identical request, which matters most when the
-    Stage 3 suites rerun the same scenarios.
+    each agent declares a ModelTier, so simple
+    tasks (substitution, rationale, meal, onboarding)
+    use the fast model and only open ended work
+    (block generation, chat, progression, parsing a
+    programme) uses the stronger one. CachingLLMClient
+    returns a stored reply for an identical request,
+    which matters most when the Stage 3 suites rerun
+    the same scenarios.
   end note
   note as N_LC4J
-    ClaudeClient and ConversationHistory wrap
-    LangChain4j types (AnthropicChatModel,
-    ToolSpecification, MessageWindowChatMemory).
-    The rest of the system depends only on the
-    LLMClient and Tool interfaces, so the
-    framework stays replaceable.
+    ClaudeClient is the only class in the project
+    that imports LangChain4j. Everything else
+    depends on the LLMClient and Tool interfaces,
+    so the framework stays replaceable and the
+    whole agent layer tests against
+    ScriptedLLMClient with no network.
   end note
-  abstract class CoachAgent <<Template Method>> $agent {
-    # llm : LLMClient
-    # tools : ToolManager
-    # prompts : PromptBuilder
-    # parser : ResponseParser
-    # validator : PlanValidator
-    # tier : ModelTier
-    # maxRetries : int = 1
-    # maxToolRounds : int = 5
-    + run(req : AgentRequest) : AgentResult {final}
-    # {abstract} createToolset() : List<Tool>
-    # {abstract} gatherContext(req : AgentRequest) : AgentContext
-    # {abstract} buildPrompt(ctx : AgentContext) : List<Message>
-    # {abstract} parse(raw : String) : object
-    # {abstract} validate(result : object, ctx : AgentContext) : ValidationReport
-    - toolLoop(msgs : List<Message>) : LLMResponse
+  abstract class "CoachAgent<T>" as CoachAgent <<Template Method>> $agent {
+    + {static} MAX_TOOL_ROUNDS : int = 6
+    + {static} MAX_RETRIES : int = 2
+    - model : LLMClient
+    - trace : AgentTrace
+    + {abstract} name() : String
+    + run() : AgentResult<T> {final}
+    # tier() : ModelTier
+    # maxTokens() : int
+    # model() : LLMClient
+    # {abstract} systemPrompt() : String
+    # {abstract} gatherContext() : String
+    # {abstract} describeTask() : String
+    # {abstract} createToolset() : ToolManager
+    # {abstract} parse(raw : String) : Optional<T>
+    # {abstract} validate(value : T) : Optional<String>
+    - converse() : LLMResponse
+    - finalAnswer(conversation : StringBuilder, trace : AgentTrace) : LLMResponse
   }
+  note as N_FINAL
+    run() is final. The retry and validation
+    sequence is the one thing no agent may
+    reimplement: a rejected proposal goes back to
+    the model with the reason attached, which is
+    why validation lives inside the agent rather
+    than in the command that called it. See
+    design-changes.md entry 12.
+  end note
   class BlockGenerationAgent $agent {
-    - strategy : ProgressionStrategy
+    - progression : ProgressionStrategy
   }
-  class SubstitutionAgent $agent
-  class AdjustmentAgent $agent
+  class SubstitutionAgent $agent {
+    + {static} MIN_LOAD_RATIO : double = 0.4
+    + {static} MAX_LOAD_RATIO : double = 1.1
+  }
+  class AdjustmentAgent $agent {
+    + {static} MIN_TONNAGE_FRACTION : double = 0.5
+    + {static} MAX_TONNAGE_FRACTION : double = 0.95
+    + fallback() : Session
+  }
   class AttemptRationaleAgent $agent
   class MealSuggestionAgent $agent
   class OnboardingAgent $agent {
-    - questionsAsked : int
-    - maxQuestions : int = 8
+    + {static} MAX_QUESTIONS : int = 8
   }
-  class ProgrammeParserAgent $agent {
-    - catalog : ExerciseCatalog
-  }
+  class ProgrammeParserAgent $agent
   class ProgressionAgent $agent {
-    - strategy : ProgressionStrategy
+    - progression : ProgressionStrategy
   }
   class ChatAgent $agent {
     - memory : MemoryManager
   }
-  class AgentRequest $agent {
-    + kind : String
-    + params : Map<String, object>
-  }
-  class AgentContext $agent {
-    + profile : LifterProfile
-    + facts : Map<String, object>
-  }
   class "AgentResult<T>" as AgentResult $agent {
-    + success : boolean
-    + value : T [0..1]
-    + errors : List<String>
-    + attempts : int
+    + {static} success(value : T, t : AgentTrace) : AgentResult<T>
+    + {static} failure(reason : String, t : AgentTrace) : AgentResult<T>
+    + succeeded() : boolean
+    + value() : Optional<T>
+    + failureReason() : Optional<String>
+    + trace() : AgentTrace
+    + orElseThrow() : T
+    + steps() : List<String>
   }
-
+  class AgentTrace $agent {
+    + step(description : String) : void
+    + toolCalled(name : String, arguments : String) : void
+    + modelCalled(used : TokenUsage) : void
+    + validationFailed(reason : String) : void
+    + steps() : List<String>
+    + toolsCalled() : List<String>
+    + usage() : TokenUsage
+    + modelCalls() : int
+    + validationFailures() : int
+  }
+  class TokenUsage $agent {
+    + inputTokens : long
+    + outputTokens : long
+    + {static} NONE : TokenUsage
+    + total() : long
+    + plus(other : TokenUsage) : TokenUsage
+    + costUsd(inPerM : double, outPerM : double) : double
+  }
   enum ModelTier $agent {
     FAST
-    STANDARD
-  }
-  class LLMClientProvider $agent {
-    - clients : Map<ModelTier, LLMClient>
-    + forTier(t : ModelTier) : LLMClient
+    REASONING
   }
   interface LLMClient <<Strategy>> $agent {
-    + complete(msgs : List<Message>, tools : List<ToolSchema>, system : String) : LLMResponse
+    + name() : String
+    + complete(request : LLMRequest) : LLMResponse
+    + totalUsage() : TokenUsage
+  }
+  class LLMRequest $agent {
+    + systemPrompt : String
+    + userPrompt : String
+    + tools : List<ToolSchema>
+    + tier : ModelTier
+    + maxTokens : int
+    + hasTools() : boolean
+  }
+  class LLMResponse $agent {
+    + text : String
+    + toolCalls : List<ToolCall>
+    + usage : TokenUsage
+    + {static} of(text : String) : LLMResponse
+    + wantsTools() : boolean
+    + isEmpty() : boolean
   }
   class ClaudeClient $agent {
-    - chatModel : AnthropicChatModel
-    - modelName : String
-    - maxTokens : int
-    - timeoutSeconds : int
-    - toSpecifications(t : List<ToolSchema>) : List<ToolSpecification>
-    - fromAiMessage(m : AiMessage) : LLMResponse
+    - config : SpotterConfig
+    - built : Map<String, ChatLanguageModel>
+    + complete(request : LLMRequest) : LLMResponse
+    - modelFor(tier : ModelTier, maxTokens : int) : ChatLanguageModel
   }
   class ScriptedLLMClient $agent {
-    - responses : List<LLMResponse>
+    - scripted : Deque<LLMResponse>
+    - repeating : LLMResponse [0..1]
+    + reply(text : String) : ScriptedLLMClient
+    + requestTool(name : String, args : Map<String, String>) : ScriptedLLMClient
+    + alwaysReply(text : String) : ScriptedLLMClient
+    + failWith(message : String) : ScriptedLLMClient
+    + received() : List<LLMRequest>
+    + callCount() : int
+    + scriptExhausted() : boolean
   }
   abstract class LLMClientDecorator <<Decorator>> $agent {
     # delegate : LLMClient
-    + complete(msgs : List<Message>, tools : List<ToolSchema>, system : String) : LLMResponse
+    # wrapped() : LLMClient
+    + name() : String
+    + totalUsage() : TokenUsage
   }
   class CachingLLMClient $agent {
     - cache : Map<String, LLMResponse>
-    - hits : int
-    - misses : int
-    - key(msgs : List<Message>, tools : List<ToolSchema>) : String
-    + statistics() : String
+    + hits() : int
+    + misses() : int
+    + size() : int
+    + hitRate() : double
   }
   class RecordingLLMClient $agent {
     - fixtureDir : Path
-    - record(key : String, r : LLMResponse) : void
-  }
-  class LLMResponse $agent {
-    + content : String [0..1]
-    + toolCalls : List<ToolCall>
-    + finishReason : String
-  }
-  class Message $agent {
-    + role : String
-    + content : String
+    + recorded() : int
   }
   class PromptBuilder <<Builder>> $agent {
-    + system(text : String) : PromptBuilder
-    + context(key : String, value : object) : PromptBuilder
-    + schema(s : Map<String, Object>) : PromptBuilder
-    + memory(snips : List<String>) : PromptBuilder
-    + user(text : String) : PromptBuilder
-    + build() : List<Message>
+    + build(task : String, context : String, schema : String) : String
   }
   class ResponseParser $agent {
-    + parseJson(raw : String) : Map<String, Object>
-    + toBlock(d : Map<String, Object>, catalog : ExerciseCatalog) : TrainingBlock
-    + toSession(d : Map<String, Object>) : Session
-    + toMeal(d : Map<String, Object>, foods : FoodCatalog) : MealSuggestion
+    + problems() : List<String>
+    + extractJson(raw : String) : Optional<JsonNode>
+    + toBlock(d : JsonNode, from : LocalDate) : Optional<TrainingBlock>
+    + toAdjustedSession(d : JsonNode, original : Session) : Optional<Session>
+    + toSubstitution(d : JsonNode, p : ExercisePrescription) : Optional<Substitution>
+    + toMeal(d : JsonNode) : Optional<MealSuggestion>
+    + toRationale(d : JsonNode, a : MeetAttempts) : Optional<MeetAttempts>
+    + toProfileDraft(d : JsonNode, draft : ProfileDraft) : Optional<ProfileDraft>
+    + toChatReply(d : JsonNode) : Optional<ChatReply>
   }
   class PlanValidator $agent {
-    + validateBlock(b : TrainingBlock, ctx : AgentContext, s : ProgressionStrategy) : ValidationReport
-    + validateSplit(b : TrainingBlock, p : LifterProfile) : ValidationReport
-    + validateProfileDraft(d : ProfileDraft) : ValidationReport
-    + validateAdoptedBlock(b : TrainingBlock, p : LifterProfile) : ValidationReport
-    + validateSubstitution(e : Exercise, allowed : List<Exercise>, r : SubstitutionReason, l : List<Limitation>) : ValidationReport
-    + validateMeal(m : MealSuggestion, d : DietaryConstraints, remaining : MacroTotals) : ValidationReport
-    + validateRationale(text : String, a : MeetAttempts) : ValidationReport
-    + validateProgression(revised : TrainingBlock, original : TrainingBlock, r : AdherenceReport) : ValidationReport
+    + {static} MAX_SETS : int = 12
+    + {static} MAX_REPS : int = 30
+    + {static} MAX_SESSIONS : int = 7
+    + {static} MAX_MEAL_FOODS : int = 6
+    + {static} MAX_WEEKLY_INCREASE : double = 0.05
+    + {static} FIGURE_TOLERANCE : double = 0.05
+    + validateBlock(b : TrainingBlock, p : LifterProfile, s : ProgressionStrategy, e1rms : Map<Lift, Double>) : Optional<String>
+    + validateAdoptedBlock(b : TrainingBlock, p : LifterProfile, e1rms : Map<Lift, Double>) : Optional<String>
+    + validateProgression(revised : TrainingBlock, original : TrainingBlock, a : PlanAdherence) : Optional<String>
+    + validateMeal(m : MealSuggestion, d : DietaryConstraints, remaining : MacroTotals) : Optional<String>
+    + validateRationale(text : String, a : MeetAttempts) : Optional<String>
   }
-  class ValidationReport $agent {
-    + valid : boolean
-    + errors : List<String>
+  class ProfileValidator $agent {
+    + {static} MAX_MEET_YEARS : int = 3
+    + validate(d : ProfileDraft) : Optional<String>
+    + onlyNeedsMoreAnswers(d : ProfileDraft) : boolean
   }
-
+  note as N_VALID
+    A validator returns Optional<String>: empty
+    means accepted, and a present value is the
+    reason, which is the text sent back to the
+    model. A ValidationReport object was designed
+    and was not needed, because nothing ever
+    reported more than the first reason.
+    ProfileValidator is separate from PlanValidator
+    because a draft profile and a training plan
+    share nothing but their origin. See
+    design-changes.md entry 1.
+  end note
   class ToolManager $agent {
     - tools : Map<String, Tool>
-    - callLog : List<ToolCall>
-    + register(t : Tool) : void
+    + register(t : Tool) : ToolManager
     + schemas() : List<ToolSchema>
-    + execute(call : ToolCall) : ToolResult
+    + has(name : String) : boolean
+    + size() : int
+    + execute(call : ToolCall) : String
   }
   interface Tool $agent {
     + name() : String
     + schema() : ToolSchema
-    + execute(args : Map<String, Object>) : ToolResult
+    + execute(arguments : Map<String, String>) : String
   }
   class ToolSchema $agent {
     + name : String
     + description : String
-    + inputSchema : Map<String, Object>
+    + parameters : Map<String, String>
   }
   class ToolCall $agent {
     + id : String
     + toolName : String
-    + arguments : Map<String, Object>
+    + arguments : Map<String, String>
   }
-  class ToolResult $agent {
-    + ok : boolean
-    + data : object
-    + error : String [0..1]
-  }
+  note as N_TOOLS
+    A tool returns its result as text rather than
+    a ToolResult object, and reports a failure as
+    text too, because the model can usually
+    recover from being told a lookup failed and an
+    exception would end the whole task.
+  end note
   class AnalyticsTool $agent
   class ExerciseDBTool $agent
   class FoodDBTool $agent
   class PlanLookupTool $agent
   class RecoveryLookupTool $agent
   class AdherenceTool $agent
-
+  class LoadRangeTool $agent
+  note as N_LOADRANGE
+    LoadRangeTool was added after watching the
+    model guess at the allowed load and be
+    refused. It can now ask instead. See
+    design-changes.md entry 3.
+  end note
   class MemoryManager $agent {
-    - history : ConversationHistory
-    - store : MemoryRepository
-    + remember(user : Message, reply : Message) : void
-    + recall(query : String, k : int) : List<String>
-    + summarizeOlderTurns() : void
+    + {static} MAX_NOTES : int = 40
+    + {static} MIN_LENGTH : int = 10
+    + remember(content : String) : Optional<MemoryNote>
+    + wouldRefuse(content : String) : Optional<String>
+    + refusal() : Optional<String>
+    + recall(limit : int) : List<MemoryNote>
+    + describe(limit : int) : String
+    + forgetEverything() : void
   }
   class ConversationHistory $agent {
-    - chatMemory : MessageWindowChatMemory
-    - maxTurns : int = 20
-    + append(m : Message) : void
-    + recent(n : int) : List<Message>
+    + {static} MAX_TURNS : int = 20
+    + said(text : String) : ConversationHistory
+    + replied(text : String) : ConversationHistory
+    + turns() : List<Turn>
+    + transcript() : String
+    + clear() : void
   }
+  class Turn $agent {
+    + speaker : Speaker
+    + text : String
+  }
+  enum Speaker $agent {
+    LIFTER
+    COACH
+  }
+  note as N_MEMORY
+    Conversations are not stored. ConversationHistory
+    holds the current exchange in memory and is
+    discarded with the window; only facts the lifter
+    states are persisted, as MemoryNote, and only
+    after MemoryManager gates them. Storing a
+    transcript would mean storing whatever the model
+    got wrong and reading it back as true. See
+    design-changes.md entries 8 and 9.
+  end note
 }
 
 ' ---------------- Infrastructure ----------------
 package "infrastructure" $infra {
-  interface DataSource <<Adapter: Target>> $infra {
-    + read(path : String) : ImportBatch
+  interface "DataSource<T>" as DataSource <<Adapter: Target>> $infra {
+    + name() : String
+    + canRead(file : Path) : boolean
+    + read(file : Path) : List<T>
+    + skipped() : List<String>
   }
   class HevyCsvAdapter <<Adapter>> $infra
   class WhoopCsvAdapter <<Adapter>> $infra
-  class CsvFileReader <<Adaptee>> $infra {
-    + rows(path : String) : Iterator<Map<String, Object>>
-    + header(path : String) : List<String>
-  }
-  class DataSourceFactory <<Factory>> $infra {
-    + create(kind : SourceKind) : DataSource
-    + create(mapping : ColumnMapping) : DataSource
-    + detect(path : String) : SourceKind
-    + suggestMapping(path : String, k : ImportKind) : ColumnMapping
-  }
   class GenericCsvAdapter <<Adapter>> $infra {
     - mapping : ColumnMapping
   }
+  class CsvFileReader <<Adaptee>> $infra {
+    + {static} readHeader(file : Path) : List<String>
+    + {static} read(file : Path) : List<Map<String, String>>
+  }
+  note as N_ADAPTER
+    DataSource is typed on what it produces, so a
+    workout adapter and a recovery adapter are the
+    same interface over different payloads. read()
+    returns the rows it could parse and skipped()
+    the ones it could not, rather than throwing,
+    because one unreadable row in a real export
+    should not lose the other four hundred.
+  end note
+  class DataSourceFactory <<Factory>> $infra {
+    + detect(file : Path) : SourceKind
+    + create(kind : SourceKind) : DataSource<?>
+    + createMapped(mapping : ColumnMapping) : DataSource<WorkoutSession>
+  }
   class ColumnMapping $infra {
-    + name : String
-    + kind : ImportKind
-    + columns : Map<String, String>
-    + dateFormat : String
-    + weightUnit : WeightUnit
-    + validate() : ValidationReport
-    + toKg(value : double) : double
-  }
-  class ImportProfileRepository $infra {
-    + findByName(n : String) : ColumnMapping [0..1]
-    + all() : List<ColumnMapping>
-  }
-  enum ImportKind $infra {
-    WORKOUT
-    RECOVERY
-    PROGRAMME
+    + {static} REQUIRED : List<String>
+    + {static} OPTIONAL : List<String>
+    + columnFor(field : String) : Optional<String>
+    + columns() : Map<String, String>
+    + unit() : WeightUnit
+    + dateFormat() : Optional<String>
+    + missing() : List<String>
+    + isComplete() : boolean
+    + validate(header : List<String>) : Optional<String>
+    + {static} suggestFor(header : List<String>) : ColumnMapping
+    + serialise() : String
+    + {static} parse(text : String) : ColumnMapping
   }
   enum WeightUnit $infra {
     KG
@@ -724,71 +945,143 @@ package "infrastructure" $infra {
   enum SourceKind $infra {
     HEVY
     WHOOP
-    GENERIC
-  }
-  class ImportBatch $infra {
-    + sessions : List<WorkoutSession>
-    + recoveryDays : List<RecoveryDay>
-    + rowErrors : List<String>
+    UNKNOWN
   }
   class ImportReport $infra {
     + imported : int
     + duplicatesSkipped : int
     + unknownExercises : List<String>
     + rowErrors : List<String>
-  }
-  class ProgrammeImportService $infra {
-    - factory : DataSourceFactory
-    - catalog : ExerciseCatalog
-    + fromCsv(path : String, m : ColumnMapping) : TrainingBlock
-    + fromManualEntry(weeks : List<Week>) : TrainingBlock
-    + unresolvedExercises() : List<String>
+    + {static} empty() : ImportReport
+    + isEmpty() : boolean
+    + skippedCount() : int
   }
   class CsvImportService $infra {
     - factory : DataSourceFactory
     - catalog : ExerciseCatalog
-    + importFile(path : String, kind : SourceKind) : ImportReport
-    - mapExerciseNames(b : ImportBatch) : List<String>
-    - dedupe(b : ImportBatch) : int
+    + detect(file : Path) : SourceKind
+    + importFile(file : Path) : ImportReport
+    + importMapped(file : Path, m : ColumnMapping) : ImportReport
+    + importAs(file : Path, kind : SourceKind) : ImportReport
   }
-  class ExerciseCatalog $infra {
-    + byName(name : String) : Exercise [0..1]
-    + closestMatches(name : String, k : int) : List<Exercise>
+  class ProgrammeImportService $infra {
+    + {static} REQUIRED : List<String>
+    + {static} OPTIONAL : List<String>
+    + problems() : List<String>
+    + fromManualEntry(lines : List<String>, start : LocalDate) : Optional<TrainingBlock>
+    + fromCsv(file : Path, m : ColumnMapping, start : LocalDate) : Optional<TrainingBlock>
+  }
+  note as N_F14
+    Adopting a programme has three routes and only
+    one of them involves a model. A typed line and
+    a spreadsheet are parsed here, deterministically.
+    ProgrammeParserAgent is for prose, which is the
+    one form that cannot be parsed.
+  end note
+  class SpotterConfig $infra {
+    + {static} KEY_API : String
+    + {static} KEY_MODEL : String
+    + {static} KEY_MODEL_REASONING : String
+    + {static} load() : SpotterConfig
+    + {static} load(envFile : Path) : SpotterConfig
+    + get(key : String) : Optional<String>
+    + getInt(key : String, fallback : int) : int
+    + hasApiKey() : boolean
+    + requireApiKey() : String
+    + model() : String
+    + reasoningModel() : String
+    + maxTokens() : int
+    + inputRatePerMillion() : double
+    + outputRatePerMillion() : double
+    + databasePath() : Path
+  }
+  note as N_CONFIG
+    Loaded from .env, which is gitignored, and
+    every command takes --env so a test can point
+    at a temporary database. A missing key gives a
+    command that explains what is missing rather
+    than a stack trace. See design-changes.md
+    entry 11.
+  end note
+  interface ExerciseCatalog $infra {
+    + byName(name : String) : Optional<Exercise>
+    + all() : List<Exercise>
+    + forLift(lift : Lift) : List<Exercise>
+    + performable(eq : Set<Equipment>) : List<Exercise>
+    + closestMatches(name : String, limit : int) : List<Exercise>
+    + add(e : Exercise) : Exercise
     + addAlias(alias : String, e : Exercise) : void
-    + add(e : Exercise) : void
-    + candidates(pattern : String, muscles : Set<String>, eq : Set<Equipment>) : List<Exercise>
-    + candidatesExcluding(pattern : String, muscles : Set<String>, eq : Set<Equipment>, avoid : Set<String>) : List<Exercise>
   }
-  class FoodCatalog $infra {
-    + search(d : DietaryConstraints, maxCalories : double) : List<FoodItem>
-    + byName(name : String) : FoodItem [0..1]
-    + add(f : FoodItem) : void
+  interface FoodCatalog $infra {
+    + byName(name : String) : Optional<FoodItem>
+    + all() : List<FoodItem>
+    + permittedBy(c : DietaryConstraints) : List<FoodItem>
+    + closestMatches(name : String, limit : int) : List<FoodItem>
+    + add(f : FoodItem) : FoodItem
   }
   interface "Repository<T>" as Repository $infra {
     + save(item : T) : T
-    + findById(id : int) : T [0..1]
+    + findById(id : int) : Optional<T>
     + findAll() : List<T>
     + delete(id : int) : void
   }
   class Database $infra {
-    - path : String
+    + {static} SCHEMA_VERSION : int = 1
+    + {static} atPath(path : Path) : Database
+    + {static} inMemory() : Database
     + connection() : Connection
     + migrate() : void
+    + schemaVersion() : int
+    + close() : void
   }
-  class ProfileRepository $infra
-  class WorkoutRepository $infra {
-    + findByLift(l : Lift, since : LocalDate) : List<WorkoutSession>
+  interface ProfileRepository $infra {
+    + current() : Optional<LifterProfile>
   }
-  class RecoveryRepository $infra {
-    + findByDate(d : LocalDate) : RecoveryDay [0..1]
+  interface WorkoutRepository $infra {
+    + findByLift(lift : Lift, since : LocalDate) : List<WorkoutSession>
+    + findSince(since : LocalDate) : List<WorkoutSession>
   }
-  class BlockRepository $infra {
-    + findActive() : TrainingBlock [0..1]
+  interface RecoveryRepository $infra {
+    + save(day : RecoveryDay) : RecoveryDay
+    + findByDate(date : LocalDate) : Optional<RecoveryDay>
+    + findSince(since : LocalDate) : List<RecoveryDay>
+    + findAll() : List<RecoveryDay>
   }
-  class IntakeRepository $infra
-  class MemoryRepository $infra {
-    + search(query : String, k : int) : List<String>
+  interface BlockRepository $infra {
+    + active() : Optional<TrainingBlock>
+    + activate(id : int) : void
   }
+  interface NutritionRepository $infra {
+    + save(intake : DailyIntake) : DailyIntake
+    + log(date : LocalDate, entry : FoodEntry) : DailyIntake
+    + findByDate(date : LocalDate) : Optional<DailyIntake>
+    + findSince(since : LocalDate) : List<DailyIntake>
+    + targetFor(profileId : int) : Optional<MacroTarget>
+    + saveTarget(profileId : int, target : MacroTarget) : void
+  }
+  interface MemoryRepository $infra {
+    + recent(limit : int) : List<MemoryNote>
+    + count() : int
+    + clear() : void
+  }
+  interface ImportProfileRepository $infra {
+    + save(name : String, mapping : ColumnMapping) : void
+    + byName(name : String) : Optional<ColumnMapping>
+    + names() : List<String>
+    + delete(name : String) : void
+  }
+  note as N_SQLITE
+    Each repository interface has one SQLite
+    implementation, named Sqlite<Interface>:
+    SqliteProfileRepository, SqliteWorkoutRepository,
+    SqliteRecoveryRepository, SqliteBlockRepository,
+    SqliteNutritionRepository, SqliteMemoryRepository,
+    SqliteImportProfileRepository, and likewise
+    SqliteExerciseCatalog and SqliteFoodCatalog.
+    They are named rather than drawn because nine
+    identical boxes add nothing. SampleData and
+    SampleFoods seed the catalogues for `spotter seed`.
+  end note
 }
 
 ' ============================================================
@@ -796,44 +1089,54 @@ package "infrastructure" $infra {
 ' ============================================================
 
 ' presentation
-DashboardGUI "1" *-- "7" BasePanel
-BasePanel <|-- ProfilePanel
-BasePanel <|-- LogPanel
-BasePanel <|-- AnalyticsPanel
-BasePanel <|-- PlanPanel
-BasePanel <|-- MeetPanel
-BasePanel <|-- NutritionPanel
-BasePanel <|-- ChatPanel
-BasePanel <|-- OnboardingPanel
-BasePanel ..|> EventListener
-BasePanel "*" --> "1" CoachController
+DashboardApp "1" *-- "8" Panel
+Panel <|.. DashboardPanel
+Panel <|.. TodayPanel
+Panel <|.. PlanPanel
+Panel <|.. AnalyticsPanel
+Panel <|.. RecoveryPanel
+Panel <|.. NutritionPanel
+Panel <|.. CoachPanel
+Panel <|.. ProfilePanel
+Panel ..> SpotterEvent : names in changedBy >
+DashboardApp *-- "1" GuiContext
+DashboardApp ..> EventBus : subscribes panels >
+DashboardApp ..|> EventListener
+GuiContext *-- "1" CoachController
+GuiContext *-- "1" EventBus
+GuiContext *-- "1" FxTaskRunner
+GuiContext --> SpotterConfig
+GuiContext ..> LLMClient
+Panel "*" --> "1" GuiContext
+TodayPanel *-- "1" PlanEditHistory
+TodayPanel ..> SwapExerciseCommand : creates
+TodayPanel ..> ApplyAdjustmentCommand : creates
+ModelAccess ..> LLMClient : creates
+ModelAccess --> SpotterConfig
+UsageReport ..> AgentTrace
 CoachCLI --> "1" CoachController
+CoachCLI ..> JsonOutput
+JsonOutput ..> AgentResult
+JsonOutput ..> TrainingBlock
 
 ' application
-CoachController *-- "1" EventBus
-CoachController *-- "1" PlanEditHistory
-CoachController *-- "1" AgentRegistry
-CoachController --> "1" FxTaskRunner
-CoachController --> ProgressionStrategyFactory
-EventBus "1" o-- "*" EventListener : notifies >
-EventBus ..> DomainEvent
-DomainEvent --> EventType
-PlanEditHistory "1" o-- "*" PlanEditCommand
-PlanEditCommand <|.. SwapExerciseCommand
-PlanEditCommand <|.. ChangeLoadCommand
-PlanEditCommand <|.. ApplyAdjustmentCommand
-PlanEditCommand <|.. ApplyProgressionCommand
-SwapExerciseCommand --> TrainingBlock : receiver
-ChangeLoadCommand --> TrainingBlock : receiver
-ApplyAdjustmentCommand --> TrainingBlock : receiver
-ApplyProgressionCommand --> TrainingBlock : receiver
-AgentRegistry o-- "9" CoachAgent
 CoachController --> CsvImportService
 CoachController --> StrengthAnalytics
 CoachController --> AttemptCalculator
-CoachController --> MacroTracker
 CoachController --> RecoveryRuleEngine
+CoachController --> Database
 CoachController --> Repository
+EventBus "1" o-- "*" EventListener : notifies >
+EventBus ..> SpotterEvent
+PlanEditHistory "1" o-- "*" PlanEditCommand
+PlanEditHistory --> "1" TrainingBlock : current
+PlanEditCommand <|.. ReplaceSessionCommand
+PlanEditCommand <|.. ApplyProgressionCommand
+ReplaceSessionCommand <|-- SwapExerciseCommand
+ReplaceSessionCommand <|-- ApplyAdjustmentCommand
+ReplaceSessionCommand --> "1" Session : replacement
+SwapExerciseCommand --> "1" Substitution
+ApplyProgressionCommand --> "1" TrainingBlock : revised
 
 ' domain structure
 LifterProfile "1" *-- "1" DietaryConstraints
@@ -849,7 +1152,8 @@ Session "1" *-- "1..*" ExercisePrescription
 ExercisePrescription "*" --> "1" Exercise
 DailyIntake "1" *-- "0..*" FoodEntry
 FoodEntry "*" --> "1" FoodItem
-MealSuggestion "1" *-- "1..*" FoodEntry
+MealSuggestion "1" *-- "1..*" Portion
+Portion "*" --> "1" FoodItem
 StrengthAnalytics *-- "1" RPEChart
 StrengthAnalytics ..> AnalyticsSummary : creates
 AnalyticsSummary "1" o-- "*" Point
@@ -868,28 +1172,38 @@ OnboardingAgent ..> ProfileDraft : produces
 ProfileDraft ..> LifterProfile : converts to
 ProgrammeParserAgent ..> TrainingBlock : produces
 ProgrammeImportService ..> TrainingBlock : builds
-ProgrammeImportService --> DataSourceFactory
 ProgrammeImportService --> ExerciseCatalog
+ProgrammeImportService ..> ColumnMapping
 TrainingBlock --> BlockOrigin
 LifterProfile "1" *-- "0..*" Limitation
+LifterProfile +-- Builder
+Builder ..> LifterProfile : builds
+MealSuggestion +-- Portion
+PlanAdherence +-- SessionOutcome
+RecoveryFlag +-- Severity
+SubstitutionAgent ..> Substitution : produces
+Substitution --> SubstitutionReason
+Substitution "*" --> "1" Exercise : replaced >
+Substitution ..> ExercisePrescription : applies to
+ChatAgent ..> ChatReply : produces
+MemoryManager ..> MemoryNote
 LifterProfile --> WeightUnit
 Limitation "*" --> "*" Exercise : avoids >
 StartingStrength ..> Session : creates calibration
 SubstitutionAgent ..> SubstitutionReason
 PlanValidator ..> Limitation
 RecoveryRuleEngine ..> RecoveryFlag : creates
+RecoveryFlag --> Severity
 RecoveryDay --> RecoverySource
-PlanAdherence ..> AdherenceReport : creates
-AdherenceReport "1" *-- "1..*" AdherenceEntry
-AdherenceEntry --> AdherenceVerdict
-AdherenceEntry "*" --> "1" Exercise
+PlanAdherence "1" *-- "0..*" SessionOutcome
 PlanAdherence ..> TrainingBlock
 PlanAdherence ..> WorkoutSession
 ProgressionAgent --> "1" ProgressionStrategy
-ProgressionStrategy <|.. RPEProgression
-ProgressionStrategy <|.. LinearProgression
-ProgressionStrategy <|.. NoviceLinearProgression
-ProgressionStrategy <|.. PercentageProgression
+ProgressionStrategy <|.. AbstractProgression
+AbstractProgression <|-- RPEProgression
+AbstractProgression <|-- LinearProgression
+AbstractProgression <|-- NoviceLinearProgression
+AbstractProgression <|-- PercentageProgression
 
 ' agent
 CoachAgent <|-- BlockGenerationAgent
@@ -906,12 +1220,16 @@ CoachAgent "1" *-- "1" ToolManager
 CoachAgent --> PromptBuilder
 CoachAgent --> ResponseParser
 CoachAgent --> PlanValidator
-CoachAgent ..> AgentRequest
-CoachAgent ..> AgentContext
-CoachAgent ..> AgentResult
+CoachAgent ..> AgentResult : creates
+CoachAgent *-- "1" AgentTrace
+CoachAgent ..> LLMRequest : creates
+AgentResult --> "1" AgentTrace
+AgentTrace --> "1" TokenUsage
 BlockGenerationAgent --> "1" ProgressionStrategy
 PlanValidator ..> ProgressionStrategy
-PlanValidator ..> ValidationReport
+PlanValidator ..> PlanAdherence
+ProfileValidator ..> ProfileDraft
+OnboardingAgent --> "1" ProfileValidator
 ChatAgent --> "1" MemoryManager
 LLMClient <|.. ClaudeClient
 LLMClient <|.. ScriptedLLMClient
@@ -919,21 +1237,24 @@ LLMClient <|.. LLMClientDecorator
 LLMClientDecorator <|-- CachingLLMClient
 LLMClientDecorator <|-- RecordingLLMClient
 LLMClientDecorator "1" o-- "1" LLMClient : wraps >
-LLMClientProvider ..> LLMClient : creates
-LLMClientProvider --> ModelTier
 CoachAgent --> ModelTier
+LLMClient ..> LLMRequest
 LLMClient ..> LLMResponse
-LLMClient ..> Message
+LLMRequest --> ModelTier
+LLMRequest "1" o-- "*" ToolSchema
 LLMResponse "1" *-- "0..*" ToolCall
+LLMResponse --> "1" TokenUsage
+ClaudeClient --> SpotterConfig
 ToolManager "1" o-- "*" Tool
 ToolManager ..> ToolCall
-ToolManager ..> ToolResult
 Tool <|.. AnalyticsTool
 Tool <|.. ExerciseDBTool
 Tool <|.. FoodDBTool
 Tool <|.. PlanLookupTool
 Tool <|.. RecoveryLookupTool
 Tool <|.. AdherenceTool
+Tool <|.. LoadRangeTool
+LoadRangeTool --> ProgressionStrategy
 AnalyticsTool --> StrengthAnalytics
 AnalyticsTool --> WorkoutRepository
 ExerciseDBTool --> ExerciseCatalog
@@ -942,9 +1263,13 @@ PlanLookupTool --> BlockRepository
 RecoveryLookupTool --> RecoveryRepository
 AdherenceTool --> PlanAdherence
 AdherenceTool --> WorkoutRepository
-MemoryManager *-- "1" ConversationHistory
-ConversationHistory "1" *-- "0..*" Message
+ChatAgent *-- "1" ConversationHistory
+ConversationHistory "1" *-- "0..*" Turn
+ConversationHistory +-- Turn
+ConversationHistory +-- Speaker
+Turn --> Speaker
 MemoryManager --> MemoryRepository
+MemoryManager ..> MemoryNote : gates
 
 ' infrastructure
 DataSource <|.. HevyCsvAdapter
@@ -957,25 +1282,14 @@ GenericCsvAdapter --> "1" ColumnMapping
 DataSourceFactory ..> DataSource : creates
 DataSourceFactory --> SourceKind
 DataSourceFactory ..> ColumnMapping
-ColumnMapping --> ImportKind
 ColumnMapping --> WeightUnit
-ColumnMapping ..> ValidationReport
-Repository <|.. ImportProfileRepository
-ImportProfileRepository --> Database
 ImportProfileRepository ..> ColumnMapping
 CsvImportService --> DataSourceFactory
 CsvImportService --> ExerciseCatalog
-CsvImportService ..> ImportBatch
 CsvImportService ..> ImportReport
-Repository <|.. ProfileRepository
-Repository <|.. WorkoutRepository
-Repository <|.. RecoveryRepository
-Repository <|.. BlockRepository
-Repository <|.. IntakeRepository
-Repository <|.. MemoryRepository
-ProfileRepository --> Database
-WorkoutRepository --> Database
-RecoveryRepository --> Database
-BlockRepository --> Database
-IntakeRepository --> Database
-MemoryRepository --> Database
+Repository <|-- ProfileRepository
+Repository <|-- WorkoutRepository
+Repository <|-- RecoveryRepository
+Repository <|-- BlockRepository
+Repository <|-- NutritionRepository
+SpotterConfig ..> Database : names the file >
