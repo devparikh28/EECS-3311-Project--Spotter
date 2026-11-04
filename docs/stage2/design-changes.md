@@ -310,3 +310,31 @@ feeds the estimated maxima in
 `StrengthAnalytics`, and a change with two
 consumers deserves more care than the last week
 of a project allows.
+
+## 14. Undo kept in the window, not the database
+
+Stage 1 described an undo stack over plan edits
+and said nothing about how long it lives. The
+implementation keeps it in the window: a
+`PlanEditHistory` held by the Today screen,
+bounded at twenty edits, lost when the
+application closes.
+
+The alternative was a table of applied commands
+with enough detail to reverse each one, which
+would survive a restart. It was not built,
+because the case the feature exists for happens
+inside one sitting. A lifter eases off a session
+in the morning and wants it back in the evening;
+nobody has asked to reverse a change made three
+weeks ago, and the plan itself is the record of
+what was decided.
+
+The cost of that choice is honest and small.
+`spotter review --keep` still routes its save
+through `ApplyProgressionCommand`, which gives
+one place that rebuilds a block and one
+description of what changed, but it has no stack
+to offer because the process exits. Persisting
+the history is the obvious next step if undo
+across restarts is ever wanted.
