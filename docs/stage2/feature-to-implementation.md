@@ -173,7 +173,7 @@ is described in the design changes log.
 | | |
 |---|---|
 | **Designed** | `SubstitutionAgent`, `Substitution`, `SubstitutionReason` |
-| **Implemented** | `agent/agents/SubstitutionAgent`, `domain/Substitution`, `domain/SubstitutionReason`, `agent/tools/ExerciseDBTool`, `presentation/cli/SubstituteCommand`, substitution controls in `presentation/gui/panels/TodayPanel` |
+| **Implemented** | `agent/agents/SubstitutionAgent`, `domain/Substitution`, `domain/SubstitutionReason`, `agent/tools/ExerciseDBTool`, `presentation/cli/SubstituteCommand`, `application/plan/SwapExerciseCommand`, substitution controls in `presentation/gui/panels/TodayPanel` |
 | **Status** | Done |
 
 Four checks stand between the answer and the
@@ -187,7 +187,7 @@ Thirteen tests, mostly refusals.
 | | |
 |---|---|
 | **Designed** | `RecoveryRuleEngine`, `AdjustmentAgent`, `RecoveryFlag` |
-| **Implemented** | `domain/RecoveryRuleEngine`, `domain/RecoveryFlag`, `agent/agents/AdjustmentAgent`, `agent/tools/RecoveryLookupTool`, `presentation/cli/AdjustCommand`, adjustment controls in `presentation/gui/panels/TodayPanel` |
+| **Implemented** | `domain/RecoveryRuleEngine`, `domain/RecoveryFlag`, `agent/agents/AdjustmentAgent`, `agent/tools/RecoveryLookupTool`, `presentation/cli/AdjustCommand`, `application/plan/ApplyAdjustmentCommand`, adjustment controls in `presentation/gui/panels/TodayPanel` |
 | **Status** | Done |
 
 Hybrid as designed. The rule engine decides
@@ -263,7 +263,7 @@ architecture was right.
 | | |
 |---|---|
 | **Designed** | `PlanAdherence.compare()` assigning per prescription verdicts such as `COMPLETED_BELOW_TARGET_RPE` and `MISSED_REPS`, a `ProgressionAgent`, `AdherenceTool`, `PlanValidator.validateProgression()`, `ApplyProgressionCommand` |
-| **Implemented** | `domain/PlanAdherence`, `agent/tools/AdherenceTool`, `agent/agents/ProgressionAgent`, `PlanValidator.validateProgression`, `presentation/cli/ReviewCommand` |
+| **Implemented** | `domain/PlanAdherence`, `agent/tools/AdherenceTool`, `agent/agents/ProgressionAgent`, `PlanValidator.validateProgression`, `application/plan/ApplyProgressionCommand`, `PlanEditHistory`, `presentation/cli/ReviewCommand` |
 | **Status** | Done |
 
 The adherence arithmetic is simpler than
@@ -295,8 +295,12 @@ rewrite the remaining weeks. The report stands on
 its own when there is no API key, because it was
 measured rather than generated.
 
-Not implemented: `ApplyProgressionCommand`, since
-there is no undo stack.
+`ApplyProgressionCommand` is built. A revision
+accepted with `--keep` goes through it rather than
+being written directly, so the one place that
+rebuilds a block with its original identity is
+also the place that knows how to put the old one
+back.
 
 ## F13 Guided Onboarding
 
@@ -413,8 +417,8 @@ outright rather than pretending.
 ## Design patterns
 
 Stage 1 named eight patterns and the course
-requires five. Six are implemented, which meets
-the requirement, and two are not.
+requires five. Seven are implemented, which meets
+the requirement, and one is not.
 
 | Pattern | Designed classes | Implemented | Status |
 |---|---|---|---|
@@ -425,7 +429,7 @@ the requirement, and two are not.
 | Factory Method | `createToolset()`, `DataSourceFactory`, `ProgressionStrategyFactory` | All three present | Done |
 | Decorator | `LLMClientDecorator`, `CachingLLMClient`, `RecordingLLMClient` | All three present | Done |
 | Observer | `EventBus`, `EventListener`, `BasePanel` | Not built | Not built |
-| Command | `PlanEditCommand`, `PlanEditHistory`, three concrete commands | Not built | Not built |
+| Command | `PlanEditCommand`, `PlanEditHistory`, three concrete commands | `application/plan/PlanEditCommand`, `PlanEditHistory`, `ReplaceSessionCommand`, `SwapExerciseCommand`, `ApplyAdjustmentCommand`, `ApplyProgressionCommand` | Done |
 
 Two supporting patterns from Stage 1 are also
 present: Builder in `PromptBuilder`,
@@ -446,17 +450,37 @@ nothing is visible to go stale. An event bus
 would earn its place the moment two panels are
 visible at once.
 
-**Why Command was not built.** Stage 1 put every
-plan edit on an undo stack:
-`SwapExerciseCommand` for a substitution,
-`ApplyAdjustmentCommand` for a recovery
-reduction, `ApplyProgressionCommand` for a
-revision. The implementation offers the change
-and writes nothing until the lifter accepts it,
-so the thing undo protects against, a plan
-altered without consent, cannot happen. Undo
-after acceptance would still be a convenience,
-and it is the first thing worth adding. Building
-the pattern without it would have been pattern
-for its own sake, which is the failure mode the
-lectures warn about.
+**Command.** Stage 1 put every plan edit on an
+undo stack: `SwapExerciseCommand` for a
+substitution, `ApplyAdjustmentCommand` for a
+recovery reduction, `ApplyProgressionCommand` for
+a revision. All three are built, on a shared
+`ReplaceSessionCommand` base for the two that
+replace one session, and the Today screen carries
+the Undo button they exist for.
+
+The case that justifies it is the one from the
+Stage 1 walkthrough: a lifter eases off a session
+at seven in the morning after a bad night, feels
+fine by the evening, and should be able to put the
+session back rather than regenerate it. Nothing
+else in the application can do that, because
+accepting a proposal overwrites what was
+prescribed.
+
+Two decisions are worth recording. A command
+returns a new block rather than mutating the one
+it was given, which makes undo a matter of keeping
+the old value rather than of reversing arithmetic
+correctly. And the history is bounded at twenty
+edits, because an undo stack that grows all day is
+a memory leak with a friendly name.
+
+The stack lives in the window, not the database,
+so it is a session's worth of undo rather than a
+permanent record. On the command line that means
+`spotter review --keep` uses the command for the
+edit and the description it prints, but has no
+stack to offer, since the process exits. Persisting
+the history would be the next step if anyone wanted
+undo across restarts, and nobody has asked for it.

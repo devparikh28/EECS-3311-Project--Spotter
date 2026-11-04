@@ -13,6 +13,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import ca.yorku.eecs3311.spotter.application
+        .plan.ApplyAdjustmentCommand;
+import ca.yorku.eecs3311.spotter.application
+        .plan.PlanEditHistory;
 import ca.yorku.eecs3311.spotter.domain
         .BlockOrigin;
 import ca.yorku.eecs3311.spotter.domain.Equipment;
@@ -283,6 +287,64 @@ class SqliteBlockRepositoryTest {
             .isEmpty();
         assertThat(repository.active())
             .isEmpty();
+    }
+
+    /**
+     * The Today screen applies an edit, saves,
+     * redraws from the database, and only then
+     * offers Undo. If the history did not survive
+     * that round trip the button would be a lie,
+     * so this walks the whole way round rather
+     * than stopping at the in memory stack.
+     */
+    @Test
+    @DisplayName(
+        "an edit made through a command can be"
+        + " undone after the block is reloaded")
+    void anEditSurvivesTheRoundTripAndUndoes() {
+        TrainingBlock saved =
+                repository.save(sample());
+        repository.activate(saved.id());
+
+        PlanEditHistory history =
+                new PlanEditHistory(saved);
+
+        Session monday = saved.allSessions()
+                .get(0);
+        Session lighter = new Session(
+            monday.id(), monday.date(),
+            monday.focus().orElse(null),
+            List.of(monday.prescriptions().get(0)
+                    .withLoad(120.0)));
+
+        repository.save(history.apply(
+            new ApplyAdjustmentCommand(monday,
+                lighter)));
+
+        TrainingBlock eased = repository
+                .active().orElseThrow();
+        assertThat(loadOn(eased, START))
+            .isEqualTo(120.0);
+
+        history.rebase(eased);
+        repository.save(
+                history.undo().orElseThrow());
+
+        TrainingBlock back = repository
+                .active().orElseThrow();
+        assertThat(loadOn(back, START))
+            .isEqualTo(140.0);
+        assertThat(history.canUndo()).isFalse();
+    }
+
+    private static double loadOn(
+            TrainingBlock block,
+            LocalDate date) {
+        return block.allSessions().stream()
+            .filter(session -> session.date()
+                    .equals(date))
+            .findFirst().orElseThrow()
+            .prescriptions().get(0).loadKg();
     }
 
     @Test

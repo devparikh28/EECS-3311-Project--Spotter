@@ -20,6 +20,10 @@ import ca.yorku.eecs3311.spotter.agent.agents
         .ProgressionAgent;
 import ca.yorku.eecs3311.spotter.application
         .CoachController;
+import ca.yorku.eecs3311.spotter.application
+        .plan.ApplyProgressionCommand;
+import ca.yorku.eecs3311.spotter.application
+        .plan.PlanEditHistory;
 import ca.yorku.eecs3311.spotter.domain
         .ExperienceLevel;
 import ca.yorku.eecs3311.spotter.domain.Lift;
@@ -278,22 +282,29 @@ public final class ReviewCommand
         printRevision(out, block, revised);
 
         if (keep) {
+            ApplyProgressionCommand change =
+                new ApplyProgressionCommand(
+                    new TrainingBlock(
+                        block.id(),
+                        revised.startDate(),
+                        revised.progression()
+                            .orElse(null),
+                        revised.splitName()
+                            .orElse(null),
+                        revised.origin(),
+                        revised.weeks()));
+            PlanEditHistory edits =
+                    new PlanEditHistory(block);
             TrainingBlock saved = controller
                     .blocks().save(
-                        new TrainingBlock(
-                            block.id(),
-                            revised.startDate(),
-                            revised.progression()
-                                .orElse(null),
-                            revised.splitName()
-                                .orElse(null),
-                            revised.origin(),
-                            revised.weeks()));
+                        edits.apply(change));
             controller.blocks().activate(
                     saved.id());
             out.println();
-            out.println("  Saved. The remaining"
-                + " weeks are now as above.");
+            out.printf("  Saved: %s. The"
+                + " remaining weeks are now as"
+                + " above.%n",
+                change.describe());
         } else {
             out.println();
             out.println("  Nothing was saved."

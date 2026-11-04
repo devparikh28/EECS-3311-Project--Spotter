@@ -13,6 +13,12 @@ import ca.yorku.eecs3311.spotter.agent.agents
         .AdjustmentAgent;
 import ca.yorku.eecs3311.spotter.agent.agents
         .SubstitutionAgent;
+import ca.yorku.eecs3311.spotter.application
+        .plan.ApplyAdjustmentCommand;
+import ca.yorku.eecs3311.spotter.application
+        .plan.PlanEditHistory;
+import ca.yorku.eecs3311.spotter.application
+        .plan.SwapExerciseCommand;
 import ca.yorku.eecs3311.spotter.domain.Equipment;
 import ca.yorku.eecs3311.spotter.domain.Exercise;
 import ca.yorku.eecs3311.spotter.domain
@@ -36,7 +42,6 @@ import ca.yorku.eecs3311.spotter.domain
         .TrainingBlock;
 import ca.yorku.eecs3311.spotter.domain
         .TrainingGoal;
-import ca.yorku.eecs3311.spotter.domain.Week;
 import ca.yorku.eecs3311.spotter
         .presentation.gui.GuiContext;
 import ca.yorku.eecs3311.spotter
@@ -90,6 +95,7 @@ public final class TodayPanel
     private Session session;
     private Session proposedSession;
     private Substitution proposedSwap;
+    private PlanEditHistory history;
 
     public TodayPanel(GuiContext context) {
         this.context = context;
@@ -133,6 +139,7 @@ public final class TodayPanel
             return;
         }
 
+        rememberEdits();
         session = sessionForToday();
         if (session == null) {
             root.getChildren().add(
@@ -154,6 +161,26 @@ public final class TodayPanel
         root.getChildren().add(
                 actions(flag));
         root.getChildren().add(output);
+    }
+
+    /**
+     * Keeps the undo stack across a refresh.
+     *
+     * Every refresh reads the block back from the
+     * database, so the history is pointed at the
+     * block that came back rather than thrown
+     * away. A different block means a different
+     * plan, and the edits made to the old one no
+     * longer apply to anything.
+     */
+    private void rememberEdits() {
+        if (history == null
+                || history.current().id()
+                    != block.id()) {
+            history = new PlanEditHistory(block);
+            return;
+        }
+        history.rebase(block);
     }
 
     private Session sessionForToday() {
@@ -252,9 +279,22 @@ public final class TodayPanel
         fallback.setOnAction(event ->
                 fallback());
 
+        Button undo = new Button(
+            history.nextToUndo()
+                .map(what -> "Undo: " + what)
+                .orElse("Nothing to undo"));
+        undo.setDisable(!history.canUndo());
+        undo.setOnAction(event -> undo());
+
         VBox card = Cards.card(null,
-            new HBox(8, ease, fallback),
+            new HBox(8, ease, fallback, undo),
             status);
+        if (history.canUndo()) {
+            card.getChildren().add(
+                Cards.note("Edits this session: "
+                    + String.join("; ",
+                        history.describe())));
+        }
         if (flag.isEmpty()) {
             card.getChildren().add(
                 Cards.note("Both are disabled"
@@ -528,13 +568,24 @@ public final class TodayPanel
                 .build());
     }
 
+    /**
+     * Accepting goes through a command.
+     *
+     * The panel no longer rebuilds the block
+     * itself. It hands the history a change that
+     * knows how to reverse itself, which is the
+     * whole reason Undo can be a button rather
+     * than a regeneration.
+     */
     private void acceptSession() {
         if (proposedSession == null) {
             return;
         }
-        save(replaceSession(block,
-                proposedSession),
-            "The session has been changed.");
+        save(history.apply(
+                new ApplyAdjustmentCommand(
+                    session, proposedSession)),
+            "The session has been changed, and"
+            + " can be put back.");
     }
 
     private void acceptSwap() {
@@ -544,9 +595,25 @@ public final class TodayPanel
         Session changed = copyOf(session);
         changed.replacePrescription(
                 proposedSwap.apply());
-        save(replaceSession(block, changed),
+        save(history.apply(
+                new SwapExerciseCommand(changed,
+                    proposedSwap)),
             "Swapped. The block has been"
-            + " updated.");
+            + " updated, and can be put back.");
+    }
+
+    /** Puts the most recent edit back. */
+    private void undo() {
+        Optional<String> what =
+                history.nextToUndo();
+        Optional<TrainingBlock> before =
+                history.undo();
+        if (before.isEmpty()) {
+            return;
+        }
+        save(before.get(),
+            "Put back: " + what.orElse("the"
+                + " last edit") + ".");
     }
 
     private void save(TrainingBlock changed,
@@ -562,39 +629,6 @@ public final class TodayPanel
             failure -> status.setText(
                 "Could not save: "
                 + failure.getMessage()));
-    }
-
-    /**
-     * The block with one session replaced.
-     *
-     * A block is immutable in the parts that
-     * matter, so changing a session means
-     * rebuilding the weeks around it rather than
-     * reaching inside.
-     */
-    private static TrainingBlock replaceSession(
-            TrainingBlock block,
-            Session replacement) {
-
-        List<Week> weeks = new ArrayList<>();
-        for (Week week : block.weeks()) {
-            List<Session> sessions =
-                    new ArrayList<>();
-            for (Session each
-                    : week.sessions()) {
-                sessions.add(
-                    each.id() == replacement.id()
-                        ? replacement
-                        : each);
-            }
-            weeks.add(new Week(week.number(),
-                    sessions));
-        }
-        return new TrainingBlock(block.id(),
-            block.startDate(),
-            block.progression().orElse(null),
-            block.splitName().orElse(null),
-            block.origin(), weeks);
     }
 
     /** A session that can be edited in place. */
