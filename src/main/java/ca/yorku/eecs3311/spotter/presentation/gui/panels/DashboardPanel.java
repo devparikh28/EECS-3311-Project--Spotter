@@ -18,6 +18,9 @@ import ca.yorku.eecs3311.spotter
 import ca.yorku.eecs3311.spotter
         .presentation.gui.Panel;
 
+import ca.yorku.eecs3311.spotter.application
+        .event.SpotterEvent;
+
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
@@ -46,6 +49,19 @@ public final class DashboardPanel
 
     public DashboardPanel(GuiContext context) {
         this.context = context;
+    }
+
+    /**
+     * Everything, because the dashboard is a
+     * summary of every other screen. A panel
+     * that shows a figure from each repository
+     * falls behind on any change.
+     */
+    @Override
+    public java.util.Set<SpotterEvent>
+            changedBy() {
+        return java.util.EnumSet.allOf(
+                SpotterEvent.class);
     }
 
     @Override

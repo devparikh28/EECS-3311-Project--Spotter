@@ -51,6 +51,9 @@ import ca.yorku.eecs3311.spotter
 import ca.yorku.eecs3311.spotter
         .presentation.support.ModelAccess;
 
+import ca.yorku.eecs3311.spotter.application
+        .event.SpotterEvent;
+
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -99,6 +102,17 @@ public final class TodayPanel
 
     public TodayPanel(GuiContext context) {
         this.context = context;
+    }
+
+    /**
+     * A swap or a reduction made here changes
+     * the plan, and so does a plan kept on the
+     * Plan screen while this one is open.
+     */
+    @Override
+    public java.util.Set<SpotterEvent>
+            changedBy() {
+        return java.util.Set.of(SpotterEvent.BLOCK_CHANGED);
     }
 
     @Override
@@ -623,8 +637,10 @@ public final class TodayPanel
             () -> context.blocks()
                     .save(changed),
             saved -> {
+                context.events().publish(
+                    SpotterEvent
+                        .BLOCK_CHANGED);
                 status.setText(message);
-                refresh();
             },
             failure -> status.setText(
                 "Could not save: "
