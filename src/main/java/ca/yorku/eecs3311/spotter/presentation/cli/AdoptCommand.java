@@ -92,6 +92,43 @@ public final class AdoptCommand
     Path file;
 
     @Option(
+        names = {"--entry"},
+        paramLabel = "LINE",
+        description =
+            "A programme line, such as"
+            + " --entry \"1/2 Back Squat"
+            + " 5x5@140 rpe8\". Repeatable,"
+            + " and needs no model.")
+    java.util.List<String> entries =
+            new java.util.ArrayList<>();
+
+    @Option(
+        names = {"--csv"},
+        description =
+            "Read the file as a programme"
+            + " spreadsheet rather than as"
+            + " prose. Needs no model.")
+    boolean csv;
+
+    @Option(
+        names = {"--set"},
+        paramLabel = "FIELD=COLUMN",
+        description =
+            "Map one column of the"
+            + " spreadsheet, such as --set"
+            + " week=Week. Repeatable.")
+    java.util.List<String> corrections =
+            new java.util.ArrayList<>();
+
+    @Option(
+        names = {"--unit"},
+        description =
+            "KG or LB, for the weight"
+            + " column.")
+    ca.yorku.eecs3311.spotter.domain.WeightUnit
+            unit;
+
+    @Option(
         names = {"--start"},
         paramLabel = "DATE",
         description =
@@ -125,20 +162,34 @@ public final class AdoptCommand
         PrintWriter out =
                 spec.commandLine().getOut();
 
-        if (!config.hasApiKey()) {
-            out.println("Adopting a programme"
-                + " needs a model.");
-            out.println("  Reading somebody"
-                + " else's programme is the one"
-                + " thing here that cannot be"
-                + " demonstrated with a prepared"
-                + " reply, so there is no"
-                + " offline version of this"
-                + " command.");
-            out.println("  Put a key in .env and"
-                + " try again.");
+        boolean deterministic =
+                !entries.isEmpty() || csv;
+
+        if (!deterministic
+                && !config.hasApiKey()) {
+            out.println("Adopting a programme as"
+                + " prose needs a model.");
+            out.println("  Interpreting prose"
+                + " is the one thing here that"
+                + " cannot be demonstrated with"
+                + " a prepared reply.");
+            out.println("  A programme you can"
+                + " type or export needs no"
+                + " model:");
+            out.println("    spotter adopt"
+                + " --entry \"1/1 Back Squat"
+                + " 5x5@140\"");
+            out.println("    spotter adopt"
+                + " plan.csv --csv --set"
+                + " week=Week --set"
+                + " exercise=Lift");
             out.flush();
             return EXIT_NO_MODEL;
+        }
+
+        if (deterministic) {
+            return adoptWithoutAModel(out,
+                    config);
         }
 
         String programme = read(out);
@@ -319,5 +370,176 @@ public final class AdoptCommand
                 }
             }
         }
+    }
+
+    /**
+     * The two routes that need no model.
+     *
+     * A programme given as a spreadsheet, or
+     * typed a line at a time, already has a
+     * structure. Nothing needs interpreting, so
+     * nothing is sent anywhere, and the same gate
+     * runs afterwards as for the prose route.
+     */
+    private Integer adoptWithoutAModel(
+            PrintWriter out,
+            SpotterConfig config) {
+
+        try (CoachController controller =
+                new CoachController(config)) {
+
+            LifterProfile profile = controller
+                .profiles().current()
+                .orElseGet(AdoptCommand
+                        ::assumedProfile);
+            LocalDate from = start == null
+                    ? LocalDate.now()
+                    : start;
+
+            ca.yorku.eecs3311.spotter
+                .infrastructure.csv
+                .ProgrammeImportService reader =
+                    new ca.yorku.eecs3311.spotter
+                        .infrastructure.csv
+                        .ProgrammeImportService(
+                            controller.catalog());
+
+            java.util.Optional<TrainingBlock>
+                read;
+            if (!entries.isEmpty()) {
+                out.printf("Reading %d entered"
+                        + " line(s).%n",
+                        entries.size());
+                read = reader.fromManualEntry(
+                        entries, from);
+            } else {
+                if (file == null) {
+                    out.println("Give the"
+                        + " spreadsheet to"
+                        + " read.");
+                    out.flush();
+                    return EXIT_NOTHING;
+                }
+                out.printf("Reading %s as a"
+                        + " programme"
+                        + " spreadsheet.%n",
+                        file.getFileName());
+                read = reader.fromCsv(file,
+                        mappingFor(), from);
+            }
+
+            if (read.isEmpty()) {
+                out.println();
+                out.println("The programme could"
+                        + " not be read.");
+                for (String problem
+                        : reader.problems()) {
+                    out.println("  " + problem);
+                }
+                out.flush();
+                return EXIT_REFUSED;
+            }
+
+            TrainingBlock block = read.get();
+
+            java.util.Optional<String> refused =
+                new PlanValidator()
+                    .validateAdoptedBlock(block,
+                        profile,
+                        controller
+                            .currentE1RMs());
+            if (refused.isPresent()) {
+                out.println();
+                out.println("The programme was"
+                        + " not accepted.");
+                out.println("  "
+                        + refused.get());
+                out.flush();
+                return EXIT_REFUSED;
+            }
+
+            if (!reader.problems().isEmpty()) {
+                out.println();
+                out.println("  Rows passed"
+                        + " over");
+                for (String problem
+                        : reader.problems()) {
+                    out.println("    "
+                            + problem);
+                }
+            }
+
+            out.println();
+            print(out, block);
+
+            if (keep) {
+                TrainingBlock saved = controller
+                        .blocks().save(block);
+                controller.blocks().activate(
+                        saved.id());
+                out.println();
+                out.println("  Saved. This is"
+                    + " now the block you are"
+                    + " training.");
+            } else {
+                out.println();
+                out.println("  Nothing was"
+                    + " saved. Run again with"
+                    + " --keep to train it.");
+            }
+            out.println();
+            out.println("  No model was involved"
+                + " in any of the above.");
+            out.flush();
+        }
+        return 0;
+    }
+
+    /** The mapping for a programme spreadsheet. */
+    private ca.yorku.eecs3311.spotter
+            .infrastructure.csv.ColumnMapping
+                mappingFor() {
+
+        ca.yorku.eecs3311.spotter
+            .infrastructure.csv.ColumnMapping
+                suggested =
+                    ca.yorku.eecs3311.spotter
+                        .infrastructure.csv
+                        .ColumnMapping
+                        .suggestFor(
+                            ca.yorku.eecs3311
+                                .spotter
+                                .infrastructure
+                                .csv
+                                .CsvFileReader
+                                .readHeader(
+                                    file));
+
+        java.util.Map<String, String> columns =
+            new java.util.LinkedHashMap<>(
+                suggested.columns());
+
+        // A programme has columns a workout log
+        // does not, so the suggestion is only a
+        // starting point here.
+        for (String correction : corrections) {
+            int at = correction.indexOf('=');
+            if (at <= 0) {
+                continue;
+            }
+            columns.put(
+                correction.substring(0, at)
+                    .trim(),
+                correction.substring(at + 1)
+                    .trim());
+        }
+
+        return new ca.yorku.eecs3311.spotter
+            .infrastructure.csv.ColumnMapping(
+                columns,
+                unit == null
+                    ? suggested.unit()
+                    : unit,
+                null);
     }
 }
