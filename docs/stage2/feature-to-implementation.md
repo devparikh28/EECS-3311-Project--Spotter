@@ -34,25 +34,22 @@ passing.
 | F11 | Coaching Chat with Memory | Done | GUI Coach |
 | F12 | Plan Adherence and Progression | Done | `spotter review` |
 | F13 | Guided Onboarding | Done, differently | GUI Profile screen |
-| F14 | Adopt an Existing Programme | Partial | `spotter adopt` |
+| F14 | Adopt an Existing Programme | Done | `spotter adopt` |
 
-Eleven features are complete as designed, one is
-complete in substance but built differently from
-the Stage 1 specification, and two are partial.
-Nothing was dropped entirely.
+Thirteen features are complete as designed, and
+one, F13, is complete in substance but built
+differently from the Stage 1 specification.
+Nothing is unbuilt.
 
-F12 and F14 are the two the Stage 2 plan named in
-advance as the first to go. Both have a working
-half: F12 has the adherence arithmetic without
-the review agent, and F14 has the route that
-needed a model without the two that did not.
+F12, F13 and F14 are the three the Stage 2 plan
+named in advance as the first to drop if time ran
+short. All three were built.
 
-F02 remains partial. Its import half is complete
-and its manual entry half is missing, which is a
-deliberate narrowing rather than an oversight: a
-lifter who already exports from Hevy never types
-a set in by hand. It is recorded here rather than
-quietly rounded up to done.
+The one departure from the Stage 1 design is
+F13, where an eight question adaptive interview
+became a single paragraph. The argument for that
+change is set out under F13 rather than presented
+as the plan all along.
 
 ---
 
@@ -347,8 +344,8 @@ about to work out for itself.
 | | |
 |---|---|
 | **Designed** | Three routes: `ProgrammeImportService.fromManualEntry()`, `fromCsv()` with a column mapping, and `ProgrammeParserAgent` for pasted text, all gated by `PlanValidator.validateAdoptedBlock()` |
-| **Implemented** | `agent/agents/ProgrammeParserAgent`, `PlanValidator.validateAdoptedBlock`, `ResponseParser.toBlock` with an origin, `presentation/cli/AdoptCommand` |
-| **Status** | Partial: the free text route only |
+| **Implemented** | `infrastructure/csv/ProgrammeImportService`, `agent/agents/ProgrammeParserAgent`, `PlanValidator.validateAdoptedBlock`, `ResponseParser.toBlock` with an origin, `presentation/cli/AdoptCommand` |
+| **Status** | Done |
 
 Stage 1 called this the hardest feature in the
 design, and the Stage 2 plan named it the first
@@ -380,11 +377,30 @@ nobody could lift. A load far above a current
 maximum nearly always means the text was misread
 rather than that the coach is bold.
 
-Not built: the manual entry and CSV routes.
-`fromCsv` would need `GenericCsvAdapter` and
-`ColumnMapping` from F02, which are also unbuilt,
-so that route is two missing features stacked
-rather than one.
+The other two routes need no model at all, which
+is the distinction that matters. A programme
+given as a spreadsheet, or typed a line at a
+time, already has a structure; nothing needs
+interpreting, so nothing is sent anywhere.
+Sending either to a model would be paying for
+reading comprehension that is not required and
+making a deterministic import depend on a network
+call.
+
+`fromManualEntry` reads lines such as
+`1/2 Back Squat 5x5@140 rpe8`. Terse on purpose:
+a lifter entering four weeks will type it forty
+times, and every extra character is paid forty
+times over.
+
+`fromCsv` reuses `ColumnMapping` from F02 pointed
+at different fields, because the problem is the
+same one, a file whose columns nobody agreed on
+and a person who can say what they mean.
+
+All three routes pass through
+`validateAdoptedBlock`, so a programme is held to
+the same standard however it arrived.
 
 This is also the only feature with no prepared
 reply for running without an API key. Reading an
