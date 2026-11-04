@@ -98,6 +98,14 @@ public final class AttemptsCommand
     boolean trace;
 
     @Option(
+        names = {"--json"},
+        description =
+            "Print the result as JSON instead of"
+            + " prose, for a harness rather than"
+            + " a person.")
+    boolean json;
+
+    @Option(
         names = {"--env"},
         paramLabel = "FILE",
         description = "Configuration file.")
@@ -117,6 +125,14 @@ public final class AttemptsCommand
                 controller.calculateAttempts(
                         lift);
             if (calculated.isEmpty()) {
+                if (json) {
+                    JsonOutput.refusal(out,
+                        "attempts",
+                        "there is no usable"
+                        + " history for this"
+                        + " lift");
+                    return EXIT_NO_DATA;
+                }
                 out.println("There is no usable"
                     + " history for this lift,"
                     + " so there is nothing to"
@@ -133,9 +149,19 @@ public final class AttemptsCommand
                     controller.currentE1RMs();
             double e1rm = current.get(lift);
 
-            printAttempts(out, attempts, e1rm);
+            if (!json) {
+                printAttempts(out, attempts,
+                        e1rm);
+            }
 
             if (!explain) {
+                if (json) {
+                    JsonOutput.write(out,
+                        "attempts", true,
+                        JsonOutput.attempts(
+                                attempts));
+                    return 0;
+                }
                 out.println();
                 out.println("  No model was"
                     + " involved in any of the"
@@ -197,8 +223,11 @@ public final class AttemptsCommand
                     attempts.second(),
                     attempts.third()));
 
-        out.println();
-        out.println("  " + access.explanation());
+        if (!json) {
+            out.println();
+            out.println("  "
+                    + access.explanation());
+        }
 
         AttemptRationaleAgent agent =
             new AttemptRationaleAgent(
@@ -213,6 +242,20 @@ public final class AttemptsCommand
 
         AgentResult<MeetAttempts> result =
                 agent.run();
+
+        if (json) {
+            JsonOutput.write(out, "attempts",
+                result,
+                result.succeeded()
+                    ? JsonOutput.attempts(
+                        result.value()
+                            .orElseThrow())
+                    : JsonOutput.attempts(
+                            attempts),
+                trace);
+            return result.succeeded()
+                ? 0 : EXIT_REFUSED;
+        }
 
         if (trace) {
             out.println();

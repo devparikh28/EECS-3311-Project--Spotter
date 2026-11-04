@@ -101,6 +101,14 @@ public final class ReviewCommand
     boolean trace;
 
     @Option(
+        names = {"--json"},
+        description =
+            "Print the result as JSON instead of"
+            + " prose, for a harness rather than"
+            + " a person.")
+    boolean json;
+
+    @Option(
         names = {"--env"},
         paramLabel = "FILE",
         description = "Configuration file.")
@@ -120,6 +128,15 @@ public final class ReviewCommand
                     .blocks().active()
                     .orElse(null);
             if (block == null) {
+                if (json) {
+                    JsonOutput.refusal(out,
+                        "review",
+                        "no block is being"
+                        + " trained, so there"
+                        + " is nothing to"
+                        + " review");
+                    return EXIT_NO_BLOCK;
+                }
                 out.println("No block is being"
                     + " trained, so there is"
                     + " nothing to review.");
@@ -135,9 +152,18 @@ public final class ReviewCommand
                         .findAll(),
                     LocalDate.now());
 
-            report(out, block, adherence);
+            if (!json) {
+                report(out, block, adherence);
+            }
 
             if (!revise) {
+                if (json) {
+                    JsonOutput.write(out,
+                        "review", true,
+                        JsonOutput.adherence(
+                                adherence));
+                    return 0;
+                }
                 out.println();
                 out.println("  No model was"
                     + " involved in any of the"
@@ -149,6 +175,15 @@ public final class ReviewCommand
             }
 
             if (!config.hasApiKey()) {
+                if (json) {
+                    JsonOutput.refusal(out,
+                        "review",
+                        "revising needs a"
+                        + " model, and no API"
+                        + " key is"
+                        + " configured");
+                    return EXIT_NO_MODEL;
+                }
                 out.println();
                 out.println("Revising needs a"
                     + " model, and no API key is"
@@ -251,6 +286,33 @@ public final class ReviewCommand
         AgentResult<TrainingBlock> result =
                 agent.run();
 
+        if (json) {
+            java.util.Map<String, Object>
+                    value = new java.util
+                        .LinkedHashMap<>();
+            value.put("adherence",
+                JsonOutput.adherence(
+                        adherence));
+            value.put("kept", false);
+            if (result.succeeded()) {
+                TrainingBlock accepted =
+                    result.value()
+                        .orElseThrow();
+                value.put("revised",
+                    JsonOutput.block(
+                            accepted));
+                if (keep) {
+                    value.put("kept", true);
+                    keepIt(controller, block,
+                            accepted);
+                }
+            }
+            JsonOutput.write(out, "review",
+                    result, value, trace);
+            return result.succeeded()
+                ? 0 : EXIT_REFUSED;
+        }
+
         if (trace) {
             out.println("  What the agent did");
             for (String step
@@ -282,29 +344,12 @@ public final class ReviewCommand
         printRevision(out, block, revised);
 
         if (keep) {
-            ApplyProgressionCommand change =
-                new ApplyProgressionCommand(
-                    new TrainingBlock(
-                        block.id(),
-                        revised.startDate(),
-                        revised.progression()
-                            .orElse(null),
-                        revised.splitName()
-                            .orElse(null),
-                        revised.origin(),
-                        revised.weeks()));
-            PlanEditHistory edits =
-                    new PlanEditHistory(block);
-            TrainingBlock saved = controller
-                    .blocks().save(
-                        edits.apply(change));
-            controller.blocks().activate(
-                    saved.id());
             out.println();
             out.printf("  Saved: %s. The"
                 + " remaining weeks are now as"
                 + " above.%n",
-                change.describe());
+                keepIt(controller, block,
+                        revised));
         } else {
             out.println();
             out.println("  Nothing was saved."
@@ -313,6 +358,43 @@ public final class ReviewCommand
         }
         out.flush();
         return 0;
+    }
+
+    /**
+     * Saves a revision over the block it revises.
+     *
+     * Goes through the Command rather than
+     * writing directly, so the one place that
+     * rebuilds a block with its original
+     * identity is also the place that knows how
+     * to describe the change.
+     *
+     * @return what changed, for a person to read
+     */
+    private static String keepIt(
+            CoachController controller,
+            TrainingBlock block,
+            TrainingBlock revised) {
+
+        ApplyProgressionCommand change =
+            new ApplyProgressionCommand(
+                new TrainingBlock(
+                    block.id(),
+                    revised.startDate(),
+                    revised.progression()
+                        .orElse(null),
+                    revised.splitName()
+                        .orElse(null),
+                    revised.origin(),
+                    revised.weeks()));
+        PlanEditHistory edits =
+                new PlanEditHistory(block);
+        TrainingBlock saved = controller
+                .blocks().save(
+                    edits.apply(change));
+        controller.blocks().activate(
+                saved.id());
+        return change.describe();
     }
 
     private static TrainingGoal goalOf(

@@ -136,6 +136,14 @@ public final class MealCommand
     boolean trace;
 
     @Option(
+        names = {"--json"},
+        description =
+            "Print the result as JSON instead of"
+            + " prose, for a harness rather than"
+            + " a person.")
+    boolean json;
+
+    @Option(
         names = {"--env"},
         paramLabel = "FILE",
         description = "Configuration file.")
@@ -160,6 +168,14 @@ public final class MealCommand
                 controller.foods()
                     .permittedBy(diet);
             if (permitted.isEmpty()) {
+                if (json) {
+                    JsonOutput.refusal(out,
+                        "meal",
+                        "there are no foods"
+                        + " this lifter eats in"
+                        + " the catalog");
+                    return EXIT_NO_FOODS;
+                }
                 out.println("There are no foods"
                     + " this lifter eats in the"
                     + " catalog.");
@@ -175,16 +191,20 @@ public final class MealCommand
 
             allCount = controller.foods()
                     .all().size();
-            printHeader(out, remaining, diet,
-                    permitted);
+            if (!json) {
+                printHeader(out, remaining,
+                        diet, permitted);
+            }
 
             ModelAccess.Access access =
                 ModelAccess.open(config, demo,
                     DemoReplies.meal(permitted,
                             remaining));
-            out.println("  "
-                    + access.explanation());
-            out.println();
+            if (!json) {
+                out.println("  "
+                        + access.explanation());
+                out.println();
+            }
 
             MealSuggestionAgent agent =
                 new MealSuggestionAgent(
@@ -199,6 +219,19 @@ public final class MealCommand
 
             AgentResult<MealSuggestion> result =
                     agent.run();
+
+            if (json) {
+                JsonOutput.write(out, "meal",
+                    result,
+                    result.succeeded()
+                        ? JsonOutput.meal(
+                            result.value()
+                                .orElseThrow())
+                        : null,
+                    trace);
+                return result.succeeded()
+                    ? 0 : EXIT_REFUSED;
+            }
 
             if (trace) {
                 out.println(

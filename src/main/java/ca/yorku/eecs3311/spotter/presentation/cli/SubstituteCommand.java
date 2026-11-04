@@ -153,6 +153,14 @@ public final class SubstituteCommand
     boolean trace;
 
     @Option(
+        names = {"--json"},
+        description =
+            "Print the result as JSON instead of"
+            + " prose, for a harness rather than"
+            + " a person.")
+    boolean json;
+
+    @Option(
         names = {"--env"},
         paramLabel = "FILE",
         description = "Configuration file.")
@@ -172,6 +180,15 @@ public final class SubstituteCommand
                 controller.catalog()
                     .byName(exerciseName);
             if (original.isEmpty()) {
+                if (json) {
+                    JsonOutput.refusal(out,
+                        "substitute",
+                        "there is no exercise"
+                        + " called \""
+                        + exerciseName
+                        + "\" in the catalog");
+                    return EXIT_UNKNOWN;
+                }
                 out.println("There is no"
                     + " exercise called \""
                     + exerciseName + "\" in the"
@@ -193,10 +210,21 @@ public final class SubstituteCommand
                     performable(controller,
                             profile);
 
-            printHeader(out, prescription,
-                    profile, offered);
+            if (!json) {
+                printHeader(out, prescription,
+                        profile, offered);
+            }
 
             if (offered.isEmpty()) {
+                if (json) {
+                    JsonOutput.refusal(out,
+                        "substitute",
+                        "nothing in the catalog"
+                        + " can be performed"
+                        + " under these"
+                        + " restrictions");
+                    return EXIT_REFUSED;
+                }
                 out.println("Nothing in the"
                     + " catalog can be"
                     + " performed under these"
@@ -212,9 +240,11 @@ public final class SubstituteCommand
                         pickSimilar(offered,
                             original.get()),
                         load));
-            out.println("  "
-                    + access.explanation());
-            out.println();
+            if (!json) {
+                out.println("  "
+                        + access.explanation());
+                out.println();
+            }
 
             SubstitutionAgent agent =
                 new SubstitutionAgent(
@@ -225,6 +255,20 @@ public final class SubstituteCommand
 
             AgentResult<Substitution> result =
                     agent.run();
+
+            if (json) {
+                JsonOutput.write(out,
+                    "substitute", result,
+                    result.succeeded()
+                        ? JsonOutput
+                            .substitution(
+                                result.value()
+                                  .orElseThrow())
+                        : null,
+                    trace);
+                return result.succeeded()
+                    ? 0 : EXIT_REFUSED;
+            }
 
             if (trace) {
                 out.println(

@@ -122,6 +122,14 @@ public final class AdjustCommand
     boolean trace;
 
     @Option(
+        names = {"--json"},
+        description =
+            "Print the result as JSON instead of"
+            + " prose, for a harness rather than"
+            + " a person.")
+    boolean json;
+
+    @Option(
         names = {"--env"},
         paramLabel = "FILE",
         description = "Configuration file.")
@@ -140,6 +148,15 @@ public final class AdjustCommand
             Map<Lift, Double> current =
                     controller.currentE1RMs();
             if (current.isEmpty()) {
+                if (json) {
+                    JsonOutput.refusal(out,
+                        "adjust",
+                        "there is no training"
+                        + " history, so there"
+                        + " is no session to"
+                        + " adjust");
+                    return EXIT_NO_DATA;
+                }
                 out.println("There is no"
                     + " training history, so"
                     + " there is no session to"
@@ -157,11 +174,19 @@ public final class AdjustCommand
 
             Session planned = buildSession(
                     controller, current);
-            printSession(out,
-                    "Today's session as planned",
-                    planned);
+            if (!json) {
+                printSession(out,
+                    "Today's session as"
+                    + " planned", planned);
+            }
 
             if (flags.isEmpty()) {
+                if (json) {
+                    JsonOutput.write(out,
+                        "adjust", true,
+                        unchanged(planned));
+                    return 0;
+                }
                 out.println();
                 out.println("Nothing in the last"
                     + " " + weeks + " week(s)"
@@ -178,25 +203,37 @@ public final class AdjustCommand
 
             RecoveryFlag flag = flags.get(
                     flags.size() - 1);
-            out.println();
-            out.printf("Flagged on %s, %s%n",
-                flag.date(),
-                flag.isSignificant()
-                    ? "significantly"
-                    : "mildly");
-            out.println("  " + flag.summary());
-            out.println();
+            if (!json) {
+                out.println();
+                out.printf(
+                    "Flagged on %s, %s%n",
+                    flag.date(),
+                    flag.isSignificant()
+                        ? "significantly"
+                        : "mildly");
+                out.println("  "
+                        + flag.summary());
+                out.println();
+            }
 
             RecoveryRuleEngine rules =
                     new RecoveryRuleEngine();
 
             if (fallback) {
+                Session reduced = rules
+                    .fallbackAdjustment(
+                            planned);
+                if (json) {
+                    JsonOutput.write(out,
+                        "adjust", true,
+                        reduction(planned,
+                            reduced, false));
+                    return 0;
+                }
                 printSession(out,
                     "The rule engine's own"
                     + " reduction, with no model"
-                    + " involved",
-                    rules.fallbackAdjustment(
-                            planned));
+                    + " involved", reduced);
                 out.flush();
                 return 0;
             }
@@ -209,9 +246,11 @@ public final class AdjustCommand
                 ModelAccess.open(config, demo,
                     DemoReplies.adjustment(
                             planned));
-            out.println("  "
-                    + access.explanation());
-            out.println();
+            if (!json) {
+                out.println("  "
+                        + access.explanation());
+                out.println();
+            }
 
             AdjustmentAgent agent =
                 new AdjustmentAgent(
@@ -223,6 +262,20 @@ public final class AdjustCommand
 
             AgentResult<Session> result =
                     agent.run();
+
+            if (json) {
+                JsonOutput.write(out, "adjust",
+                    result,
+                    result.succeeded()
+                        ? reduction(planned,
+                            result.value()
+                                .orElseThrow(),
+                            true)
+                        : null,
+                    trace);
+                return result.succeeded()
+                    ? 0 : EXIT_REFUSED;
+            }
 
             if (trace) {
                 out.println(
@@ -277,6 +330,49 @@ public final class AdjustCommand
             out.flush();
         }
         return 0;
+    }
+
+    /**
+     * The session, said to be unchanged.
+     *
+     * A harness asking what to train today and
+     * getting no reduction should be told that
+     * plainly rather than having to notice the
+     * absence of a field.
+     */
+    private static java.util.Map<String, Object>
+            unchanged(Session planned) {
+        java.util.Map<String, Object> described =
+                new java.util.LinkedHashMap<>();
+        described.put("adjusted", false);
+        described.put("reason",
+            "nothing was flagged, so the"
+            + " session stands as written");
+        described.put("planned",
+                JsonOutput.session(planned));
+        return described;
+    }
+
+    /** Before and after, and who decided. */
+    private static java.util.Map<String, Object>
+            reduction(Session planned,
+                      Session adjusted,
+                      boolean byModel) {
+        java.util.Map<String, Object> described =
+                new java.util.LinkedHashMap<>();
+        described.put("adjusted", true);
+        described.put("decidedBy",
+            byModel ? "model" : "ruleEngine");
+        described.put("planned",
+                JsonOutput.session(planned));
+        described.put("reduced",
+                JsonOutput.session(adjusted));
+        described.put("fractionOfPlanned",
+            Math.round(adjusted
+                    .plannedTonnage()
+                / planned.plannedTonnage()
+                * 100.0) / 100.0);
+        return described;
     }
 
     /**

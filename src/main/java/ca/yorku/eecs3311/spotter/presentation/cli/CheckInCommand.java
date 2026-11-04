@@ -84,10 +84,57 @@ public final class CheckInCommand
     LocalDate date;
 
     @Option(
+        names = {"--json"},
+        description =
+            "Print the result as JSON instead of"
+            + " prose, for a harness rather than"
+            + " a person.")
+    boolean json;
+
+    @Option(
         names = {"--env"},
         paramLabel = "FILE",
         description = "Configuration file.")
     Path envFile = Path.of(".env");
+
+    /**
+     * What was recorded, and what it triggered.
+     *
+     * The flag is the part a harness cares
+     * about, because it is what decides whether
+     * `spotter adjust` is allowed to change
+     * anything.
+     */
+    private static java.util.Map<String, Object>
+            recorded(RecoveryDay day,
+                     RecoveryFlag flag) {
+        java.util.Map<String, Object> described =
+                new java.util.LinkedHashMap<>();
+        described.put("date",
+                day.date().toString());
+        described.put("source",
+                day.source().name());
+        described.put("soreness",
+            day.soreness().isPresent()
+                ? day.soreness().getAsInt()
+                : null);
+        described.put("energy",
+            day.energy().isPresent()
+                ? day.energy().getAsInt()
+                : null);
+        described.put("sleepHours",
+            day.sleepHours().isPresent()
+                ? day.sleepHours().getAsDouble()
+                : null);
+        described.put("flagged", flag != null);
+        if (flag != null) {
+            described.put("significant",
+                    flag.isSignificant());
+            described.put("summary",
+                    flag.summary());
+        }
+        return described;
+    }
 
     @Override
     public Integer call() {
@@ -98,6 +145,12 @@ public final class CheckInCommand
 
         if (soreness == null && energy == null
                 && sleep == null) {
+            if (json) {
+                JsonOutput.refusal(out,
+                    "checkin",
+                    "nothing was reported");
+                return EXIT_NOTHING;
+            }
             out.println("Nothing was reported.");
             out.println("  Try: spotter checkin"
                 + " --soreness 4 --energy 2"
@@ -127,6 +180,12 @@ public final class CheckInCommand
         try {
             day = builder.build();
         } catch (IllegalArgumentException e) {
+            if (json) {
+                JsonOutput.refusal(out,
+                    "checkin",
+                    e.getMessage());
+                return EXIT_NOTHING;
+            }
             out.println("That cannot be"
                     + " recorded.");
             out.println("  " + e.getMessage());
@@ -138,6 +197,17 @@ public final class CheckInCommand
                 new CoachController(config)) {
 
             controller.recovery().save(day);
+
+            RecoveryFlag flagged =
+                new RecoveryRuleEngine()
+                    .evaluate(day)
+                    .orElse(null);
+            if (json) {
+                JsonOutput.write(out, "checkin",
+                    true, recorded(day,
+                            flagged));
+                return 0;
+            }
 
             out.printf("Recorded for %s.%n",
                     when);
@@ -156,10 +226,7 @@ public final class CheckInCommand
                     value));
             out.println();
 
-            RecoveryFlag flag =
-                new RecoveryRuleEngine()
-                    .evaluate(day)
-                    .orElse(null);
+            RecoveryFlag flag = flagged;
             if (flag == null) {
                 out.println("  Nothing here is"
                     + " worth easing off for."
