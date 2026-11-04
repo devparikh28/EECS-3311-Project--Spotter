@@ -20,7 +20,9 @@ No other AI tool was used. No code generation service, no autocomplete model, an
 
 Billed through a Claude subscription rather than per token, so there is no token count or per task figure to report for this part. The subscription cost for the period is the only meaningful number and is a flat monthly charge rather than anything attributable to this project.
 
-`TO FILL IN: the subscription tier and monthly cost, if the marker wants it.`
+<!-- FILL IN (optional): subscription tier and monthly cost. Delete
+     this comment and the sentence below if you would rather not state it. -->
+Subscription tier and monthly cost: `TO FILL IN`.
 
 ## 2. AI the software calls when it runs
 
@@ -47,14 +49,21 @@ The reported figure is an upper bound rather than an exact cost, and deliberatel
 
 Measured usage:
 
-| What | Calls | Cost |
-|---|---|---|
-| Session 7, the first live run of the agents, including every failed call | 9 | roughly 24 cents, measured |
-| Everything else | see note | `TO FILL IN` |
+| What | Calls | Input tokens | Output tokens | Cost |
+|---|---|---|---|---|
+| First live run of the agents, including every call that failed or was refused | 9 | not recorded | not recorded | roughly 24 cents, measured |
+| Whole project, 2 November onward | `TO FILL IN` | `TO FILL IN` | `TO FILL IN` | `TO FILL IN` |
 
-Token totals across the whole project cannot be reported from the repository, because responses are not persisted. `RecordingLLMClient` exists for that and was not switched on during the live sessions, which in hindsight it should have been. The account total is available in the Anthropic console under usage, and that figure is the one to quote.
+<!-- FILL IN: Anthropic console, Usage, filtered from 2 November 2026.
+     Take total cost, total input tokens, total output tokens, and the
+     number of requests if it shows one. Replace the four cells above and
+     delete this comment. -->
 
-`TO FILL IN: the total API spend and token count from the Anthropic console, for the period 2 November onward.`
+The first row was measured by the application itself. `UsageReport` reads the token counts out of `AgentTrace` and prices them, so any command run with `--trace` prints what that run cost, and `--json` reports the counts under `trace.usage`.
+
+The second row has to come from the Anthropic console rather than from the repository, because responses are not persisted. `RecordingLLMClient` exists precisely to capture them and was not switched on during the live sessions. That was a mistake: it would have cost nothing to enable and would have made this table exact rather than a reading taken from an account page.
+
+Two caveats on the console figure. It is the account total for the period, so it includes anything else on the same key, and the project was the only thing using it. And it counts every call, including the ones that failed against retired model identifiers and the ones whose proposals the validator refused, which is the honest number to report: a refused proposal costs the same as an accepted one.
 
 ### Why the cost is as low as it is
 
