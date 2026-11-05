@@ -2,6 +2,7 @@ package ca.yorku.eecs3311.spotter.agent;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -839,6 +840,18 @@ public final class PlanValidator {
                     heaviest);
     }
 
+    /** Equipment named for a refusal message. */
+    private static String describe(
+            Set<Equipment> equipment) {
+        List<String> names = new ArrayList<>();
+        for (Equipment piece : equipment) {
+            names.add(piece.name()
+                    .toLowerCase(Locale.ROOT)
+                    .replace('_', ' '));
+        }
+        return String.join(" and ", names);
+    }
+
     private void checkSession(
             Session session,
             Week week,
@@ -862,6 +875,22 @@ public final class PlanValidator {
                         available)
                     + "). Choose something"
                     + " else.");
+            }
+
+            if (prescription.loadKg() <= 0
+                    && !exercise
+                        .requiredEquipment()
+                        .isEmpty()) {
+                problems.add(exercise.name()
+                    + " is prescribed with no"
+                    + " load. It needs "
+                    + describe(exercise
+                        .requiredEquipment())
+                    + ", so give it a weight in"
+                    + " kilograms. Only a"
+                    + " movement needing no"
+                    + " equipment may be"
+                    + " prescribed at zero.");
             }
 
             if (prescription.sets() > MAX_SETS) {
