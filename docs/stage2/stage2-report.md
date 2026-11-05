@@ -562,7 +562,7 @@ None of these replaces anything. Each makes an implemented capability reachable.
 
 No other AI tool was used: no second assistant, no autocomplete model, no code generation service.
 
-**Cost.** The plan used was Claude Pro, a flat monthly subscription rather than per token billing, so there is no token figure for this part and no portion of the fee is attributable to this project: the same subscription covered all of the author's use over the period. The cost that does vary with this project is the API spend in 5.3.
+**Cost.** The plan used was Claude Pro, at 31.64 Canadian dollars a month, billed as a flat subscription rather than per token, so there is no token figure for this part and no portion of the fee is attributable to this project: the same subscription covered all of the author's use over the period. The cost that does vary with this project is the API spend in 5.3.
 
 ### 5.2 Model the software itself calls
 
