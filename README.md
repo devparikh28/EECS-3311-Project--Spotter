@@ -38,7 +38,12 @@ java -jar target/spotter.jar status
 java -jar target/spotter.jar analytics squat
 ```
 
-`seed` loads a sample lifter with training history, recovery readings and a food catalogue, so every screen and command has something to show. `analytics`, `attempts`, `review` and `recovery` work with no API key at all, because nothing in them involves a model.
+`seed` loads a sample lifter with training history, recovery readings and a food catalogue, so every screen and command has something to show. For the import paths there are three small synthetic files in `sample-data/`, with the commands that exercise them in `sample-data/README.md`:
+
+```
+java -jar target/spotter.jar import sample-data/hevy-export-sample.csv
+java -jar target/spotter.jar import sample-data/whoop-export-sample.csv
+``` `analytics`, `attempts`, `review` and `recovery` work with no API key at all, because nothing in them involves a model.
 
 To start the dashboard:
 
