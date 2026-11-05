@@ -11,8 +11,8 @@ ran short. This maps each feature to the classes
 that implement it and states plainly what is
 done, what is partial and what is not built.
 
-Counts at the time of writing: 149 classes in
-`src/main/java`, 36 test classes, 410 tests
+Counts at the time of writing: 173 source files
+in `src/main/java`, 44 test files, 500 tests
 passing.
 
 ---
@@ -108,18 +108,13 @@ you have just completed exactly as it was written
 down for you is the kind of work that makes
 people stop logging.
 
-Reads a real 7318 row export, skipping 31 rows
-and reporting why. Four wrong assumptions in the
-Stage 1 design were corrected by meeting that
-file, recorded in commit `f40b2ef`.
-
 ## F03 Recovery Import
 
 | | |
 |---|---|
 | **Designed** | `WhoopCsvAdapter`, `RecoveryDay`, `RecoveryRepository` |
-| **Implemented** | `infrastructure/csv/WhoopCsvAdapter`, `domain/RecoveryDay`, `domain/RecoverySource`, `infrastructure/persistence/RecoveryRepository`, `SqliteRecoveryRepository`, `presentation/cli/RecoveryCommand`, `presentation/gui/panels/RecoveryPanel` |
-| **Status** | Partial |
+| **Implemented** | `infrastructure/csv/WhoopCsvAdapter`, `domain/RecoveryDay`, `domain/RecoverySource`, `domain/RecoveryRuleEngine`, `domain/RecoveryFlag`, `infrastructure/persistence/RecoveryRepository`, `SqliteRecoveryRepository`, `presentation/cli/RecoveryCommand`, `CheckInCommand`, `presentation/gui/panels/RecoveryPanel` |
+| **Status** | Done |
 
 Reads a real Whoop physiological cycles export,
 216 rows, keeping the longest sleep cycle per
@@ -423,7 +418,7 @@ requires five. All eight are implemented.
 |---|---|---|---|
 | Facade | `CoachController` | `application/CoachController` | Done |
 | Strategy | `LLMClient` and clients; `ProgressionStrategy` and implementations | `agent/LLMClient`, `ClaudeClient`, `ScriptedLLMClient`; `domain/ProgressionStrategy`, `AbstractProgression`, `RPEProgression`, `LinearProgression`, `NoviceLinearProgression`, `PercentageProgression` | Done |
-| Template Method | `CoachAgent.run()` | `agent/CoachAgent`, seven concrete agents | Done |
+| Template Method | `CoachAgent.run()` | `agent/CoachAgent`, nine concrete agents | Done |
 | Adapter | `DataSource`, CSV adapters | `infrastructure/csv/DataSource`, `HevyCsvAdapter`, `WhoopCsvAdapter` | Done |
 | Factory Method | `createToolset()`, `DataSourceFactory`, `ProgressionStrategyFactory` | All three present | Done |
 | Decorator | `LLMClientDecorator`, `CachingLLMClient`, `RecordingLLMClient` | All three present | Done |

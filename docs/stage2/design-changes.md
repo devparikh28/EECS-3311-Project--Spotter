@@ -43,6 +43,7 @@ project.
 | 15 | Panels refresh every time they are opened | Panels refresh when something they display has changed | Walking the navigation column re-queried the database for figures nothing had touched |
 | 16 | Commands print prose | Eight commands also take `--json` | Stage 3 drives the application from a harness, and scraping prose would make every wording change a breaking change |
 | 17 | `CoachController` wraps every agent, one method each | Facade covers the repositories and deterministic services only | The agents take different inputs, so a method per agent would be a second interface kept in step by hand |
+| 18 | F13 as an eight question adaptive interview | A single paragraph read into a draft | Eight adaptive questions is eight model calls and eight screens for the same outcome |
 
 ---
 
@@ -467,3 +468,40 @@ agent constructors. That is visible in
 `ModelAccess` exist to keep that from being
 repeated: the shared dependencies are assembled
 once and handed to whoever needs them.
+
+## 18. An interview became a paragraph
+
+Stage 1 designed F13 as an interview: up to eight
+questions, asked one at a time, each adapting to
+what had already been answered. The
+implementation reads a single paragraph and
+reports what it understood alongside what the
+lifter has not said.
+
+The interview is the expensive version of the
+same thing. Eight adaptive questions is eight
+model calls and eight screens. A paragraph is one
+call and one screen.
+
+The adaptive part existed so that a lifter who
+left something out would be asked about exactly
+that. The implementation gets there differently:
+`ProfileDraft.missingRequired()` lists what is
+still unknown, and the Profile screen shows that
+list beside what was understood. The lifter fills
+the gaps in their own order rather than being
+walked through a sequence.
+
+Nothing is guessed. `ProfileDraft` is not a
+`LifterProfile` and does not fill in defaults, so
+an unanswered question stays unanswered rather
+than quietly becoming an invented fact. That is
+design change 2, and this change depends on it:
+reading a paragraph into a profile directly would
+have been worse than the interview, not better.
+
+The cost is that a lifter who writes very little
+gets a draft with several gaps at once rather
+than being guided through them. That is a worse
+experience for someone who wanted to be
+interviewed, and a better one for everybody else.
