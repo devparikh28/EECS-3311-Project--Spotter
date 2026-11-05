@@ -100,6 +100,54 @@ class PlanValidatorTest {
         assertThat(problem).isEmpty();
     }
 
+    /**
+     * Found by watching a real run. The model
+     * omitted the load on three accessories and
+     * the gate let them through, so the plan
+     * told the lifter to do Romanian deadlifts
+     * at zero kilograms. Nothing checked that a
+     * prescribed load was above zero.
+     */
+    @Test
+    @DisplayName(
+        "a movement needing equipment is"
+        + " rejected when prescribed at no load")
+    void zeroLoadOnALoadedMovementIsRejected() {
+        Optional<String> problem =
+            validator.validateBlock(
+                blockWith(squatAt(0)),
+                strategy, MAXES, GYM);
+
+        assertThat(problem).isPresent();
+        assertThat(problem.get())
+            .contains("Back Squat")
+            .contains("no load");
+    }
+
+    /**
+     * The other half of the same rule. A push up
+     * at zero is not a mistake, so the check has
+     * to be about the equipment rather than
+     * about the number.
+     */
+    @Test
+    @DisplayName(
+        "a movement needing no equipment may be"
+        + " prescribed at no load")
+    void zeroLoadOnABodyweightMovementPasses() {
+        Exercise pushUp = new Exercise(3,
+            "Push Up", Set.of("chest"),
+            "horizontal press", Set.of(), null);
+
+        Optional<String> problem =
+            validator.validateBlock(
+                blockWith(new ExercisePrescription(
+                    1, pushUp, 3, 12, null, 0)),
+                strategy, MAXES, GYM);
+
+        assertThat(problem).isEmpty();
+    }
+
     @Test
     @DisplayName(
         "a load above what the lifter can"
