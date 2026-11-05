@@ -44,6 +44,7 @@ project.
 | 16 | Commands print prose | Eight commands also take `--json` | Stage 3 drives the application from a harness, and scraping prose would make every wording change a breaking change |
 | 17 | `CoachController` wraps every agent, one method each | Facade covers the repositories and deterministic services only | The agents take different inputs, so a method per agent would be a second interface kept in step by hand |
 | 18 | F13 as an eight question adaptive interview | A single paragraph read into a draft | Eight adaptive questions is eight model calls and eight screens for the same outcome |
+| 19 | No check that a prescribed load was above zero | A movement needing equipment is refused at zero load | A real run prescribed Romanian deadlifts at 0.0 kg and the gate passed it |
 
 ---
 
@@ -505,3 +506,49 @@ gets a draft with several gaps at once rather
 than being guided through them. That is a worse
 experience for someone who wanted to be
 interviewed, and a better one for everybody else.
+
+## 19. A load of zero is a load nobody can lift
+
+Found by watching a real run, not by a test,
+while recording the demonstration videos.
+
+The model was asked for a two week block and left
+the load off three accessories. The parser read a
+missing load as zero, `ExercisePrescription`
+accepted it because zero is not negative, and
+`PlanValidator` never looked. The plan told the
+lifter to perform Romanian deadlifts for three
+sets of eight at 0.0 kg.
+
+The next run, four weeks of the same lifts,
+filled every load in correctly. So this is not a
+bad model. It is non deterministic output meeting
+a gap in the gate, which is the category this
+whole design exists to catch, and the gap was
+open in the one place the videos point at.
+
+The obvious fix, refusing any load of zero, is
+wrong. A push up is prescribed at zero and that
+is correct. The rule has to be about the
+equipment rather than the number: a movement that
+requires equipment and is prescribed at no load
+is refused, with the equipment named so the model
+knows what it forgot, and the agent corrects
+itself the way it already does for a load outside
+the allowed range. A movement requiring no
+equipment still passes at zero.
+
+Two tests cover the two halves, because a rule
+with an exception needs both sides pinned or the
+exception quietly becomes the rule.
+
+What this says about the project is worth
+recording honestly. The claim the whole design
+rests on is that no model output reaches the
+lifter unchecked. That claim was not quite true
+for six days, and the thing that found it was
+running the application for an audience rather
+than any amount of test writing. The first live
+session in November found six problems in two
+hours. This is the seventh, and it was found the
+same way.

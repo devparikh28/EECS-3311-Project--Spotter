@@ -41,7 +41,7 @@ All fourteen features specified in Stage 1 are implemented and reachable in the 
 | Distinct design patterns | 8, plus Builder and Repository as supporting patterns |
 | Main source files | 173 |
 | Test source files | 44 |
-| Automated tests | 500, all passing |
+| Automated tests | 502, all passing |
 | Measured API cost, whole project | $0.82 |
 
 ### Interfaces
@@ -377,7 +377,7 @@ Stage 1 named eight patterns. All eight are implemented, against a course minimu
 
 **Participating classes.** `domain/ProgressionStrategy` is the strategy interface, with `AbstractProgression` holding the shared behaviour and `RPEProgression`, `LinearProgression`, `NoviceLinearProgression` and `PercentageProgression` as concrete strategies, selected by `ProgressionStrategyFactory.forGoal`. Separately, `agent/LLMClient` is a strategy interface with `ClaudeClient` and `ScriptedLLMClient` as implementations.
 
-**Why it is useful here.** The second use is what makes the project testable. All 500 tests run against `ScriptedLLMClient` with no network and no API key, because nothing above the interface knows which implementation it has.
+**Why it is useful here.** The second use is what makes the project testable. All 502 tests run against `ScriptedLLMClient` with no network and no API key, because nothing above the interface knows which implementation it has.
 
 **Matches Stage 1.** Yes, with `AbstractProgression` added between the interface and the four implementations to hold shared behaviour.
 
@@ -466,7 +466,7 @@ The Stage 1 use case and sequence diagrams remain accurate and were not regenera
 
 ## 4. Changes and rationale
 
-Eighteen changes are recorded. Each was written at the time the decision was made and names the commit that carried it, so the claim can be checked against the code rather than taken on trust. The full text of each lives in `docs/stage2/design-changes.md`.
+Nineteen changes are recorded. Each was written at the time the decision was made and names the commit that carried it, so the claim can be checked against the code rather than taken on trust. The full text of each lives in `docs/stage2/design-changes.md`.
 
 Changes fall into three kinds. Some are design decisions that only became visible once the code existed. Some are corrections forced by real data, which Stage 1 could not have anticipated because Stage 1 had no data. The rest are constraints imposed from outside, such as a library or a model that changed under the project.
 
@@ -546,6 +546,7 @@ None of these replaces anything. Each makes an implemented capability reachable.
 | 16 | Commands print prose | Eight commands also take `--json` | Stage 3 drives the application from a harness, and scraping prose would make every wording change a breaking change | A stable contract for Stage 3 |
 | 17 | `CoachController` wraps every agent | Facade covers repositories and deterministic services only | The agents take different inputs, so a method per agent would be a second interface kept in step by hand | Adding an agent no longer means editing the facade |
 | 18 | F13 as an eight question adaptive interview | A single paragraph read into a draft | Eight adaptive questions is eight model calls and eight screens for the same outcome | One call, one screen, and the gaps are listed rather than asked |
+| 19 | No check that a prescribed load was above zero | A movement needing equipment is refused at zero load | A real run prescribed Romanian deadlifts at 0.0 kg and the gate passed it | The claim that no model output reaches the lifter unchecked is now true for loads as well as ranges |
 
 ---
 
@@ -585,7 +586,7 @@ The figures check out against the published rates, which matters because the app
 
 The total counts the calls that failed against retired model identifiers and the proposals the validator refused. That is the honest number: a refused proposal costs what an accepted one costs, and this project refuses plenty by design.
 
-**Why the cost is as low as it is.** Most of what Spotter does involves no model. Nine of fifteen commands never call one. Where a model is involved it proposes and deterministic code disposes, and all 500 tests run against `ScriptedLLMClient` with no network.
+**Why the cost is as low as it is.** Most of what Spotter does involves no model. Nine of fifteen commands never call one. Where a model is involved it proposes and deterministic code disposes, and all 502 tests run against `ScriptedLLMClient` with no network.
 
 ### 5.4 Representative collaboration log
 
@@ -625,7 +626,7 @@ Base URL for all links: `https://github.com/devparikh28/EECS-3311-Project--Spott
 
 | Check | Result |
 |---|---|
-| Automated test suite | 500 tests, all passing, no network and no API key required |
+| Automated test suite | 502 tests, all passing, no network and no API key required |
 | Live end to end run against the real API | 2 November 2026, nine calls, block generation refused then corrected and accepted |
 | GUI verified headless | Every panel navigated twice under Xvfb with no errors |
 | CLI quick start | Every command in the README run from a clean database before being documented |
@@ -643,8 +644,9 @@ Base URL for all links: `https://github.com/devparikh28/EECS-3311-Project--Spott
 | Long replies silently truncated | A four week block came back cut off | Model cached per name and reply length, not name alone, `b5e09b2` |
 | A correct load of 66.0 kg refused against a range printing as 66.0 | Reading a refusal that looked wrong | Boundary tolerance in `Range`, change 6 |
 | Two repository tests passing while saving an orphaned macro target | Reviewing AI written tests | Tests corrected and a third added asserting the refusal |
+| A two week block prescribing Romanian deadlifts at 0.0 kg | Watching a real run while recording the demonstration videos | A movement requiring equipment is refused at zero load, with the equipment named; bodyweight movements still pass at zero. Change 19 |
 
-The first live session found six problems in under two hours, three in the project's own code and three in assumptions about the model. Every one would have been cheaper to find earlier, which is the main lesson of the implementation period.
+The first live session found six problems in under two hours, three in the project's own code and three in assumptions about the model. A seventh was found later, in the same way, by running the application for an audience while recording the demonstrations. Every one of the seven came from running the thing rather than from writing another test, which is the main lesson of the implementation period.
 
 ### 6.4 Remaining limitations
 
