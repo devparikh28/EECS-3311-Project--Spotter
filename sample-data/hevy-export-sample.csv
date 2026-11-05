@@ -1,0 +1,23 @@
+title,start_time,exercise_title,set_type,weight_lbs,reps,rpe
+Lower A,"6 Oct 2026, 18:02",Back Squat,warmup,135,5,
+Lower A,"6 Oct 2026, 18:02",Back Squat,normal,225,5,7
+Lower A,"6 Oct 2026, 18:02",Back Squat,normal,245,5,8
+Lower A,"6 Oct 2026, 18:02",Romanian Deadlift,normal,205,8,7.5
+Upper A,"8 Oct 2026, 18:10",Bench Press,warmup,95,5,
+Upper A,"8 Oct 2026, 18:10",Bench Press,normal,165,5,7.5
+Upper A,"8 Oct 2026, 18:10",Bench Press,normal,175,5,8.5
+Upper A,"8 Oct 2026, 18:10",Barbell Row,normal,145,8,8
+Lower B,"10 Oct 2026, 17:55",Deadlift,normal,315,3,8
+Lower B,"10 Oct 2026, 17:55",Deadlift,normal,335,3,9
+Lower B,"10 Oct 2026, 17:55",Leg Curl,normal,70,12,8
+Lower A,"13 Oct 2026, 18:05",Back Squat,normal,235,5,7
+Lower A,"13 Oct 2026, 18:05",Back Squat,normal,255,5,8
+Lower A,"13 Oct 2026, 18:05",Back Squat,failure,265,4,
+Upper A,"15 Oct 2026, 18:00",Bench Press,normal,170,5,7.5
+Upper A,"15 Oct 2026, 18:00",Bench Press,normal,180,5,8.5
+Upper A,"15 Oct 2026, 18:00",Overhead Press,normal,105,6,8
+Lower B,"17 Oct 2026, 17:48",Deadlift,normal,325,3,8
+Lower B,"17 Oct 2026, 17:48",Deadlift,normal,345,2,9
+Upper B,"20 Oct 2026, 18:12",Close Grip Bench Press,normal,155,6,8
+Upper B,"20 Oct 2026, 18:12",Bench Press,normal,185,,8
+Upper B,"20 Oct 2026, 18:12",Overhead Press,normal,heavy,6,8
