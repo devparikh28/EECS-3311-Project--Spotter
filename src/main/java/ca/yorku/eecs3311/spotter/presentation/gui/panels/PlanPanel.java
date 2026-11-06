@@ -82,6 +82,8 @@ public final class PlanPanel implements Panel {
     private final Button keep =
             Cards.primary(new Button(
                 "Train this block"));
+    private boolean generating;
+    private javafx.animation.Timeline clock;
     private final Label status =
             Cards.note("");
     private final VBox output = new VBox(8);
@@ -133,9 +135,11 @@ public final class PlanPanel implements Panel {
     public void refresh() {
         root.getChildren().clear();
         output.getChildren().clear();
-        status.setText("");
         keep.setDisable(true);
         proposed = null;
+        if (!generating) {
+            status.setText("");
+        }
 
         Map<Lift, Double> current =
                 context.controller()
@@ -228,13 +232,48 @@ public final class PlanPanel implements Panel {
         return card;
     }
 
+    /**
+     * Shows that a block is being written, and for
+     * how long.
+     *
+     * A live four week block takes a minute or
+     * more, and a screen that only greys a button
+     * looks the same as one that has hung. The
+     * count says it is working, and it is kept
+     * through a refresh so another screen saving
+     * something cannot wipe it.
+     */
+    private void startClock() {
+        generating = true;
+        long began = System.currentTimeMillis();
+        Runnable tick = () -> status.setText(
+            "The coach is writing a block... "
+            + (System.currentTimeMillis() - began)
+                / 1000 + " s. A live four week"
+            + " block can take a minute or more.");
+        tick.run();
+        clock = new javafx.animation.Timeline(
+            new javafx.animation.KeyFrame(
+                javafx.util.Duration.seconds(1),
+                event -> tick.run()));
+        clock.setCycleCount(
+            javafx.animation.Animation.INDEFINITE);
+        clock.play();
+    }
+
+    private void stopClock() {
+        generating = false;
+        if (clock != null) {
+            clock.stop();
+        }
+    }
+
     /** Runs the agent off the interface thread. */
     private void generate() {
         output.getChildren().clear();
         generate.setDisable(true);
         keep.setDisable(true);
-        status.setText("The coach is writing a"
-                + " block...");
+        startClock();
 
         LifterProfile profile = profile();
         ProgressionStrategy progression =
@@ -265,6 +304,7 @@ public final class PlanPanel implements Panel {
 
         context.tasks().run(agent::run,
             outcome -> {
+                stopClock();
                 generate.setDisable(false);
                 // The card already explains
                 // prepared mode, so repeating
@@ -276,6 +316,7 @@ public final class PlanPanel implements Panel {
                 show(outcome, agent);
             },
             failure -> {
+                stopClock();
                 generate.setDisable(false);
                 status.setText("Something went"
                     + " wrong: "

@@ -240,7 +240,7 @@ public final class CoachPanel implements Panel {
             context.controller().foods(),
             context.parser());
 
-        context.tasks().run(agent::run,
+        context.chatTasks().run(agent::run,
             outcome -> {
                 send.setDisable(false);
                 status.setText(access.isLive()
