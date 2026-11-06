@@ -114,10 +114,12 @@ public final class DashboardPanel
                     "Let's get some training in",
                     "Spotter works from what you"
                     + " have actually lifted."
-                    + " Import an export from"
-                    + " your tracking app, or"
-                    + " load the sample lifter"
-                    + " to look around first."),
+                    + " Open Import in the menu"
+                    + " on the left to bring in"
+                    + " an export from your"
+                    + " tracking app, or load"
+                    + " the sample lifter to look"
+                    + " around first."),
                 Cards.emptyState(
                     "Once there is history,"
                     + " this screen shows"

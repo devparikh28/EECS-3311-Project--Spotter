@@ -45,6 +45,7 @@ project.
 | 17 | `CoachController` wraps every agent, one method each | Facade covers the repositories and deterministic services only | The agents take different inputs, so a method per agent would be a second interface kept in step by hand |
 | 18 | F13 as an eight question adaptive interview | A single paragraph read into a draft | Eight adaptive questions is eight model calls and eight screens for the same outcome |
 | 19 | No check that a prescribed load was above zero | A movement needing equipment is refused at zero load | A real run prescribed Romanian deadlifts at 0.0 kg and the gate passed it |
+| 20 | Import, profile editing and a light theme existed only as commands or not at all | The window gained an Import screen, an editable profile form and a theme toggle | Stage 1 put import buttons in the GUI; a lifter should not need a terminal to bring in their data |
 
 ---
 
@@ -552,3 +553,62 @@ than any amount of test writing. The first live
 session in November found six problems in two
 hours. This is the seventh, and it was found the
 same way.
+
+## 20. The window can import, edit a profile and change theme
+
+Stage 1 placed the import buttons on a Log screen
+of the GUI. Stage 2 built import first as a
+command, and for most of the project the window
+could only read what a terminal had put in the
+database. A lifter who does not use a terminal had
+no way in, which defeats the purpose of building
+the window.
+
+Three things were added, all on top of what
+existed rather than beside it.
+
+An Import screen takes a CSV through a file
+dialog. Hevy and Whoop exports are recognised from
+their headers and need one click. Anything else is
+shown as a column mapping, pre filled by the same
+`ColumnMapping.suggestFor` the command line uses,
+and can be saved under a name. It calls the same
+`CoachController` methods as `spotter import`, so
+there is one import and two ways to reach it, and
+the result reports sessions added, duplicates and
+skipped rows by line number exactly as the command
+does.
+
+The Profile screen gained a form. Describing
+yourself in a paragraph, design change 18, is the
+way in, but it is the wrong way to change one
+number. The form shows every stored field and
+saves under the profile's own id rather than
+creating a second profile. Limitations stay as
+free text because a form field would lose the
+nuance the onboarding agent keeps.
+
+The stylesheet gained a light theme. Every colour
+was already a named variable, so the light theme
+is the same names with different values under a
+`light` style class on the root, and a toggle in
+the navigation column switches it and remembers
+the choice in the user's preferences store. No
+panel knows which theme is showing. Doing this
+exposed twelve hard coded colours in the
+stylesheet, which became variables; a theme that
+only changes the colours that happened to be named
+is not a theme.
+
+The Observer pattern needed one more value. The
+note on `SpotterEvent` explained why there were
+only three: logging and importing happened in a
+separate process where the bus could not hear them.
+The Import screen is now a publisher inside the
+window, so `TRAINING_CHANGED` exists and the
+dashboard refreshes when an import finishes. The
+earlier argument against adding it was correct for
+the code as it stood and stopped being correct when
+the code changed, which is the reason that comment
+recorded its reasoning rather than only its
+conclusion.
