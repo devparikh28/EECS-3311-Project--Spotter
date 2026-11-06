@@ -77,6 +77,7 @@ public final class GuiContext
             nutrition;
     private final MemoryManager memory;
     private final FxTaskRunner tasks;
+    private final FxTaskRunner chat;
     private final PromptBuilder prompts =
             new PromptBuilder();
     private final PlanValidator planValidator =
@@ -110,6 +111,7 @@ public final class GuiContext
             new SqliteMemoryRepository(
                     database));
         this.tasks = new FxTaskRunner();
+        this.chat = new FxTaskRunner();
     }
 
     public SpotterConfig config() {
@@ -163,6 +165,21 @@ public final class GuiContext
 
     public FxTaskRunner tasks() {
         return tasks;
+    }
+
+    /**
+     * A worker of its own for the coach chat.
+     *
+     * A four week block can take a minute or more
+     * to write. With one worker for everything, a
+     * question asked in the meantime sat behind it
+     * saying "Thinking..." until the block was
+     * done, which looked like a hang. The chat gets
+     * its own so a short question is not queued
+     * behind a long job.
+     */
+    public FxTaskRunner chatTasks() {
+        return chat;
     }
 
     public PromptBuilder prompts() {
@@ -227,6 +244,7 @@ public final class GuiContext
     @Override
     public void close() {
         tasks.close();
+        chat.close();
         controller.close();
     }
 }
