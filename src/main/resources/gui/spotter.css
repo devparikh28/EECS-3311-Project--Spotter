@@ -721,3 +721,31 @@
 .check-box:selected .mark {
     -fx-background-color: -accent;
 }
+
+/* ---------- quick coach drawer ---------- */
+
+.drawer {
+    -fx-background-color: -surface;
+    -fx-background-radius: 14px;
+    -fx-border-color: -raised-line;
+    -fx-border-radius: 14px;
+    -fx-padding: 12;
+    -fx-effect: dropshadow(gaussian,
+        -shadow, 24, 0, 0, 6);
+}
+
+.drawer .card {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-effect: null;
+    -fx-padding: 0;
+}
+
+/* every scroll pane inherits the surface behind it */
+.scroll-pane {
+    -fx-background-color: transparent;
+}
+
+.scroll-pane > .viewport {
+    -fx-background-color: transparent;
+}

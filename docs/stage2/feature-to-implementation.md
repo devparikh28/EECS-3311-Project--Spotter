@@ -31,7 +31,7 @@ passing.
 | F08 | Max Testing and Attempt Planning | Done | `spotter attempts` |
 | F09 | Macro Targets and Adherence | Done | GUI Nutrition |
 | F10 | Meal Suggestion | Done | `spotter meal`, GUI Nutrition |
-| F11 | Coaching Chat with Memory | Done | GUI Coach |
+| F11 | Coaching Chat with Memory | Done | GUI Coach, and the Ask coach drawer on every screen |
 | F12 | Plan Adherence and Progression | Done | `spotter review` |
 | F13 | Guided Onboarding | Done, differently | GUI Profile screen |
 | F14 | Adopt an Existing Programme | Done | `spotter adopt` |

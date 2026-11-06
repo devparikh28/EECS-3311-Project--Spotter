@@ -24,6 +24,9 @@ import ca.yorku.eecs3311.spotter
         .ImportPanel;
 import ca.yorku.eecs3311.spotter
         .presentation.gui.panels
+        .ReportPanel;
+import ca.yorku.eecs3311.spotter
+        .presentation.gui.panels
         .NutritionPanel;
 import ca.yorku.eecs3311.spotter
         .presentation.gui.panels.PlanPanel;
@@ -42,8 +45,11 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.geometry.Pos;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
@@ -111,12 +117,14 @@ public final class DashboardApp
             new RecoveryPanel(context),
             new NutritionPanel(context),
             new CoachPanel(context),
+            new ReportPanel(context),
             new ImportPanel(context),
             new ProfilePanel(context));
 
         subscribe(panels);
         shell.setLeft(navigation(panels));
-        shell.setCenter(contentArea());
+        shell.setCenter(withDrawer(
+                contentArea()));
 
         Scene scene = new Scene(shell, WIDTH,
                 HEIGHT);
@@ -174,6 +182,16 @@ public final class DashboardApp
         VBox.setVgrow(filler,
                 Priority.ALWAYS);
         nav.getChildren().add(filler);
+        Button ask = Cards.primary(
+                new Button("Ask coach"));
+        ask.setMaxWidth(Double.MAX_VALUE);
+        ask.setOnAction(event ->
+                toggleDrawer());
+        VBox.setMargin(ask,
+            new javafx.geometry.Insets(
+                0, 14, 10, 14));
+        nav.getChildren().add(ask);
+
         Button toggle = new Button();
         toggle.getStyleClass().add(
                 "theme-toggle");
@@ -194,6 +212,56 @@ public final class DashboardApp
                     : "coach: no API key",
                 "nav-footer"));
         return nav;
+    }
+
+    private final VBox drawer = new VBox(8);
+
+    /**
+     * The quick coach: a chat that opens over
+     * whatever screen is showing.
+     *
+     * It is a second view of the Coach screen's
+     * agent and memory, so a question asked from
+     * the Today screen does not mean leaving it.
+     * It sits in the bottom left of the content
+     * area, where a hand already is after pressing
+     * Ask coach, and closes with its own button.
+     */
+    private Region withDrawer(Region content) {
+        CoachPanel quick =
+            new CoachPanel(context, true);
+        quick.refresh();
+
+        Button close = new Button("Close");
+        close.setOnAction(event ->
+                toggleDrawer());
+        HBox bar = new HBox(8,
+            Cards.styled("ASK YOUR COACH",
+                "card-heading"),
+            Cards.grow(), close);
+        bar.setAlignment(Pos.CENTER_LEFT);
+
+        drawer.getChildren().setAll(bar,
+                quick.node());
+        drawer.getStyleClass().add("drawer");
+        drawer.setMaxWidth(400);
+        drawer.setMaxHeight(Region
+                .USE_PREF_SIZE);
+        drawer.setVisible(false);
+        drawer.setManaged(false);
+        StackPane.setAlignment(drawer,
+                Pos.BOTTOM_LEFT);
+        StackPane.setMargin(drawer,
+            new javafx.geometry.Insets(
+                0, 0, 18, 18));
+
+        return new StackPane(content, drawer);
+    }
+
+    private void toggleDrawer() {
+        boolean open = !drawer.isVisible();
+        drawer.setVisible(open);
+        drawer.setManaged(open);
     }
 
     private Region contentArea() {

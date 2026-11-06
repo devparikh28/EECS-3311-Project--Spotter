@@ -62,6 +62,7 @@ public final class CoachPanel implements Panel {
     public static final int NOTES_SHOWN = 12;
 
     private final GuiContext context;
+    private final boolean compact;
     private final ConversationHistory history =
             new ConversationHistory();
     private final VBox root = new VBox(
@@ -78,9 +79,26 @@ public final class CoachPanel implements Panel {
             Cards.note("");
 
     public CoachPanel(GuiContext context) {
+        this(context, false);
+    }
+
+    /**
+     * The coach in a small window.
+     *
+     * Compact drops the lookups and memory cards
+     * and shortens the transcript so the chat fits
+     * in the drawer that opens over any screen. It
+     * is the same agent and the same memory, only
+     * less furniture, which is why it is a flag on
+     * this class and not a second one.
+     */
+    public CoachPanel(GuiContext context,
+                      boolean compact) {
         this.context = context;
-        question.setPromptText(
-            "Ask your coach something. For"
+        this.compact = compact;
+        question.setPromptText(compact
+            ? "Ask your coach..."
+            : "Ask your coach something. For"
             + " example: is my squat stalling,"
             + " or should I train today?");
         question.setOnAction(event -> ask());
@@ -113,7 +131,7 @@ public final class CoachPanel implements Panel {
         ScrollPane scroll =
                 new ScrollPane(transcript);
         scroll.setFitToWidth(true);
-        scroll.setPrefHeight(300);
+        scroll.setPrefHeight(compact ? 280 : 300);
         scroll.setStyle(
             "-fx-background-color: transparent;");
 
@@ -133,6 +151,9 @@ public final class CoachPanel implements Panel {
             status);
         root.getChildren().add(conversation);
 
+        if (compact) {
+            return;
+        }
         if (!lookups.getChildren().isEmpty()) {
             root.getChildren().add(
                 Cards.card("WHAT IT LOOKED UP",

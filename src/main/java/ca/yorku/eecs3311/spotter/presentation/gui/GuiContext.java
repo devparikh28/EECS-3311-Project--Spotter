@@ -19,6 +19,8 @@ import ca.yorku.eecs3311.spotter.application
         .CoachController;
 import ca.yorku.eecs3311.spotter.application
         .event.EventBus;
+import ca.yorku.eecs3311.spotter.application
+        .report.ReportBuilder;
 import ca.yorku.eecs3311.spotter.domain
         .LifterProfile;
 import ca.yorku.eecs3311.spotter
@@ -127,6 +129,12 @@ public final class GuiContext
      */
     public EventBus events() {
         return events;
+    }
+
+    /** Builds the exportable training report. */
+    public ReportBuilder reports() {
+        return new ReportBuilder(controller,
+            profiles, blocks, nutrition);
     }
 
     public ProfileRepository profiles() {
