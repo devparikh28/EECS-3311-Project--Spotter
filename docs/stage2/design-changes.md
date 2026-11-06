@@ -46,6 +46,7 @@ project.
 | 18 | F13 as an eight question adaptive interview | A single paragraph read into a draft | Eight adaptive questions is eight model calls and eight screens for the same outcome |
 | 19 | No check that a prescribed load was above zero | A movement needing equipment is refused at zero load | A real run prescribed Romanian deadlifts at 0.0 kg and the gate passed it |
 | 20 | Import, profile editing and a light theme existed only as commands or not at all | The window gained an Import screen, an editable profile form and a theme toggle | Stage 1 put import buttons in the GUI; a lifter should not need a terminal to bring in their data |
+| 21 | The coach was one tab, and nothing could be exported | A quick coach drawer on every screen, and a Reports screen with PDF and CSV export | A lifter mid session should not leave the screen to ask, and a coach or a spreadsheet needs the numbers in a file |
 
 ---
 
@@ -612,3 +613,50 @@ the code as it stood and stopped being correct when
 the code changed, which is the reason that comment
 recorded its reasoning rather than only its
 conclusion.
+
+## 21. A coach on every screen, and a report you can keep
+
+Two gaps showed up when the window was set beside
+another student's dashboard, and both were real.
+
+The coach lived on its own tab. A lifter on the
+Today screen deciding whether to train had to leave
+it to ask. An Ask coach button now sits at the
+bottom of the navigation column and opens a chat
+over whichever screen is showing. It is not a
+second implementation: `CoachPanel` takes a
+`compact` flag that drops the lookups and memory
+cards, so the drawer and the tab run the same agent
+against the same memory. The two keep separate
+transcripts, which is the one thing a lifter might
+notice, and was chosen over sharing a single
+conversation node because a JavaFX node can only
+have one parent.
+
+Nothing could be exported. The Reports screen shows
+the lifter, strength, block, recovery and nutrition
+sections and exports them as a PDF or a CSV. The
+design choice that matters is that the report is
+data first. `ReportBuilder` produces a
+`TrainingReport` of sections, lines and tables, and
+the screen preview, the PDF writer and the CSV
+writer all read that one object, so the three
+cannot disagree about a number. It also computes
+nothing of its own: strength, adherence and recovery
+flags come from the same analytics, `PlanAdherence`
+and rule engine that the other screens use, because
+a document handed to a coach is the worst place for
+a second figure for the same lift. A section with
+nothing in it says so rather than disappearing,
+since a report that silently omits recovery reads as
+if recovery was fine.
+
+This added a dependency, Apache PDFBox, the first
+library added since the project began. The
+alternative was an HTML file to print from a
+browser, which needs no dependency and was
+rejected because a lifter should get a PDF from one
+button. Helvetica is used so nothing is embedded
+and a font cannot fail to load, and the cost is that
+only Latin text is drawn; anything else becomes a
+question mark rather than aborting the export.
