@@ -220,8 +220,10 @@ public final class TodayPanel
 
     private Node sessionCard(Session showing) {
         VBox card = Cards.card(
-            "TODAY, " + showing.focus()
-                .orElse("training"));
+            showing.focus()
+                .map(focus -> focus.toUpperCase(
+                    java.util.Locale.ENGLISH))
+                .orElse("TODAY'S TRAINING"));
 
         for (ExercisePrescription p
                 : showing.prescriptions()) {
@@ -268,14 +270,16 @@ public final class TodayPanel
             return card;
         }
         RecoveryFlag flagged = flag.get();
-        Label line = Cards.styled(
-            flagged.date() + "   "
-            + flagged.summary(),
-            flagged.isSignificant()
-                ? "flag-significant"
-                : "flag-mild");
-        line.setWrapText(true);
-        card.getChildren().add(line);
+        card.getChildren().addAll(
+            new HBox(8, Cards.badge(
+                flagged.isSignificant()
+                    ? "EASE OFF" : "WATCH IT",
+                flagged.isSignificant()
+                    ? "bad" : "warn"),
+                Cards.styled(
+                    flagged.date().toString(),
+                    "field-name")),
+            Cards.note(flagged.summary()));
         return card;
     }
 
@@ -440,6 +444,8 @@ public final class TodayPanel
 
         Button accept = new Button("Train this"
                 + " instead");
+        accept.getStyleClass().add(
+                "button-primary");
         accept.setOnAction(event ->
                 acceptSession());
         card.getChildren().add(accept);
@@ -535,6 +541,8 @@ public final class TodayPanel
                 + " the load suits it."));
 
         Button accept = new Button("Swap it");
+        accept.getStyleClass().add(
+                "button-primary");
         accept.setOnAction(event ->
                 acceptSwap());
         card.getChildren().add(accept);

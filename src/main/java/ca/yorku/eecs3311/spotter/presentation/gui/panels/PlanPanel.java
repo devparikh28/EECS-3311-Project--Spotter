@@ -80,7 +80,8 @@ public final class PlanPanel implements Panel {
     private final Button generate =
             new Button("Generate");
     private final Button keep =
-            new Button("Train this block");
+            Cards.primary(new Button(
+                "Train this block"));
     private final Label status =
             Cards.note("");
     private final VBox output = new VBox(8);

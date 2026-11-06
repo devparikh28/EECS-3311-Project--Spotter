@@ -62,7 +62,8 @@ public final class ProfilePanel
     private final Button read =
             new Button("Read this");
     private final Button save =
-            new Button("Save profile");
+            Cards.primary(
+                new Button("Save profile"));
     private final VBox result = new VBox(8);
     private final Label status = Cards.note("");
 
