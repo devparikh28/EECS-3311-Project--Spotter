@@ -72,7 +72,8 @@ public final class CoachPanel implements Panel {
     private final TextField question =
             new TextField();
     private final Button send =
-            new Button("Ask");
+            Cards.primary(
+                new Button("Ask"));
     private final Label status =
             Cards.note("");
 

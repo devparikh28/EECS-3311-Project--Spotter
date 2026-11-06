@@ -213,6 +213,8 @@ public final class NutritionPanel
         }
 
         Button save = new Button("Save target");
+        save.getStyleClass().add(
+                "button-primary");
         save.setOnAction(event ->
             context.tasks().run(
                 () -> context.nutrition()
@@ -323,6 +325,8 @@ public final class NutritionPanel
         }
 
         Button log = new Button("Log it");
+        log.getStyleClass().add(
+                "button-primary");
         log.setDisable(allowed.isEmpty());
         log.setOnAction(event -> log());
 

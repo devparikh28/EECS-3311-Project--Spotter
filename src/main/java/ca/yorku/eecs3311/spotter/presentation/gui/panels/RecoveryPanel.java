@@ -152,15 +152,26 @@ public final class RecoveryPanel
             .sorted((a, b) -> b.date()
                     .compareTo(a.date()))
             .forEach(day -> card.getChildren()
-                .add(line(day)));
+                .add(row(day)));
         return card;
     }
 
-    private Label line(RecoveryDay day) {
+    /**
+     * One day, as readings first and a verdict
+     * after.
+     *
+     * The readings stay in ordinary text and
+     * only the verdict carries colour. Colouring
+     * the whole line red made a wall of alarm
+     * out of a day that merely had one short
+     * night in it, and a warning that is always
+     * on is a warning nobody reads.
+     */
+    private javafx.scene.Node row(
+            RecoveryDay day) {
+
         StringBuilder text =
                 new StringBuilder();
-        text.append(day.date()).append("   ");
-
         day.recoveryScore().ifPresent(score ->
             text.append(String.format(
                 "recovery %3d%%   ", score)));
@@ -175,19 +186,33 @@ public final class RecoveryPanel
                 .append(soreness)
                 .append("/5   "));
 
+        Label date = Cards.styled(
+            day.date().toString(), "field-name");
+        date.setMinWidth(92);
+
+        Label readings = Cards.styled(
+                text.toString(), "mono");
+
+        HBox line = new HBox(10, date, readings);
+        line.setAlignment(
+                javafx.geometry.Pos.CENTER_LEFT);
+
         var flag = rules.evaluate(day);
-        String style = "mono";
-        if (flag.isPresent()) {
-            text.append("  ")
-                .append(flag.get().summary());
-            style = flag.get().isSignificant()
-                    ? "flag-significant"
-                    : "flag-mild";
+        if (flag.isEmpty()) {
+            return line;
         }
-        Label label = Cards.styled(
-                text.toString(), style);
-        label.setWrapText(true);
-        return label;
+
+        line.getChildren().addAll(Cards.grow(),
+            Cards.badge(
+                flag.get().isSignificant()
+                    ? "EASE OFF" : "WATCH IT",
+                flag.get().isSignificant()
+                    ? "bad" : "warn"));
+
+        Label why = Cards.note(
+                flag.get().summary());
+        VBox stacked = new VBox(2, line, why);
+        return stacked;
     }
 
     /** The standards being applied, in the open. */
