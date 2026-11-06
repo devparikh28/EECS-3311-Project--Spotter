@@ -690,21 +690,22 @@
     -fx-background-color: transparent;
 }
 
-/* ---------- theme toggle ---------- */
+/* ---------- theme icon, top right ---------- */
 
-.theme-toggle {
-    -fx-background-color: transparent;
-    -fx-text-fill: -ink-dim;
-    -fx-alignment: center-left;
-    -fx-padding: 8 20 8 20;
-    -fx-background-radius: 0;
-    -fx-font-size: 12px;
+.theme-icon {
+    -fx-background-color: -surface;
+    -fx-text-fill: -accent;
+    -fx-font-size: 16px;
+    -fx-padding: 4 11 4 11;
+    -fx-background-radius: 20px;
+    -fx-border-color: -line;
+    -fx-border-radius: 20px;
     -fx-cursor: hand;
 }
 
-.theme-toggle:hover {
-    -fx-text-fill: -accent;
-    -fx-background-color: -hover;
+.theme-icon:hover {
+    -fx-background-color: -raised;
+    -fx-border-color: -accent;
 }
 
 .check-box {

@@ -192,20 +192,6 @@ public final class DashboardApp
                 0, 14, 10, 14));
         nav.getChildren().add(ask);
 
-        Button toggle = new Button();
-        toggle.getStyleClass().add(
-                "theme-toggle");
-        toggle.setMaxWidth(Double.MAX_VALUE);
-        Runnable label = () -> toggle.setText(
-            theme.isLight()
-                ? "Switch to dark theme"
-                : "Switch to light theme");
-        label.run();
-        toggle.setOnAction(event -> {
-            theme.toggle(shell);
-            label.run();
-        });
-        nav.getChildren().add(toggle);
         nav.getChildren().add(
             Cards.styled(context.hasModel()
                     ? "coach: connected"
@@ -265,7 +251,26 @@ public final class DashboardApp
     }
 
     private Region contentArea() {
-        VBox area = new VBox(0, panelTitle,
+        Button theme = new Button();
+        theme.getStyleClass().add(
+                "theme-icon");
+        javafx.scene.control.Tooltip.install(
+            theme, new javafx.scene.control
+                .Tooltip("Switch theme"));
+        Runnable icon = () -> theme.setText(
+            this.theme.isLight()
+                ? "\u263E" : "\u2600");
+        icon.run();
+        theme.setOnAction(event -> {
+            this.theme.toggle(shell);
+            icon.run();
+        });
+
+        HBox top = new HBox(panelTitle,
+                Cards.grow(), theme);
+        top.setAlignment(Pos.TOP_LEFT);
+
+        VBox area = new VBox(0, top,
                 panelDescription, content);
         area.getStyleClass().add("content");
         VBox.setVgrow(content,
