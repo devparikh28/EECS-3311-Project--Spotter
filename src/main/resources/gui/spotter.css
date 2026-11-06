@@ -30,6 +30,18 @@
     -good:      #34d399;
     -warn:      #fbbf24;
     -bad:       #f87171;
+    -nav-bg:       #0f1014;
+    -hover:        #181a20;
+    -raised:       #2b2f3a;
+    -raised-line:  #3c4250;
+    -raised-hover: #323744;
+    -inset:        #15171d;
+    -thumb:        #343946;
+    -thumb-hover:  #434a5a;
+    -grid:         #262a33;
+    -row-alt:      #1f222a;
+    -zero-line:    #3a3f4b;
+    -shadow:       rgba(0,0,0,0.45);
 
     -fx-font-family: "SF Pro Text", "Segoe UI",
         system-ui, sans-serif;
@@ -37,10 +49,46 @@
     -fx-background-color: -bg;
 }
 
+
+/*
+ * The light theme is the same names with different
+ * values. DashboardApp adds "light" to the root's
+ * style classes and nothing else changes, which is
+ * why no panel knows which theme is showing. The
+ * amber hero card keeps its colours in both: it is
+ * the one thing meant to look the same everywhere.
+ */
+.root.light {
+    -bg:        #f3f4f8;
+    -surface:   #ffffff;
+    -surface-2: #eceef4;
+    -line:      #dcdfe7;
+    -ink:       #14161c;
+    -ink-dim:   #4d5565;
+    -ink-faint: #858c9b;
+    -accent:    #d97706;
+    -accent-2:  #f59e0b;
+    -good:      #0b8a5f;
+    -warn:      #a86a00;
+    -bad:       #c92a2a;
+    -nav-bg:       #e9ebf1;
+    -hover:        #dfe2ea;
+    -raised:       #e7e9f0;
+    -raised-line:  #c9cedb;
+    -raised-hover: #dadee8;
+    -inset:        #e3e6ed;
+    -thumb:        #c1c7d4;
+    -thumb-hover:  #a7afc0;
+    -grid:         #e2e5ec;
+    -row-alt:      #f6f7fa;
+    -zero-line:    #b6bdcb;
+    -shadow:       rgba(20,22,30,0.12);
+}
+
 /* ---------- navigation ---------- */
 
 .nav {
-    -fx-background-color: #0f1014;
+    -fx-background-color: -nav-bg;
     -fx-min-width: 208px;
     -fx-pref-width: 208px;
     -fx-padding: 22 0 18 0;
@@ -76,12 +124,12 @@
 }
 
 .nav-button:hover {
-    -fx-background-color: #181a20;
+    -fx-background-color: -hover;
     -fx-text-fill: -ink;
 }
 
 .nav-button-selected {
-    -fx-background-color: #1c1e25;
+    -fx-background-color: -surface;
     -fx-text-fill: -ink;
     -fx-font-weight: bold;
     -fx-border-color: -accent transparent
@@ -134,7 +182,7 @@
     -fx-border-width: 1;
     -fx-padding: 18 20 18 20;
     -fx-effect: dropshadow(gaussian,
-        rgba(0,0,0,0.45), 16, 0, 0, 4);
+        -shadow, 16, 0, 0, 4);
 }
 
 .card-heading {
@@ -217,12 +265,12 @@
 }
 
 .button:hover {
-    -fx-background-color: #2b2f3a;
-    -fx-border-color: #3c4250;
+    -fx-background-color: -raised;
+    -fx-border-color: -raised-line;
 }
 
 .button:pressed {
-    -fx-background-color: #32374480;
+    -fx-background-color: -raised-hover;
 }
 
 .button:disabled {
@@ -250,7 +298,7 @@
 
 .text-field, .text-area, .spinner,
 .choice-box, .combo-box {
-    -fx-background-color: #15171d;
+    -fx-background-color: -inset;
     -fx-text-fill: -ink;
     -fx-prompt-text-fill: -ink-faint;
     -fx-background-radius: 9px;
@@ -261,7 +309,7 @@
 }
 
 .text-area .content {
-    -fx-background-color: #15171d;
+    -fx-background-color: -inset;
 }
 
 .text-field:focused, .text-area:focused,
@@ -302,11 +350,11 @@
 
 .combo-box-popup .list-cell:hover,
 .choice-box .menu-item:focused {
-    -fx-background-color: #2b2f3a;
+    -fx-background-color: -raised;
 }
 
 .progress-bar > .track {
-    -fx-background-color: #15171d;
+    -fx-background-color: -inset;
     -fx-background-radius: 6px;
 }
 
@@ -321,12 +369,12 @@
 }
 
 .scroll-bar .thumb {
-    -fx-background-color: #343946;
+    -fx-background-color: -thumb;
     -fx-background-radius: 6px;
 }
 
 .scroll-bar .thumb:hover {
-    -fx-background-color: #434a5a;
+    -fx-background-color: -thumb-hover;
 }
 
 .scroll-bar .increment-button,
@@ -345,12 +393,12 @@
 }
 
 .chart-plot-background {
-    -fx-background-color: #15171d;
+    -fx-background-color: -inset;
 }
 
 .chart-vertical-grid-lines,
 .chart-horizontal-grid-lines {
-    -fx-stroke: #262a33;
+    -fx-stroke: -grid;
 }
 
 .chart-alternative-row-fill {
@@ -382,7 +430,7 @@
 }
 
 .default-color0.chart-line-symbol {
-    -fx-background-color: -accent, #15171d;
+    -fx-background-color: -accent, -inset;
 }
 
 .default-color1.chart-series-line {
@@ -390,7 +438,7 @@
 }
 
 .default-color1.chart-line-symbol {
-    -fx-background-color: -good, #15171d;
+    -fx-background-color: -good, -inset;
 }
 
 /* ---------- table ---------- */
@@ -427,11 +475,11 @@
 }
 
 .table-row-cell:odd {
-    -fx-background-color: #1f222a;
+    -fx-background-color: -row-alt;
 }
 
 .table-row-cell:selected {
-    -fx-background-color: #2b2f3a;
+    -fx-background-color: -raised;
 }
 
 .table-view .table-cell {
@@ -455,12 +503,12 @@
 }
 
 .nav-button:hover {
-    -fx-background-color: #181a20;
+    -fx-background-color: -hover;
     -fx-border-color: transparent;
 }
 
 .nav-button-selected {
-    -fx-background-color: #1c1e25;
+    -fx-background-color: -surface;
     -fx-border-color: -accent transparent
         transparent transparent;
     -fx-border-width: 0 0 0 3;
@@ -487,7 +535,7 @@
 
 .hero-calm {
     -fx-background-color: linear-gradient(
-        to bottom right, #23262f, #1b1e25);
+        to bottom right, -surface-2, -surface);
     -fx-border-color: -line;
     -fx-padding: 24 28 24 28;
 }
@@ -577,7 +625,7 @@
 }
 
 .badge-quiet {
-    -fx-background-color: #262a33;
+    -fx-background-color: -grid;
     -fx-text-fill: -ink-dim;
 }
 
@@ -599,7 +647,7 @@
 }
 
 .meter-track {
-    -fx-background-color: #15171d;
+    -fx-background-color: -inset;
     -fx-background-radius: 5px;
 }
 
@@ -635,9 +683,41 @@
  */
 .chart-vertical-zero-line,
 .chart-horizontal-zero-line {
-    -fx-stroke: #3a3f4b;
+    -fx-stroke: -zero-line;
 }
 
 .chart-content {
     -fx-background-color: transparent;
+}
+
+/* ---------- theme toggle ---------- */
+
+.theme-toggle {
+    -fx-background-color: transparent;
+    -fx-text-fill: -ink-dim;
+    -fx-alignment: center-left;
+    -fx-padding: 8 20 8 20;
+    -fx-background-radius: 0;
+    -fx-font-size: 12px;
+    -fx-cursor: hand;
+}
+
+.theme-toggle:hover {
+    -fx-text-fill: -accent;
+    -fx-background-color: -hover;
+}
+
+.check-box {
+    -fx-text-fill: -ink;
+}
+
+.check-box .box {
+    -fx-background-color: -inset;
+    -fx-border-color: -raised-line;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+}
+
+.check-box:selected .mark {
+    -fx-background-color: -accent;
 }

@@ -21,9 +21,9 @@ passing.
 
 | ID | Feature | Status | Reachable from |
 |---|---|---|---|
-| F01 | Lifter Profile and Constraints | Done | GUI Profile screen |
-| F02 | Workout Logging and Import | Done | `spotter import`, `spotter log` |
-| F03 | Recovery Input | Done | `spotter import`, `spotter checkin`, GUI Recovery |
+| F01 | Lifter Profile and Constraints | Done | GUI Profile screen (edit form and paragraph) |
+| F02 | Workout Logging and Import | Done | GUI Import screen, `spotter import`, `spotter log` |
+| F03 | Recovery Input | Done | GUI Import screen, `spotter import`, `spotter checkin`, GUI Recovery |
 | F04 | Strength Analytics | Done | `spotter analytics`, GUI Analytics |
 | F05 | Training Block Generation | Done | `spotter plan`, GUI Plan |
 | F06 | Equipment Substitution | Done | `spotter substitute`, GUI Today |

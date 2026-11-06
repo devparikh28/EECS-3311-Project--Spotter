@@ -123,49 +123,20 @@ public final class ProfilePanel
 
         context.profile().ifPresent(profile -> {
             root.getChildren().add(
-                    existing(profile));
+                new ProfileEditor(profile)
+                    .build(this::saveEdited));
             root.getChildren().add(
                     firstStep());
         });
 
         VBox entry = Cards.card(
-            "DESCRIBE YOURSELF", description,
+            context.profile().isPresent()
+                ? "OR DESCRIBE YOURSELF AGAIN"
+                : "DESCRIBE YOURSELF",
+            description,
             new HBox(8, read, save), status);
         root.getChildren().add(entry);
         root.getChildren().add(result);
-    }
-
-    /** What is already stored, if anything. */
-    private Node existing(
-            LifterProfile profile) {
-        VBox card = Cards.card(
-                "CURRENT PROFILE");
-        card.getChildren().addAll(
-            Cards.field("goal",
-                profile.goal().name()),
-            Cards.field("experience",
-                profile.experience().name()),
-            Cards.field("bodyweight",
-                String.format("%.1f kg",
-                    profile.bodyweightKg())),
-            Cards.field("trains",
-                profile.trainingDaysPerWeek()
-                    + " days a week"),
-            Cards.field("equipment",
-                profile.equipment().size()
-                    + " items"),
-            Cards.field("limitations",
-                String.valueOf(
-                    profile.limitations()
-                        .size())));
-        profile.meetDate().ifPresent(meet ->
-            card.getChildren().add(
-                Cards.field("meet", meet
-                        .toString())));
-        card.getChildren().add(
-            Cards.note("Describing yourself"
-                + " again replaces this."));
-        return card;
     }
 
     /**
@@ -338,6 +309,19 @@ public final class ProfilePanel
                     limitation.description()));
         }
         return card;
+    }
+
+    /** Stores a profile edited in the form. */
+    private void saveEdited(
+            LifterProfile profile) {
+        context.tasks().run(
+            () -> context.profiles()
+                    .save(profile),
+            saved -> context.events().publish(
+                SpotterEvent.PROFILE_CHANGED),
+            failure -> status.setText(
+                "Could not save: "
+                + failure.getMessage()));
     }
 
     /** Stores the finished profile. */

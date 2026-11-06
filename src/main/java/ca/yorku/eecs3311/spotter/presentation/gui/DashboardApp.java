@@ -21,6 +21,9 @@ import ca.yorku.eecs3311.spotter
         .DashboardPanel;
 import ca.yorku.eecs3311.spotter
         .presentation.gui.panels
+        .ImportPanel;
+import ca.yorku.eecs3311.spotter
+        .presentation.gui.panels
         .NutritionPanel;
 import ca.yorku.eecs3311.spotter
         .presentation.gui.panels.PlanPanel;
@@ -90,6 +93,8 @@ public final class DashboardApp
             new HashSet<>();
     private final Set<Panel> drawn =
             new HashSet<>();
+    private final ThemePreference theme =
+            new ThemePreference();
     private Panel showing;
 
     @Override
@@ -106,6 +111,7 @@ public final class DashboardApp
             new RecoveryPanel(context),
             new NutritionPanel(context),
             new CoachPanel(context),
+            new ImportPanel(context),
             new ProfilePanel(context));
 
         subscribe(panels);
@@ -118,6 +124,8 @@ public final class DashboardApp
             DashboardApp.class.getResource(
                 "/gui/spotter.css")
                 .toExternalForm());
+
+        theme.apply(shell);
 
         stage.setTitle("Spotter");
         stage.setScene(scene);
@@ -166,6 +174,20 @@ public final class DashboardApp
         VBox.setVgrow(filler,
                 Priority.ALWAYS);
         nav.getChildren().add(filler);
+        Button toggle = new Button();
+        toggle.getStyleClass().add(
+                "theme-toggle");
+        toggle.setMaxWidth(Double.MAX_VALUE);
+        Runnable label = () -> toggle.setText(
+            theme.isLight()
+                ? "Switch to dark theme"
+                : "Switch to light theme");
+        label.run();
+        toggle.setOnAction(event -> {
+            theme.toggle(shell);
+            label.run();
+        });
+        nav.getChildren().add(toggle);
         nav.getChildren().add(
             Cards.styled(context.hasModel()
                     ? "coach: connected"
