@@ -771,3 +771,82 @@
 .top-ghost.nav-button-selected {
     -fx-background-color: transparent;
 }
+
+/*
+ * Top bar controls are Buttons, and the generic
+ * .button rule above gives a button a card
+ * background, a border and a 9px radius. A class
+ * selector alone loses to it by file order, so
+ * these are prefixed with .root to outrank it.
+ */
+.root .tabs .nav-button {
+    -fx-background-color: transparent;
+    -fx-background-radius: 18px;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-padding: 8 15 8 15;
+    -fx-text-fill: -ink-dim;
+    -fx-font-size: 13px;
+}
+
+.root .tabs .nav-button:hover {
+    -fx-background-color: -hover;
+    -fx-text-fill: -ink;
+}
+
+.root .tabs .nav-button-selected {
+    -fx-background-color: -raised;
+    -fx-text-fill: -accent-2;
+    -fx-font-weight: bold;
+}
+
+.root .tabs {
+    -fx-padding: 4;
+    -fx-spacing: 2;
+}
+
+.root .top-action {
+    -fx-background-radius: 18px;
+    -fx-padding: 8 18 8 18;
+    -fx-border-color: transparent;
+}
+
+.root .top-ghost {
+    -fx-background-color: transparent;
+    -fx-background-radius: 18px;
+    -fx-border-color: -line;
+    -fx-border-radius: 18px;
+    -fx-padding: 8 16 8 16;
+    -fx-text-fill: -ink-dim;
+}
+
+.root .top-ghost:hover {
+    -fx-background-color: -hover;
+    -fx-text-fill: -ink;
+    -fx-border-color: -raised-line;
+}
+
+.root .top-ghost.nav-button-selected {
+    -fx-background-color: -raised;
+    -fx-text-fill: -accent-2;
+    -fx-border-color: -accent;
+}
+
+.root .top-action.nav-button-selected {
+    -fx-background-color: linear-gradient(
+        to bottom right, -accent-2, -accent-2);
+    -fx-text-fill: #1a1304;
+}
+
+.root .theme-icon {
+    -fx-background-radius: 20px;
+    -fx-border-radius: 20px;
+    -fx-padding: 6 11 6 11;
+}
+
+.root .ask-pill {
+    -fx-background-radius: 22px;
+    -fx-border-color: transparent;
+    -fx-padding: 10 20 10 20;
+    -fx-font-size: 13px;
+}
