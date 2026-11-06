@@ -47,6 +47,7 @@ project.
 | 19 | No check that a prescribed load was above zero | A movement needing equipment is refused at zero load | A real run prescribed Romanian deadlifts at 0.0 kg and the gate passed it |
 | 20 | Import, profile editing and a light theme existed only as commands or not at all | The window gained an Import screen, an editable profile form and a theme toggle | Stage 1 put import buttons in the GUI; a lifter should not need a terminal to bring in their data |
 | 21 | The coach was one tab, and nothing could be exported | A quick coach drawer on every screen, and a Reports screen with PDF and CSV export | A lifter mid session should not leave the screen to ask, and a coach or a spreadsheet needs the numbers in a file |
+| 22 | A ten item sidebar put rarely used screens beside daily ones | A top bar with eight tabs; Import, Profile and the theme icon at its right; a floating Ask coach button | Import and Profile are done now and then, so they should not compete with the screens opened daily |
 
 ---
 
@@ -660,3 +661,25 @@ button. Helvetica is used so nothing is embedded
 and a font cannot fail to load, and the cost is that
 only Latin text is drawn; anything else becomes a
 question mark rather than aborting the export.
+
+## 22. A top bar instead of a sidebar
+
+Ten items in a left column gave Import and Profile
+the same weight as Today and Plan, though a lifter
+opens the first two a few times and the others
+every session. The navigation moved to a bar along
+the top: eight tabs for the daily screens in the
+middle, and at the right the coach status, the
+theme icon, Profile and Import. Ask coach became a
+floating button at the bottom left that opens the
+chat drawer from design change 21.
+
+Nothing behind the bar changed. The shell still
+shows one panel at a time and refreshes it only
+when the event bus says something it shows has
+changed; Import and Profile are still panels and
+still subscribe, they are just reached from a
+different place. The content is also centred and
+capped at 1040 pixels, because on a wide monitor
+the figures drifted to the left edge of the window
+and a number far from its label is harder to read.

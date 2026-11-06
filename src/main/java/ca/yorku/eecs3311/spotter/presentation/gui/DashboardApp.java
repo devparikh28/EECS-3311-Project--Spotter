@@ -2,9 +2,10 @@ package ca.yorku.eecs3311.spotter
         .presentation.gui;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import ca.yorku.eecs3311.spotter
@@ -46,8 +47,8 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
 import javafx.geometry.Pos;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -56,12 +57,18 @@ import javafx.stage.Stage;
 /**
  * Spotter's dashboard.
  *
- * The shell and nothing else: a navigation column
- * on the left, one panel at a time on the right,
- * and a context every panel shares. It knows how
- * to show a panel and knows nothing about what
- * any panel contains, so adding a screen is a new
- * class and one line here.
+ * The shell and nothing else: a bar along the top
+ * with the screens as tabs, one panel at a time
+ * below it, and a context every panel shares. It
+ * knows how to show a panel and knows nothing about
+ * what any panel contains, so adding a screen is a
+ * new class and one line here.
+ *
+ * Import and Profile are not tabs. They are things
+ * done now and then, not places to live, so they
+ * sit at the right of the bar beside the theme
+ * icon, which keeps the tabs to the screens a
+ * lifter opens every day.
  *
  * A panel is refreshed the first time it is
  * opened, and after that only when something it
@@ -70,22 +77,23 @@ import javafx.stage.Stage;
  * names the kinds of change that concern it, the
  * panel on screen redraws at once, and the others
  * are marked stale and redrawn the next time they
- * are opened. Refreshing on every visit also
- * worked, and queried the database for figures
- * that nothing had touched.
+ * are opened.
  */
 public final class DashboardApp
         extends Application {
 
     /** Window width when it first opens. */
-    public static final double WIDTH = 1040;
+    public static final double WIDTH = 1240;
 
     /** Window height when it first opens. */
-    public static final double HEIGHT = 720;
+    public static final double HEIGHT = 760;
+
+    /** Widest the content is allowed to get. */
+    private static final double CONTENT_MAX = 1040;
 
     private GuiContext context;
-    private final List<Button> navButtons =
-            new ArrayList<>();
+    private final Map<Panel, Button> tabs =
+            new LinkedHashMap<>();
     private final BorderPane shell =
             new BorderPane();
     private final VBox content = new VBox(
@@ -101,6 +109,7 @@ public final class DashboardApp
             new HashSet<>();
     private final ThemePreference theme =
             new ThemePreference();
+    private final VBox drawer = new VBox(8);
     private Panel showing;
 
     @Override
@@ -109,20 +118,31 @@ public final class DashboardApp
                 SpotterConfig.load(
                         envFile()));
 
-        List<Panel> panels = List.of(
-            new DashboardPanel(context),
+        DashboardPanel dashboard =
+                new DashboardPanel(context);
+        ImportPanel importer =
+                new ImportPanel(context);
+        ProfilePanel profile =
+                new ProfilePanel(context);
+
+        List<Panel> everyday = List.of(
+            dashboard,
             new TodayPanel(context),
             new PlanPanel(context),
             new AnalyticsPanel(context),
             new RecoveryPanel(context),
             new NutritionPanel(context),
             new CoachPanel(context),
-            new ReportPanel(context),
-            new ImportPanel(context),
-            new ProfilePanel(context));
+            new ReportPanel(context));
+
+        List<Panel> panels =
+            new java.util.ArrayList<>(everyday);
+        panels.add(importer);
+        panels.add(profile);
 
         subscribe(panels);
-        shell.setLeft(navigation(panels));
+        shell.setTop(topBar(everyday, importer,
+                profile));
         shell.setCenter(withDrawer(
                 contentArea()));
 
@@ -132,14 +152,14 @@ public final class DashboardApp
             DashboardApp.class.getResource(
                 "/gui/spotter.css")
                 .toExternalForm());
-
         theme.apply(shell);
 
+        stage.setMinWidth(1100);
         stage.setTitle("Spotter");
         stage.setScene(scene);
         stage.show();
 
-        show(panels.get(0), 0);
+        show(dashboard);
     }
 
     /**
@@ -154,64 +174,115 @@ public final class DashboardApp
         return Path.of(".env");
     }
 
-    private Region navigation(
-            List<Panel> panels) {
-        VBox nav = new VBox();
-        nav.getStyleClass().add("nav");
+    private Region topBar(List<Panel> everyday,
+                          Panel importer,
+                          Panel profile) {
+        Label mark = Cards.styled("S",
+                "brand-mark");
+        HBox brand = new HBox(10, mark,
+            Cards.styled("Spotter",
+                    "brand-name"));
+        brand.setAlignment(Pos.CENTER_LEFT);
 
-        nav.getChildren().addAll(
-            Cards.styled("Spotter", "nav-title"),
-            Cards.styled("strength coach",
-                "nav-subtitle"));
-
-        for (int i = 0; i < panels.size(); i++) {
-            Panel panel = panels.get(i);
-            int index = i;
+        HBox pills = new HBox(2);
+        pills.getStyleClass().add("tabs");
+        pills.setAlignment(Pos.CENTER);
+        for (Panel panel : everyday) {
             Button button = new Button(
                     panel.title());
             button.getStyleClass()
                     .add("nav-button");
-            button.setMaxWidth(Double.MAX_VALUE);
+            button.setMinWidth(
+                    Region.USE_PREF_SIZE);
             button.setOnAction(event ->
-                    show(panel, index));
-            navButtons.add(button);
-            nav.getChildren().add(button);
+                    show(panel));
+            tabs.put(panel, button);
+            pills.getChildren().add(button);
         }
 
-        Region filler = new Region();
-        VBox.setVgrow(filler,
-                Priority.ALWAYS);
-        nav.getChildren().add(filler);
-        Button ask = Cards.primary(
-                new Button("Ask coach"));
-        ask.setMaxWidth(Double.MAX_VALUE);
-        ask.setOnAction(event ->
-                toggleDrawer());
-        VBox.setMargin(ask,
-            new javafx.geometry.Insets(
-                0, 14, 10, 14));
-        nav.getChildren().add(ask);
+        Button theme = new Button();
+        theme.getStyleClass().add(
+                "theme-icon");
+        javafx.scene.control.Tooltip.install(
+            theme, new javafx.scene.control
+                .Tooltip("Switch theme"));
+        Runnable icon = () -> theme.setText(
+            this.theme.isLight()
+                ? "\u263E" : "\u2600");
+        icon.run();
+        theme.setOnAction(event -> {
+            this.theme.toggle(shell);
+            icon.run();
+        });
 
-        nav.getChildren().add(
-            Cards.styled(context.hasModel()
-                    ? "coach: connected"
-                    : "coach: no API key",
-                "nav-footer"));
-        return nav;
+        Button load = Cards.primary(
+                new Button("Import"));
+        load.getStyleClass().add("top-action");
+        load.setMinWidth(Region.USE_PREF_SIZE);
+        load.setOnAction(event ->
+                show(importer));
+
+        Button you = new Button("Profile");
+        you.getStyleClass().add("top-ghost");
+        you.setMinWidth(Region.USE_PREF_SIZE);
+        you.setOnAction(event ->
+                show(profile));
+        tabs.put(importer, load);
+        tabs.put(profile, you);
+
+        Label coach = Cards.badge(
+            context.hasModel()
+                ? "COACH ON"
+                : "NO KEY",
+            context.hasModel()
+                ? "good" : "quiet");
+
+        coach.setMinWidth(Region.USE_PREF_SIZE);
+        theme.setMinWidth(Region.USE_PREF_SIZE);
+        HBox right = new HBox(8, coach, theme,
+                you, load);
+        right.setMinWidth(Region.USE_PREF_SIZE);
+        pills.setMinWidth(Region.USE_PREF_SIZE);
+        brand.setMinWidth(Region.USE_PREF_SIZE);
+        right.setAlignment(Pos.CENTER_RIGHT);
+
+        HBox bar = new HBox(16, brand,
+            Cards.grow(), pills, Cards.grow(),
+            right);
+        bar.getStyleClass().add("topbar");
+        bar.setAlignment(Pos.CENTER);
+        return bar;
     }
 
-    private final VBox drawer = new VBox(8);
+    private Region contentArea() {
+        VBox area = new VBox(0, panelTitle,
+                panelDescription, content);
+        area.getStyleClass().add("content");
+        area.setMaxWidth(CONTENT_MAX);
+        VBox.setVgrow(content,
+                Priority.ALWAYS);
+
+        HBox centred = new HBox(area);
+        centred.setAlignment(Pos.TOP_CENTER);
+        HBox.setHgrow(area, Priority.ALWAYS);
+
+        ScrollPane scroll =
+                new ScrollPane(centred);
+        scroll.setFitToWidth(true);
+        scroll.getStyleClass()
+                .add("content-scroll");
+        return scroll;
+    }
 
     /**
      * The quick coach: a chat that opens over
      * whatever screen is showing.
      *
-     * It is a second view of the Coach screen's
-     * agent and memory, so a question asked from
-     * the Today screen does not mean leaving it.
-     * It sits in the bottom left of the content
-     * area, where a hand already is after pressing
-     * Ask coach, and closes with its own button.
+     * A floating pill at the bottom left opens it,
+     * so a question asked from the Today screen
+     * does not mean leaving it. It is a second view
+     * of the Coach screen's agent and memory, and
+     * closes with its own button or the pill.
      */
     private Region withDrawer(Region content) {
         CoachPanel quick =
@@ -239,49 +310,27 @@ public final class DashboardApp
                 Pos.BOTTOM_LEFT);
         StackPane.setMargin(drawer,
             new javafx.geometry.Insets(
-                0, 0, 18, 18));
+                0, 0, 74, 22));
 
-        return new StackPane(content, drawer);
+        Button ask = Cards.primary(
+            new Button("\u2726  Ask coach"));
+        ask.getStyleClass().add("ask-pill");
+        ask.setOnAction(event ->
+                toggleDrawer());
+        StackPane.setAlignment(ask,
+                Pos.BOTTOM_LEFT);
+        StackPane.setMargin(ask,
+            new javafx.geometry.Insets(
+                0, 0, 22, 22));
+
+        return new StackPane(content, drawer,
+                ask);
     }
 
     private void toggleDrawer() {
         boolean open = !drawer.isVisible();
         drawer.setVisible(open);
         drawer.setManaged(open);
-    }
-
-    private Region contentArea() {
-        Button theme = new Button();
-        theme.getStyleClass().add(
-                "theme-icon");
-        javafx.scene.control.Tooltip.install(
-            theme, new javafx.scene.control
-                .Tooltip("Switch theme"));
-        Runnable icon = () -> theme.setText(
-            this.theme.isLight()
-                ? "\u263E" : "\u2600");
-        icon.run();
-        theme.setOnAction(event -> {
-            this.theme.toggle(shell);
-            icon.run();
-        });
-
-        HBox top = new HBox(panelTitle,
-                Cards.grow(), theme);
-        top.setAlignment(Pos.TOP_LEFT);
-
-        VBox area = new VBox(0, top,
-                panelDescription, content);
-        area.getStyleClass().add("content");
-        VBox.setVgrow(content,
-                Priority.ALWAYS);
-
-        ScrollPane scroll =
-                new ScrollPane(area);
-        scroll.setFitToWidth(true);
-        scroll.getStyleClass()
-                .add("content-scroll");
-        return scroll;
     }
 
     /**
@@ -319,17 +368,15 @@ public final class DashboardApp
     }
 
     /** Puts one panel on screen. */
-    private void show(Panel panel, int index) {
-        for (int i = 0; i < navButtons.size();
-                i++) {
-            Button button = navButtons.get(i);
+    private void show(Panel panel) {
+        tabs.forEach((each, button) -> {
             button.getStyleClass().remove(
                     "nav-button-selected");
-            if (i == index) {
+            if (each == panel) {
                 button.getStyleClass().add(
                     "nav-button-selected");
             }
-        }
+        });
 
         panelTitle.setText(panel.title());
         panelDescription.setText(

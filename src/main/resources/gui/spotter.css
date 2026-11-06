@@ -85,42 +85,51 @@
     -shadow:       rgba(20,22,30,0.12);
 }
 
-/* ---------- navigation ---------- */
+/* ---------- top bar ---------- */
 
-.nav {
+.topbar {
     -fx-background-color: -nav-bg;
-    -fx-min-width: 208px;
-    -fx-pref-width: 208px;
-    -fx-padding: 22 0 18 0;
-    -fx-border-color: transparent -line
-        transparent transparent;
-    -fx-border-width: 0 1 0 0;
+    -fx-padding: 12 22 12 22;
+    -fx-border-color: transparent transparent
+        -line transparent;
+    -fx-border-width: 0 0 1 0;
 }
 
-.nav-title {
+.brand-mark {
+    -fx-background-color: linear-gradient(
+        to bottom right, -accent, -accent-2);
+    -fx-text-fill: #1a1304;
+    -fx-font-weight: bold;
+    -fx-font-size: 15px;
+    -fx-alignment: center;
+    -fx-min-width: 32px;
+    -fx-min-height: 32px;
+    -fx-background-radius: 16px;
+}
+
+.brand-name {
     -fx-text-fill: -ink;
-    -fx-font-size: 20px;
+    -fx-font-size: 17px;
     -fx-font-weight: bold;
-    -fx-padding: 0 20 1 20;
 }
 
-.nav-subtitle {
-    -fx-text-fill: -accent;
-    -fx-font-size: 10px;
-    -fx-font-weight: bold;
-    -fx-padding: 0 20 22 20;
+.tabs {
+    -fx-background-color: -surface;
+    -fx-background-radius: 22px;
+    -fx-border-color: -line;
+    -fx-border-radius: 22px;
+    -fx-padding: 3;
 }
 
 .nav-button {
     -fx-background-color: transparent;
     -fx-text-fill: -ink-dim;
-    -fx-alignment: center-left;
-    -fx-padding: 10 20 10 20;
-    -fx-background-radius: 0;
-    -fx-cursor: hand;
-    -fx-font-size: 13px;
+    -fx-background-radius: 18px;
     -fx-border-color: transparent;
-    -fx-border-width: 0 0 0 3;
+    -fx-effect: null;
+    -fx-padding: 7 11 7 11;
+    -fx-font-size: 12.5px;
+    -fx-cursor: hand;
 }
 
 .nav-button:hover {
@@ -129,18 +138,41 @@
 }
 
 .nav-button-selected {
-    -fx-background-color: -surface;
+    -fx-background-color: -raised;
     -fx-text-fill: -ink;
     -fx-font-weight: bold;
-    -fx-border-color: -accent transparent
-        transparent transparent;
-    -fx-border-width: 0 0 0 3;
 }
 
-.nav-footer {
-    -fx-text-fill: -ink-faint;
-    -fx-font-size: 11px;
-    -fx-padding: 12 20 0 20;
+.top-action {
+    -fx-background-radius: 18px;
+    -fx-padding: 7 16 7 16;
+}
+
+.top-ghost {
+    -fx-background-color: transparent;
+    -fx-text-fill: -ink-dim;
+    -fx-background-radius: 18px;
+    -fx-border-color: -line;
+    -fx-border-radius: 18px;
+    -fx-padding: 7 14 7 14;
+}
+
+.top-ghost:hover {
+    -fx-text-fill: -ink;
+    -fx-border-color: -accent;
+    -fx-background-color: transparent;
+}
+
+.nav-button-selected.top-ghost,
+.nav-button-selected.top-action {
+    -fx-border-color: -accent;
+}
+
+.ask-pill {
+    -fx-background-radius: 20px;
+    -fx-padding: 9 18 9 18;
+    -fx-effect: dropshadow(gaussian,
+        -shadow, 16, 0, 0, 4);
 }
 
 /* ---------- content ---------- */
@@ -161,7 +193,7 @@
 }
 
 .panel-title {
-    -fx-font-size: 27px;
+    -fx-font-size: 36px;
     -fx-font-weight: bold;
     -fx-text-fill: -ink;
 }
@@ -493,27 +525,6 @@
  * so they win: in JavaFX CSS, equal specificity
  * is resolved by order.
  */
-.nav-button {
-    -fx-background-color: transparent;
-    -fx-background-radius: 0;
-    -fx-border-color: transparent;
-    -fx-border-width: 0 0 0 3;
-    -fx-effect: null;
-    -fx-padding: 10 20 10 20;
-}
-
-.nav-button:hover {
-    -fx-background-color: -hover;
-    -fx-border-color: transparent;
-}
-
-.nav-button-selected {
-    -fx-background-color: -surface;
-    -fx-border-color: -accent transparent
-        transparent transparent;
-    -fx-border-width: 0 0 0 3;
-}
-
 /* ---------- hero ---------- */
 
 /*
@@ -748,5 +759,15 @@
 }
 
 .scroll-pane > .viewport {
+    -fx-background-color: transparent;
+}
+
+.top-action.nav-button-selected {
+    -fx-background-color: linear-gradient(
+        to bottom right, -accent-2, -accent-2);
+    -fx-text-fill: #1a1304;
+}
+
+.top-ghost.nav-button-selected {
     -fx-background-color: transparent;
 }
