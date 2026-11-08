@@ -100,22 +100,22 @@ Nine of the fifteen commands never call a model.
 
 ## Features and where they live
 
-| ID | Feature | Main classes |
-|---|---|---|
-| F01 | Lifter Profile and Constraints | `LifterProfile`, `ProfilePanel`, `ProfileRepository` |
-| F02 | Workout Logging and Import | `DataSource`, `HevyCsvAdapter`, `GenericCsvAdapter`, `CsvImportService`, `ImportPanel` |
-| F03 | Recovery Input | `WhoopCsvAdapter`, `RecoveryDay`, `RecoveryRuleEngine`, `CheckInCommand` |
-| F04 | Strength Analytics | `StrengthAnalytics`, `RPEChart`, `AnalyticsPanel` |
-| F05 | Training Block Generation | `BlockGenerationAgent`, `CoachAgent`, `PlanValidator`, `ProgressionStrategy` |
-| F06 | Equipment Substitution | `SubstitutionAgent`, `Substitution`, `SwapExerciseCommand` |
-| F07 | Recovery Aware Session Adjustment | `AdjustmentAgent`, `RecoveryRuleEngine`, `ApplyAdjustmentCommand` |
-| F08 | Max Testing and Attempt Planning | `AttemptCalculator`, `AttemptRationaleAgent`, `TestDayPlan` |
-| F09 | Macro Targets and Adherence Tracking | `MacroTracker`, `MacroTarget`, `NutritionPanel` |
-| F10 | Meal Suggestion | `MealSuggestionAgent`, `FoodCatalog`, `FoodDBTool` |
-| F11 | Coaching Chat with Memory | `ChatAgent`, `MemoryManager`, `ConversationHistory`, `CoachPanel` |
-| F12 | Plan Adherence and Progression Review | `PlanAdherence`, `ProgressionAgent`, `ApplyProgressionCommand` |
-| F13 | Guided Onboarding | `OnboardingAgent`, `ProfileDraft`, `ProfileValidator` |
-| F14 | Adopt an Existing Programme | `AdoptCommand`, `ProgrammeParserAgent`, `ProgrammeImportService` |
+| ID | Feature | Main classes | Report |
+|---|---|---|---|
+| F01 | Lifter Profile and Constraints | `LifterProfile`, `ProfilePanel`, `ProfileRepository` | [Report](docs/Spotter_Stage2_Report.md#f01--lifter-profile-and-constraints) |
+| F02 | Workout Logging and Import | `DataSource`, `HevyCsvAdapter`, `GenericCsvAdapter`, `CsvImportService`, `ImportPanel` | [Report](docs/Spotter_Stage2_Report.md#f02--workout-logging-and-import) |
+| F03 | Recovery Input | `WhoopCsvAdapter`, `RecoveryDay`, `RecoveryRuleEngine`, `CheckInCommand` | [Report](docs/Spotter_Stage2_Report.md#f03--recovery-input) |
+| F04 | Strength Analytics | `StrengthAnalytics`, `RPEChart`, `AnalyticsPanel` | [Report](docs/Spotter_Stage2_Report.md#f04--strength-analytics) |
+| F05 | Training Block Generation | `BlockGenerationAgent`, `CoachAgent`, `PlanValidator`, `ProgressionStrategy` | [Report](docs/Spotter_Stage2_Report.md#f05--training-block-generation) |
+| F06 | Equipment Substitution | `SubstitutionAgent`, `Substitution`, `SwapExerciseCommand` | [Report](docs/Spotter_Stage2_Report.md#f06--equipment-substitution) |
+| F07 | Recovery Aware Session Adjustment | `AdjustmentAgent`, `RecoveryRuleEngine`, `ApplyAdjustmentCommand` | [Report](docs/Spotter_Stage2_Report.md#f07--recovery-aware-session-adjustment) |
+| F08 | Max Testing and Attempt Planning | `AttemptCalculator`, `AttemptRationaleAgent`, `TestDayPlan` | [Report](docs/Spotter_Stage2_Report.md#f08--max-testing-and-attempt-planning) |
+| F09 | Macro Targets and Adherence Tracking | `MacroTracker`, `MacroTarget`, `NutritionPanel` | [Report](docs/Spotter_Stage2_Report.md#f09--macro-targets-and-adherence-tracking) |
+| F10 | Meal Suggestion | `MealSuggestionAgent`, `FoodCatalog`, `FoodDBTool` | [Report](docs/Spotter_Stage2_Report.md#f10--meal-suggestion) |
+| F11 | Coaching Chat with Memory | `ChatAgent`, `MemoryManager`, `ConversationHistory`, `CoachPanel` | [Report](docs/Spotter_Stage2_Report.md#f11--coaching-chat-with-memory) |
+| F12 | Plan Adherence and Progression Review | `PlanAdherence`, `ProgressionAgent`, `ApplyProgressionCommand` | [Report](docs/Spotter_Stage2_Report.md#f12--plan-adherence-and-progression-review) |
+| F13 | Guided Onboarding | `OnboardingAgent`, `ProfileDraft`, `ProfileValidator` | [Report](docs/Spotter_Stage2_Report.md#f13--guided-onboarding) |
+| F14 | Adopt an Existing Programme | `AdoptCommand`, `ProgrammeParserAgent`, `ProgrammeImportService` | [Report](docs/Spotter_Stage2_Report.md#f14--adopt-an-existing-programme) |
 
 Patterns: Facade (`CoachController`), Strategy (`LLMClient`, `ProgressionStrategy`), Template Method (`CoachAgent`), Adapter (`DataSource`), Factory Method (`DataSourceFactory`, `ProgressionStrategyFactory`), Decorator (`CachingLLMClient`, `RecordingLLMClient`), Observer (`EventBus`), Command (`PlanEditCommand`), with Builder and Repository as supporting patterns.
 
@@ -137,26 +137,43 @@ Layers: `presentation` (CLI and JavaFX), `application` (Facade, event bus, plan 
 - [AI human collaboration log](docs/stage2/ai-collaboration-log.md)
 - [Diagrams, as PNG and UMLet](docs/diagrams/README.md)
 
+## Diagrams
+
+The Stage 2 report carries the updated class diagram (section 3.10) as five views, and the Stage 1 report carries the use case diagram and sequence diagrams, which are unchanged.
+
+![System overview](docs/diagrams/png/architecture.png)
+
+| Diagram | File |
+|---|---|
+| Use case diagram | [usecase.png](docs/diagrams/png/usecase.png) |
+| Class diagram, complete | [class-full.png](docs/diagrams/png/class-full.png) |
+| Class diagram, presentation and application | [class-presentation-application.png](docs/diagrams/png/class-presentation-application.png) |
+| Class diagram, domain | [class-domain.png](docs/diagrams/png/class-domain.png) |
+| Class diagram, agent | [class-agent.png](docs/diagrams/png/class-agent.png) |
+| Class diagram, infrastructure | [class-infrastructure.png](docs/diagrams/png/class-infrastructure.png) |
+
+All diagrams are also available as UMLet `.uxf` files, see [docs/diagrams/README.md](docs/diagrams/README.md).
+
 ## Demonstration videos
 
-Three recordings cover every feature, indexed in section 7 of the Stage 2 report. Recording A is the deterministic command line ([watch](https://youtu.be/IFqLJAf8m-g)), Recording B is the agent from the command line ([watch](https://youtu.be/R0Z8aMzREhE)), and Recording C is the captioned GUI tour ([watch](https://youtu.be/QMOtI4h0Y5E)). Each link below jumps to that feature's segment.
+There is one GUI demo and two CLI demos, indexed in section 7 of the Stage 2 report. GUI demo: the captioned tour of every screen ([watch](https://youtu.be/QMOtI4h0Y5E)). CLI demo, deterministic commands ([watch](https://youtu.be/IFqLJAf8m-g)). CLI demo, the agent with `--trace` ([watch](https://youtu.be/R0Z8aMzREhE)). Each link in the table jumps to that feature's segment. Where a feature has two CLI segments they are on separate lines. "Not shown" means that feature is covered by the other demo.
 
-| ID | Feature | Demo |
-|---|---|---|
-| F01 | Lifter Profile and Constraints | [GUI tour](https://youtu.be/QMOtI4h0Y5E?t=125) |
-| F02 | Workout Logging and Import | [CLI, deterministic](https://youtu.be/IFqLJAf8m-g?t=13) |
-| F03 | Recovery Input | [CLI, deterministic](https://youtu.be/IFqLJAf8m-g?t=106) |
-| F04 | Strength Analytics | [CLI, deterministic](https://youtu.be/IFqLJAf8m-g?t=161), [GUI tour](https://youtu.be/QMOtI4h0Y5E?t=50) |
-| F05 | Training Block Generation | [CLI, agent](https://youtu.be/R0Z8aMzREhE?t=19), [GUI tour](https://youtu.be/QMOtI4h0Y5E?t=38) |
-| F06 | Equipment Substitution | [CLI, agent](https://youtu.be/R0Z8aMzREhE?t=166), [GUI tour](https://youtu.be/QMOtI4h0Y5E?t=25) |
-| F07 | Recovery Aware Session Adjustment | [CLI, agent](https://youtu.be/R0Z8aMzREhE?t=206), [GUI tour](https://youtu.be/QMOtI4h0Y5E?t=25) |
-| F08 | Max Testing and Attempt Planning | [CLI, deterministic](https://youtu.be/IFqLJAf8m-g?t=181), [CLI, agent](https://youtu.be/R0Z8aMzREhE?t=271) |
-| F09 | Macro Targets and Adherence Tracking | [GUI tour](https://youtu.be/QMOtI4h0Y5E?t=71) |
-| F10 | Meal Suggestion | [CLI, agent](https://youtu.be/R0Z8aMzREhE?t=294), [GUI tour](https://youtu.be/QMOtI4h0Y5E?t=71) |
-| F11 | Coaching Chat with Memory | [GUI tour](https://youtu.be/QMOtI4h0Y5E?t=82) |
-| F12 | Plan Adherence and Progression Review | [CLI, agent](https://youtu.be/R0Z8aMzREhE?t=319) |
-| F13 | Guided Onboarding | [GUI tour](https://youtu.be/QMOtI4h0Y5E?t=125) |
-| F14 | Adopt an Existing Programme | [CLI, agent](https://youtu.be/R0Z8aMzREhE?t=417) |
+| ID | Feature | Report | GUI demo | CLI demo |
+|---|---|---|---|---|
+| F01 | Lifter Profile and Constraints | [Report](docs/Spotter_Stage2_Report.md#f01--lifter-profile-and-constraints) | [2:05](https://youtu.be/QMOtI4h0Y5E?t=125) | not shown |
+| F02 | Workout Logging and Import | [Report](docs/Spotter_Stage2_Report.md#f02--workout-logging-and-import) | not shown | [0:13](https://youtu.be/IFqLJAf8m-g?t=13) |
+| F03 | Recovery Input | [Report](docs/Spotter_Stage2_Report.md#f03--recovery-input) | not shown | [1:46](https://youtu.be/IFqLJAf8m-g?t=106) |
+| F04 | Strength Analytics | [Report](docs/Spotter_Stage2_Report.md#f04--strength-analytics) | [0:50](https://youtu.be/QMOtI4h0Y5E?t=50) | [2:41](https://youtu.be/IFqLJAf8m-g?t=161) |
+| F05 | Training Block Generation | [Report](docs/Spotter_Stage2_Report.md#f05--training-block-generation) | [0:38](https://youtu.be/QMOtI4h0Y5E?t=38) | [0:19](https://youtu.be/R0Z8aMzREhE?t=19) |
+| F06 | Equipment Substitution | [Report](docs/Spotter_Stage2_Report.md#f06--equipment-substitution) | [0:25](https://youtu.be/QMOtI4h0Y5E?t=25) | [2:46](https://youtu.be/R0Z8aMzREhE?t=166) |
+| F07 | Recovery Aware Adjustment | [Report](docs/Spotter_Stage2_Report.md#f07--recovery-aware-session-adjustment) | [0:25](https://youtu.be/QMOtI4h0Y5E?t=25) | [3:26](https://youtu.be/R0Z8aMzREhE?t=206) |
+| F08 | Max Testing and Attempt Planning | [Report](docs/Spotter_Stage2_Report.md#f08--max-testing-and-attempt-planning) | not shown | [3:01 deterministic](https://youtu.be/IFqLJAf8m-g?t=181)<br>[4:31 agent](https://youtu.be/R0Z8aMzREhE?t=271) |
+| F09 | Macro Targets and Adherence | [Report](docs/Spotter_Stage2_Report.md#f09--macro-targets-and-adherence-tracking) | [1:11](https://youtu.be/QMOtI4h0Y5E?t=71) | not shown |
+| F10 | Meal Suggestion | [Report](docs/Spotter_Stage2_Report.md#f10--meal-suggestion) | [1:11](https://youtu.be/QMOtI4h0Y5E?t=71) | [4:54](https://youtu.be/R0Z8aMzREhE?t=294) |
+| F11 | Coaching Chat with Memory | [Report](docs/Spotter_Stage2_Report.md#f11--coaching-chat-with-memory) | [1:22](https://youtu.be/QMOtI4h0Y5E?t=82) | not shown |
+| F12 | Plan Adherence and Progression Review | [Report](docs/Spotter_Stage2_Report.md#f12--plan-adherence-and-progression-review) | not shown | [5:19](https://youtu.be/R0Z8aMzREhE?t=319) |
+| F13 | Guided Onboarding | [Report](docs/Spotter_Stage2_Report.md#f13--guided-onboarding) | [2:05](https://youtu.be/QMOtI4h0Y5E?t=125) | not shown |
+| F14 | Adopt an Existing Programme | [Report](docs/Spotter_Stage2_Report.md#f14--adopt-an-existing-programme) | not shown | [6:57](https://youtu.be/R0Z8aMzREhE?t=417) |
 
 ## Safety
 
