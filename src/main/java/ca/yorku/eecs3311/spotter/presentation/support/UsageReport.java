@@ -67,6 +67,23 @@ public final class UsageReport {
                 outputRate);
     }
 
+    /**
+     * The same, for a command that does not know
+     * whether the reply was live.
+     *
+     * A run that spent tokens was live. One that
+     * spent none, such as the no model fallback or
+     * a prepared reply, says so rather than showing
+     * a cost of zero as though it had been charged.
+     */
+    public static String describe(
+            AgentTrace trace,
+            SpotterConfig config) {
+        boolean live = trace != null
+            && trace.usage().total() > 0;
+        return describe(trace, live, config);
+    }
+
     /** The same, with the rates stated outright. */
     public static String describe(
             AgentTrace trace,

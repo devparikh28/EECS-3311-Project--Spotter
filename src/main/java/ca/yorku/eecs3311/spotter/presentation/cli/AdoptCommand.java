@@ -1,6 +1,7 @@
 package ca.yorku.eecs3311.spotter
         .presentation.cli;
 
+import ca.yorku.eecs3311.spotter.presentation.support.UsageReport;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
@@ -289,6 +290,9 @@ public final class AdoptCommand
                             .steps()) {
                     out.println("    " + step);
                 }
+                out.println("    " + UsageReport
+                        .describe(result.trace(),
+                                config));
                 out.println();
             }
 

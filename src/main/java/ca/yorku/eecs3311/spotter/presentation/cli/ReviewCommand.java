@@ -1,6 +1,7 @@
 package ca.yorku.eecs3311.spotter
         .presentation.cli;
 
+import ca.yorku.eecs3311.spotter.presentation.support.UsageReport;
 import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.time.LocalDate;
@@ -319,6 +320,9 @@ public final class ReviewCommand
                     : result.trace().steps()) {
                 out.println("    " + step);
             }
+            out.println("    " + UsageReport
+                    .describe(result.trace(),
+                            config));
             out.println();
         }
 
