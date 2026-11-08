@@ -48,6 +48,9 @@ project.
 | 20 | Import, profile editing and a light theme existed only as commands or not at all | The window gained an Import screen, an editable profile form and a theme toggle | Stage 1 put import buttons in the GUI; a lifter should not need a terminal to bring in their data |
 | 21 | The coach was one tab, and nothing could be exported | A quick coach drawer on every screen, and a Reports screen with PDF and CSV export | A lifter mid session should not leave the screen to ask, and a coach or a spreadsheet needs the numbers in a file |
 | 22 | A ten item sidebar put rarely used screens beside daily ones | A top bar with eight tabs; Import, Profile and the theme icon at its right; a floating Ask coach button | Import and Profile are done now and then, so they should not compete with the screens opened daily |
+| 23 | The application assumed a lifter would find their own way around | A guided tour with a caption on every screen | The first minute with an application and a silent recording both need the screen to explain itself |
+| 24 | The importer created whatever exercise name it met | The standard exercise catalogue is loaded on start, and a bare exercise is completed later | On an unseeded database every imported lift was unknown to analytics and Plan |
+| 25 | Only Plan printed tokens and cost | Every agent trace ends with tokens used and what the calls cost | The cost of an agent step is part of understanding it, and the recording should show it |
 
 ---
 
@@ -722,3 +725,21 @@ demonstration, which is where running the application
 for an audience keeps finding the same kind of fault:
 a path the tests never took because they always seeded
 first.
+
+## 25. Every trace ends with its cost
+
+Plan already printed the tokens a run used and what
+they cost when --trace was given. The other agent
+commands printed the steps and stopped. Substitute,
+adjust, attempts, meal, review and adopt now end their
+trace the same way: how many model calls were made,
+how many tokens went in and out, and the cost at the
+configured rates.
+
+A run that used no tokens says so instead of printing
+a cost of zero, because a no model fallback has not
+been charged anything and the report should not look as
+though it had. The cost of the model steps in the
+demonstration recording came from these lines rather
+than from an estimate, about 20 cents for the steps
+that print one.

@@ -39,14 +39,14 @@ All fourteen features specified in Stage 1 are implemented and reachable in the 
 |---|---|
 | Features implemented | 14 of 14 |
 | Distinct design patterns | 8, plus Builder and Repository as supporting patterns |
-| Main source files | 173 |
-| Test source files | 44 |
-| Automated tests | 502, all passing |
+| Main source files | 183 |
+| Test source files | 47 |
+| Automated tests | 510, all passing |
 | Measured API cost, whole project | $0.82 |
 
 ### Interfaces
 
-Both interfaces required by Stage 1 are present. The JavaFX dashboard has eight screens: Dashboard, Today, Plan, Analytics, Recovery, Nutrition, Coach and Profile. The picocli command line has fifteen commands under the name `spotter`. Nine of the fifteen never call a model, which is a design outcome rather than a shortfall: the figures a lifter trains off keep working when the network does not.
+Both interfaces required by Stage 1 are present. The JavaFX dashboard has ten screens: Dashboard, Today, Plan, Analytics, Recovery, Nutrition, Coach and Reports as tabs, with Import and Profile beside them. It also has a quick coach drawer on every screen, light and dark themes, PDF and CSV report export, and a captioned guided tour of every screen. The picocli command line has fifteen commands under the name `spotter`. Nine of the fifteen never call a model, which is a design outcome rather than a shortfall: the figures a lifter trains off keep working when the network does not.
 
 ### Limitations and incomplete functionality, stated honestly
 
@@ -462,11 +462,13 @@ The class diagram was regenerated from the implemented code on 4 November 2026. 
 | Infrastructure | 24 | `docs/diagrams/png/class-infrastructure.png` |
 
 The Stage 1 use case and sequence diagrams remain accurate and were not regenerated. The class diagram was, because the implementation had moved: see section 4 for what changed and why.
+
+The figures were exported on 4 November. Presentation classes added afterwards (`ImportPanel`, `ProfileEditor`, `ReportPanel`, `GuidedTour`, `ThemePreference`) and the report classes behind the Reports screen (`ReportBuilder`, `TrainingReport`, `ReportWriter`, `CsvReportWriter`, `PdfReportWriter`) are not drawn. They extend the existing structure and add no new relationships between layers, so the figures remain correct for everything else.
 ---
 
 ## 4. Changes and rationale
 
-Nineteen changes are recorded. Each was written at the time the decision was made and names the commit that carried it, so the claim can be checked against the code rather than taken on trust. The full text of each lives in `docs/stage2/design-changes.md`.
+Twenty five changes are recorded. Each was written at the time the decision was made and names the commit that carried it, so the claim can be checked against the code rather than taken on trust. The full text of each lives in `docs/stage2/design-changes.md`.
 
 Changes fall into three kinds. Some are design decisions that only became visible once the code existed. Some are corrections forced by real data, which Stage 1 could not have anticipated because Stage 1 had no data. The rest are constraints imposed from outside, such as a library or a model that changed under the project.
 
@@ -497,6 +499,8 @@ Changes fall into three kinds. Some are design decisions that only became visibl
 **F03** gained `spotter checkin`. Without it the recovery feature was conditional on owning a particular wearable.
 
 None of these replaces anything. Each makes an implemented capability reachable.
+
+Smaller fixes found while recording the demonstrations: the Today screen shows the next session when today is a rest day, the Recovery screen says when the latest reading was when the chosen weeks hold none, and every screen opens scrolled to the top.
 
 ### 4.2 Pattern level changes
 
@@ -547,6 +551,12 @@ None of these replaces anything. Each makes an implemented capability reachable.
 | 17 | `CoachController` wraps every agent | Facade covers repositories and deterministic services only | The agents take different inputs, so a method per agent would be a second interface kept in step by hand | Adding an agent no longer means editing the facade |
 | 18 | F13 as an eight question adaptive interview | A single paragraph read into a draft | Eight adaptive questions is eight model calls and eight screens for the same outcome | One call, one screen, and the gaps are listed rather than asked |
 | 19 | No check that a prescribed load was above zero | A movement needing equipment is refused at zero load | A real run prescribed Romanian deadlifts at 0.0 kg and the gate passed it | The claim that no model output reaches the lifter unchecked is now true for loads as well as ranges |
+| 20 | Import, profile editing and a light theme existed only as commands or not at all | The window gained an Import screen, an editable profile form and a theme toggle | A lifter should not need a terminal to bring in their data | The whole workflow works from the window |
+| 21 | The coach was one tab, and nothing could be exported | A quick coach drawer on every screen, and a Reports screen with PDF and CSV export | A lifter mid session should not leave the screen to ask, and a coach or a spreadsheet needs the numbers in a file | No screen has to be left to ask a question, and a report can be kept |
+| 22 | A ten item sidebar put rarely used screens beside daily ones | A top bar with eight tabs; Import, Profile and the theme icon at its right | Import and Profile are done now and then, so they should not compete with the screens opened daily | The tabs are the screens opened every day |
+| 23 | The application assumed a lifter would find their own way around | A guided tour with a caption on every screen | The first minute with an application and a silent recording both need the screen to explain itself | A viewer with no sound can follow every screen |
+| 24 | The importer created whatever exercise name it met | The standard exercise catalogue is loaded on start, and a bare exercise is completed later | On an unseeded database every imported lift was unknown to analytics and Plan | An import works on a fresh database, and an existing one repairs itself |
+| 25 | Only Plan printed tokens and cost | Every agent trace ends with tokens used and what the calls cost | The cost of an agent step is part of understanding it, and the recording should show it | Cost is visible at the end of each trace |
 
 ---
 
@@ -586,7 +596,9 @@ The figures check out against the published rates, which matters because the app
 
 The total counts the calls that failed against retired model identifiers and the proposals the validator refused. That is the honest number: a refused proposal costs what an accepted one costs, and this project refuses plenty by design.
 
-**Why the cost is as low as it is.** Most of what Spotter does involves no model. Nine of fifteen commands never call one. Where a model is involved it proposes and deterministic code disposes, and all 502 tests run against `ScriptedLLMClient` with no network.
+**The demonstration recordings.** Recording B was made against the live model in November, and every model step prints its own cost at the end of its trace. The steps that print one came to about 20 cents: the two week block 9 cents, the recovery adjustment 3 cents, the revision of a block 5 cents, the meal suggestion 1 cent, and the rest under a cent each. These calls are in addition to the 2 November account total above.
+
+**Why the cost is as low as it is.** Most of what Spotter does involves no model. Nine of fifteen commands never call one. Where a model is involved it proposes and deterministic code disposes, and all 510 tests run against `ScriptedLLMClient` with no network.
 
 ### 5.4 Representative collaboration log
 
@@ -606,13 +618,13 @@ The full log is `docs/stage2/ai-collaboration-log.md`, nine entries covering nin
 
 ### 6.1 Weekly commit summary
 
-Ninety four commits in total, of which fifty nine fall inside the three Stage 2 reporting periods. Every period exceeds the minimum of five meaningful code commits.
+One hundred and twenty one commits in total, of which eighty seven fall inside the three Stage 2 reporting periods. Every period exceeds the minimum of five meaningful code commits.
 
 | Period | Dates | Commits | Of which code |
 |---|---|---|---|
-| 1 | 20 to 26 October 2026 | 7 | 7 |
-| 2 | 27 October to 2 November 2026 | 41 | 41 |
-| 3 | 3 to 9 November 2026 | 20 | 8 |
+| 1 | 20 to 26 October 2026 | 7 | 6 |
+| 2 | 27 October to 2 November 2026 | 41 | 40 |
+| 3 | 3 to 9 November 2026 | 39 | 22 |
 
 Base URL for all links: `https://github.com/devparikh28/EECS-3311-Project--Spotter/commit/`
 
@@ -620,18 +632,19 @@ Base URL for all links: `https://github.com/devparikh28/EECS-3311-Project--Spott
 
 **Period 2**, the domain, the infrastructure and the agents: RPE chart and strength analytics `ec6ff13`, attempt and test day planning `aa03a1c`, recovery evaluation and the deterministic fallback `2a9550d`, reading real Hevy exports and fixing what real data exposed `f40b2ef`, the agent core `83c44e4`, the Claude client and the decorators `a46f4b2`, the first real coaching agent `5c12814`, the dashboard shell `fa8ff6b`, the chat agent `a9f53a3`, plan adherence `b6ec235`, and the five fixes that came out of the first live run, `9849c0d`, `8b3776a`, `b707614`, `883b485`, `b5e09b2`.
 
-**Period 3**, the remaining features and the patterns: closing the three gaps the Stage 1 check found `483cd9a`, adopting an existing programme `2770efc`, reviewing and revising a block `b021194`, reading anybody's export `19258e6`, the typed and spreadsheet routes for F14 `8d4c412`, the Command pattern `619c87c`, the Observer pattern `2105fca`, and the JSON output `1465c4b`.
+**Period 3**, the remaining features and the patterns: closing the three gaps the Stage 1 check found `483cd9a`, adopting an existing programme `2770efc`, reviewing and revising a block `b021194`, reading anybody's export `19258e6`, the typed and spreadsheet routes for F14 `8d4c412`, the Command pattern `619c87c`, the Observer pattern `2105fca`, and the JSON output `1465c4b`. From 5 to 8 November the interface work: import, profile editing and the light theme `fe47956`, the Ask coach drawer and reports `2c60956`, the top bar `db12165` and `9a2f5dd`, a separate worker for chat `23bd1d8`, the guided tour `d8ce426`, and the fixes found while recording the demonstrations: Today on a rest day `e84d9ec`, screens opening at the top `95ee7ec`, the recovery empty state `dde6908`, the exercise catalogue loaded on start `70d6229`, and the cost line on every trace `8936a4e`.
 
 ### 6.2 Checks performed
 
 | Check | Result |
 |---|---|
-| Automated test suite | 502 tests, all passing, no network and no API key required |
+| Automated test suite | 510 tests, all passing, no network and no API key required |
 | Live end to end run against the real API | 2 November 2026, nine calls, block generation refused then corrected and accepted |
 | GUI verified headless | Every panel navigated twice under Xvfb with no errors |
 | CLI quick start | Every command in the README run from a clean database before being documented |
 | JSON output | All eight commands parsed as JSON by an automated test, which catches any stray print statement in the prose path |
 | Class diagram against code | Every class in the model checked against the source; no arrow references an undeclared class |
+| Demonstration recordings | Three recordings made and each reviewed frame by frame for the wrong data, a clipped screen or an unreadable caption; two were redone because of what the review found |
 | Secrets | No API key appears in any source file, report, log or committed output; `.env` is gitignored and `.env.example` holds placeholders only |
 
 ### 6.3 Important defects found and corrected
@@ -644,9 +657,10 @@ Base URL for all links: `https://github.com/devparikh28/EECS-3311-Project--Spott
 | Long replies silently truncated | A four week block came back cut off | Model cached per name and reply length, not name alone, `b5e09b2` |
 | A correct load of 66.0 kg refused against a range printing as 66.0 | Reading a refusal that looked wrong | Boundary tolerance in `Range`, change 6 |
 | Two repository tests passing while saving an orphaned macro target | Reviewing AI written tests | Tests corrected and a third added asserting the refusal |
+| Importing into an empty database left every exercise unknown, so analytics and Plan reported no training history | Recording the demonstration from a clean database | The standard exercise catalogue is loaded on start and a bare exercise is completed when the real one arrives, `70d6229`. Change 24 |
 | A two week block prescribing Romanian deadlifts at 0.0 kg | Watching a real run while recording the demonstration videos | A movement requiring equipment is refused at zero load, with the equipment named; bodyweight movements still pass at zero. Change 19 |
 
-The first live session found six problems in under two hours, three in the project's own code and three in assumptions about the model. A seventh was found later, in the same way, by running the application for an audience while recording the demonstrations. Every one of the seven came from running the thing rather than from writing another test, which is the main lesson of the implementation period.
+The first live session found six problems in under two hours, three in the project's own code and three in assumptions about the model. A seventh and an eighth were found later, in the same way, by running the application for an audience while recording the demonstrations. Every one of the eight came from running the thing rather than from writing another test, which is the main lesson of the implementation period.
 
 ### 6.4 Remaining limitations
 
@@ -658,27 +672,27 @@ The competition lift variation defect, change 13. F09 having no command line rou
 
 Every implemented feature has a demonstration. The recordings are grouped into three, each with clearly labelled segments; every feature below gives the recording and the timestamp of its segment.
 
-**Recording A — deterministic command line.** Shows that the figures a lifter trains off are calculated rather than generated, and work with no API key configured.
+**Recording A, deterministic command line** (https://youtu.be/IFqLJAf8m-g). Shows that the figures a lifter trains off are calculated rather than generated, and work with no API key configured.
 
-**Recording B — the agent from the command line.** Shows the tool calls, the validation refusals and the retries, with `--trace`.
+**Recording B, the agent from the command line** (https://youtu.be/R0Z8aMzREhE). Shows the tool calls, the validation refusals and the retries, with `--trace`, and the tokens and cost at the end of each trace.
 
-**Recording C — the graphical interface.** Shows all eight screens, including the undo that the Command pattern exists for.
+**Recording C, the graphical interface** (https://youtu.be/QMOtI4h0Y5E). A captioned guided tour of every screen: Dashboard, Today, Plan, Analytics, Recovery, Nutrition, Coach, the Ask coach drawer, Reports, Import and Profile, and the light and dark themes. The tour only looks and changes no data.
 
 | Feature | Recording | Timestamp | Link |
 |---|---|---|---|
-| F01 Lifter Profile and Constraints | C | TBD | TBD |
-| F02 Workout Logging and Import | A | TBD | TBD |
-| F03 Recovery Input | A | TBD | TBD |
-| F04 Strength Analytics | A and C | TBD | TBD |
-| F05 Training Block Generation | B and C | TBD | TBD |
-| F06 Equipment Substitution | B and C | TBD | TBD |
-| F07 Recovery Aware Adjustment | B and C | TBD | TBD |
-| F08 Max Testing and Attempt Planning | A and B | TBD | TBD |
-| F09 Macro Targets and Adherence | C | TBD | TBD |
-| F10 Meal Suggestion | B and C | TBD | TBD |
-| F11 Coaching Chat with Memory | C | TBD | TBD |
-| F12 Plan Adherence and Progression Review | B | TBD | TBD |
-| F13 Guided Onboarding | C | TBD | TBD |
-| F14 Adopt an Existing Programme | B | TBD | TBD |
+| F01 Lifter Profile and Constraints | C | C 2:05 | [C](https://youtu.be/QMOtI4h0Y5E?t=125) |
+| F02 Workout Logging and Import | A | A 0:13 | [A](https://youtu.be/IFqLJAf8m-g?t=13) |
+| F03 Recovery Input | A | A 1:46 | [A](https://youtu.be/IFqLJAf8m-g?t=106) |
+| F04 Strength Analytics | A and C | A 2:41, C 0:50 | [A](https://youtu.be/IFqLJAf8m-g?t=161), [C](https://youtu.be/QMOtI4h0Y5E?t=50) |
+| F05 Training Block Generation | B and C | B 0:19, C 0:38 | [B](https://youtu.be/R0Z8aMzREhE?t=19), [C](https://youtu.be/QMOtI4h0Y5E?t=38) |
+| F06 Equipment Substitution | B and C | B 2:46, C 0:25 | [B](https://youtu.be/R0Z8aMzREhE?t=166), [C](https://youtu.be/QMOtI4h0Y5E?t=25) |
+| F07 Recovery Aware Adjustment | B and C | B 3:26, C 0:25 | [B](https://youtu.be/R0Z8aMzREhE?t=206), [C](https://youtu.be/QMOtI4h0Y5E?t=25) |
+| F08 Max Testing and Attempt Planning | A and B | A 3:01, B 4:31 | [A](https://youtu.be/IFqLJAf8m-g?t=181), [B](https://youtu.be/R0Z8aMzREhE?t=271) |
+| F09 Macro Targets and Adherence | C | C 1:11 | [C](https://youtu.be/QMOtI4h0Y5E?t=71) |
+| F10 Meal Suggestion | B and C | B 4:54, C 1:11 | [B](https://youtu.be/R0Z8aMzREhE?t=294), [C](https://youtu.be/QMOtI4h0Y5E?t=71) |
+| F11 Coaching Chat with Memory | C | C 1:22 | [C](https://youtu.be/QMOtI4h0Y5E?t=82) |
+| F12 Plan Adherence and Progression Review | B | B 5:19 | [B](https://youtu.be/R0Z8aMzREhE?t=319) |
+| F13 Guided Onboarding | C | C 2:05 | [C](https://youtu.be/QMOtI4h0Y5E?t=125) |
+| F14 Adopt an Existing Programme | B | B 6:57 | [B](https://youtu.be/R0Z8aMzREhE?t=417) |
 
-Collectively the recordings show both the graphical interface and the command line working, as required. No API key, credential or other secret appears in any recording.
+The timestamps for Recording C are counted from the moment the tour starts. Collectively the recordings show both the graphical interface and the command line working, as required. No API key, credential or other secret appears in any recording.
