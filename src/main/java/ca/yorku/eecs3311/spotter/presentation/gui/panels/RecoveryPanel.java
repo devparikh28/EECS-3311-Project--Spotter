@@ -90,13 +90,40 @@ public final class RecoveryPanel
             .findSince(since);
 
         if (days.isEmpty()) {
+            List<RecoveryDay> all = context
+                .controller().recovery()
+                .findAll();
+            if (!all.isEmpty()) {
+                LocalDate latest = all.stream()
+                    .map(RecoveryDay::date)
+                    .max(java.util.Comparator
+                        .naturalOrder())
+                    .orElseThrow();
+                long gone = java.time.temporal
+                    .ChronoUnit.WEEKS.between(
+                        latest, LocalDate.now());
+                root.getChildren().add(
+                    Cards.emptyState(
+                        "Nothing in the last "
+                        + weeks.getValue()
+                        + " weeks. The latest"
+                        + " reading is from "
+                        + latest + ", about "
+                        + gone + " weeks ago."
+                        + " Raise WEEKS above to"
+                        + " see older readings,"
+                        + " or import a newer"
+                        + " Whoop export.",
+                        null));
+                return;
+            }
             root.getChildren().add(
                 Cards.emptyState(
                     "No recovery readings have"
-                    + " been imported for this"
-                    + " period. Spotter reads"
-                    + " Whoop physiological"
-                    + " cycle exports.",
+                    + " been imported yet."
+                    + " Spotter reads Whoop"
+                    + " physiological cycle"
+                    + " exports.",
                     "spotter import"
                     + " physiological_cycles.csv"));
             return;
