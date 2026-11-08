@@ -155,15 +155,34 @@ public final class TodayPanel
 
         rememberEdits();
         session = sessionForToday();
+        boolean today = session != null;
+        if (!today) {
+            session = nextSession();
+        }
         if (session == null) {
             root.getChildren().add(
                 Cards.emptyState(
-                    "Nothing is scheduled for"
-                    + " today in the current"
-                    + " block. Rest days are"
-                    + " part of the plan.",
+                    "Every session in the current"
+                    + " block is already behind"
+                    + " you. Generate a new block"
+                    + " on the Plan screen.",
                     null));
             return;
+        }
+        if (!today) {
+            root.getChildren().add(
+                Cards.emptyState(
+                    "Rest day. Your next session"
+                    + " is on "
+                    + session.date().format(
+                        java.time.format
+                            .DateTimeFormatter
+                            .ofPattern(
+                                "EEEE d MMMM",
+                                java.util.Locale
+                                    .ENGLISH))
+                    + ", shown below so you can"
+                    + " look it over.", null));
         }
 
         Optional<RecoveryFlag> flag = flag();
@@ -203,6 +222,17 @@ public final class TodayPanel
             .filter(each -> each.date()
                     .equals(today))
             .findFirst()
+            .orElse(null);
+    }
+
+    /** The first session after today, if any. */
+    private Session nextSession() {
+        LocalDate today = LocalDate.now();
+        return block.allSessions().stream()
+            .filter(each -> each.date()
+                    .isAfter(today))
+            .min(java.util.Comparator.comparing(
+                    Session::date))
             .orElse(null);
     }
 
