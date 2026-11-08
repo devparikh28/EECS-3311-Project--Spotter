@@ -683,3 +683,22 @@ different place. The content is also centred and
 capped at 1040 pixels, because on a wide monitor
 the figures drifted to the left edge of the window
 and a number far from its label is harder to read.
+
+## 23. The application explains itself
+
+A guided tour was added to the dashboard. A question
+mark button at the top right starts it, and setting
+SPOTTER_TOUR=1 starts it on its own. A caption card
+at the bottom right names the screen and the
+features it carries, says in one or two sentences
+what it is for, and moves on by itself with a thin
+bar showing the time left.
+
+It exists for two audiences: a lifter opening the
+application for the first time, and anyone watching
+a silent screen recording. The tour only looks. It
+never saves, imports or calls the model, so it can
+be run at any time without changing data. GuidedTour
+holds the timing and the card and knows nothing about
+screens. The shell supplies the steps, because
+opening a screen is the shell's job.

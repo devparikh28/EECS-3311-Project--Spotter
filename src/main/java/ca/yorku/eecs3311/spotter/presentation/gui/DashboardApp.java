@@ -111,6 +111,9 @@ public final class DashboardApp
             new ThemePreference();
     private final VBox drawer = new VBox(8);
     private Panel showing;
+    private GuidedTour tour;
+    private Runnable themeIcon = () -> { };
+    private boolean themeFlipped;
 
     @Override
     public void start(Stage stage) {
@@ -141,6 +144,8 @@ public final class DashboardApp
         panels.add(profile);
 
         subscribe(panels);
+        tour = buildTour(everyday, importer,
+                profile);
         shell.setTop(topBar(everyday, importer,
                 profile));
         shell.setCenter(withDrawer(
@@ -160,6 +165,142 @@ public final class DashboardApp
         stage.show();
 
         show(dashboard);
+
+        if (Boolean.getBoolean("spotter.tour")
+                || "1".equals(System.getenv(
+                    "SPOTTER_TOUR"))) {
+            javafx.animation.PauseTransition wait =
+                new javafx.animation
+                    .PauseTransition(
+                        javafx.util.Duration
+                            .seconds(2));
+            wait.setOnFinished(event ->
+                    tour.start());
+            wait.play();
+        }
+    }
+
+    /**
+     * The guided tour: one caption per screen.
+     *
+     * Built here rather than in the tour class
+     * because opening a screen is the shell's job.
+     * The tour only knows how long to wait. The
+     * wording says what each screen is for and
+     * which feature it carries, so a viewer with
+     * the sound off can follow it.
+     */
+    private GuidedTour buildTour(
+            List<Panel> everyday,
+            Panel importer, Panel profile) {
+        List<GuidedTour.Step> steps =
+            new java.util.ArrayList<>();
+        steps.add(step("SPOTTER  Welcome",
+            "An AI strength and nutrition coach."
+            + " This tour opens every screen."
+            + " The model suggests and plain code"
+            + " checks, so the numbers you see"
+            + " are never invented.",
+            () -> show(everyday.get(0))));
+        steps.add(step("F04  Dashboard",
+            "Where you stand today: estimated"
+            + " maxima for each lift, this week's"
+            + " training, recovery and nutrition"
+            + " together.",
+            () -> show(everyday.get(0))));
+        steps.add(step("F06 F07  Today",
+            "Today's session. If equipment is"
+            + " missing, a movement can be"
+            + " swapped (F06). If you slept"
+            + " badly, loads can be adjusted"
+            + " (F07).",
+            () -> show(everyday.get(1))));
+        steps.add(step("F05  Plan",
+            "Writes a training block of any"
+            + " length. The coach drafts it and"
+            + " the rules reject anything unsafe"
+            + " before it is saved.",
+            () -> show(everyday.get(2))));
+        steps.add(step("F04 F08  Analytics",
+            "Estimated maxima and volume over"
+            + " time, plus attempt planning for"
+            + " a meet or a max test day.",
+            () -> show(everyday.get(3))));
+        steps.add(step("F03  Recovery",
+            "Sleep, soreness and energy, from a"
+            + " Whoop export or a quick"
+            + " check in. A low reading changes"
+            + " what Today asks of you.",
+            () -> show(everyday.get(4))));
+        steps.add(step("F09 F10  Nutrition",
+            "Daily calorie and protein targets,"
+            + " what you have eaten, and meal"
+            + " ideas that fit what is left.",
+            () -> show(everyday.get(5))));
+        steps.add(step("F11  Coach",
+            "A chat that remembers your history"
+            + " and looks up your real numbers"
+            + " instead of guessing.",
+            () -> show(everyday.get(6))));
+        steps.add(step("F11  Ask coach",
+            "The Ask coach button opens the same"
+            + " coach over any screen, so a"
+            + " question never means leaving"
+            + " your place.",
+            () -> setDrawer(true)));
+        steps.add(step("Reports",
+            "Export a report as PDF or CSV:"
+            + " lifter summary, strength, block,"
+            + " recovery and nutrition.",
+            () -> {
+                setDrawer(false);
+                show(everyday.get(7));
+            }));
+        steps.add(step("F02  Import",
+            "Bring in workouts from Hevy or"
+            + " Strong and recovery from Whoop."
+            + " The format is detected, and bad"
+            + " rows are skipped and reported.",
+            () -> show(importer)));
+        steps.add(step("F01 F13  Profile",
+            "Describe yourself in plain words"
+            + " and the coach fills the form."
+            + " You then check and edit it"
+            + " before it is saved.",
+            () -> show(profile)));
+        steps.add(step("Light and dark",
+            "The icon at the top right switches"
+            + " between dark and light themes.",
+            () -> {
+                themeFlipped = !themeFlipped;
+                theme.toggle(shell);
+                themeIcon.run();
+                show(everyday.get(0));
+            }));
+        steps.add(step("That is Spotter",
+            "Every screen works without a key."
+            + " Only plan writing, meal ideas"
+            + " and the coach call the model.",
+            () -> restoreTheme()));
+        return new GuidedTour(steps, () -> {
+            restoreTheme();
+            setDrawer(false);
+        });
+    }
+
+    private static GuidedTour.Step step(
+            String tag, String text,
+            Runnable action) {
+        return new GuidedTour.Step(tag, text,
+                action);
+    }
+
+    private void restoreTheme() {
+        if (themeFlipped) {
+            themeFlipped = false;
+            theme.toggle(shell);
+            themeIcon.run();
+        }
     }
 
     /**
@@ -210,6 +351,7 @@ public final class DashboardApp
             this.theme.isLight()
                 ? "\u263E" : "\u2600");
         icon.run();
+        themeIcon = icon;
         theme.setOnAction(event -> {
             this.theme.toggle(shell);
             icon.run();
@@ -239,8 +381,22 @@ public final class DashboardApp
 
         coach.setMinWidth(Region.USE_PREF_SIZE);
         theme.setMinWidth(Region.USE_PREF_SIZE);
-        HBox right = new HBox(8, coach, theme,
-                you, load);
+        Button help = new Button("?");
+        help.getStyleClass().add("theme-icon");
+        javafx.scene.control.Tooltip.install(
+            help, new javafx.scene.control
+                .Tooltip("Guided tour"));
+        help.setMinWidth(Region.USE_PREF_SIZE);
+        help.setOnAction(event -> {
+            if (tour.running()) {
+                tour.stop();
+            } else {
+                tour.start();
+            }
+        });
+
+        HBox right = new HBox(8, coach, help,
+                theme, you, load);
         right.setMinWidth(Region.USE_PREF_SIZE);
         pills.setMinWidth(Region.USE_PREF_SIZE);
         brand.setMinWidth(Region.USE_PREF_SIZE);
@@ -324,11 +480,14 @@ public final class DashboardApp
                 0, 0, 22, 22));
 
         return new StackPane(content, drawer,
-                ask);
+                ask, tour.node());
     }
 
     private void toggleDrawer() {
-        boolean open = !drawer.isVisible();
+        setDrawer(!drawer.isVisible());
+    }
+
+    private void setDrawer(boolean open) {
         drawer.setVisible(open);
         drawer.setManaged(open);
     }
