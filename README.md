@@ -1,237 +1,163 @@
-# Spotter — EECS 3311 Course Project
+# Spotter: An AI Strength and Nutrition Coaching Agent
 
-An AI agent that plans and adapts strength training and nutrition.
+EECS 3311 Software Design, Fall 2026 course project, York University.
 
-**Course:** EECS 3311 Software Design, York University, Fall 2026
-**Author:** Dev Parikh, 219957794
+Spotter imports a lifter's training history and recovery data, computes strength metrics deterministically, and uses an LLM agent to plan training blocks, adapt sessions to recovery, substitute unavailable exercises, plan meet attempts, suggest meals against remaining macros, and answer coaching questions. It has a JavaFX dashboard with eight screens, a floating Ask coach drawer, light and dark themes, a guided tour and PDF and CSV report export, and a picocli command line with the same features.
 
-Spotter imports a lifter's training history and recovery data, computes strength metrics deterministically, and uses an LLM agent to plan training blocks, adapt sessions to recovery, substitute unavailable exercises, plan a heavy single, and answer coaching questions. It serves any strength trainee: the profile carries a training goal (meet prep, strength, hypertrophy, or general fitness) and a meet date is optional.
+The principle the design rests on is that the model proposes and deterministic code disposes. Every figure a lifter trains off is calculated in ordinary Java. No model output reaches the domain model without passing a parser and a validator.
 
-The principle the whole design rests on is that the model proposes and deterministic code disposes. The arithmetic and the validation are ordinary Java. The agent supplies judgement, and no model output reaches the domain model without passing a parser and a validator.
+## Project stages
 
-## Status
+| Stage | Description | Status |
+|---|---|---|
+| Stage 1 | Design report: [docs/Spotter_Stage1_Report.md](docs/Spotter_Stage1_Report.md) | Complete, submitted |
+| Stage 2 | Implementation: [docs/Spotter_Stage2_Report.md](docs/Spotter_Stage2_Report.md) ([PDF](docs/Spotter_Stage2_Report.pdf)) | Complete. 14 of 14 features, 8 of 8 patterns, 510 tests |
+| Stage 3 | Testing (KUMA agent testing) | Not started. The `--json` output the harness drives is in place |
 
-| Stage | State |
-|---|---|
-| Stage 1, design | Complete, submitted |
-| Stage 2, implementation | Code complete. All fourteen features and all eight design patterns implemented. 500 tests passing |
-| Stage 3, testing | Not started. The `--json` output the harness drives is in place |
+**Student:** Dev Parikh, 219957794
 
-## Quick start
+## Stage 2: build, run and demo
 
-You need Java 21 and Maven. Nothing else, and no API key for most of it.
+The full write up is the [Stage 2 report](docs/Spotter_Stage2_Report.md). It maps every feature to its classes and methods, shows the updated class diagrams, records the design changes and their reasons, and indexes the demonstration videos. Supporting documents are listed under Project documents below.
+
+## Prerequisites
+
+- JDK 21
+- Maven 3.9 or newer
+- An Anthropic API key, optional. Without one everything deterministic still works.
+
+More detail is in [SETUP.md](SETUP.md).
+
+## Install dependencies and build
 
 ```
-git clone https://github.com/devparikh28/EECS-3311-Project--Spotter.git
-cd EECS-3311-Project--Spotter
+mvn -q compile
 mvn test
 ```
 
-That runs five hundred tests with no network access and no API key, because the whole test suite uses `ScriptedLLMClient` rather than the real model.
+The 510 tests use a scripted model client, so they need no network and no key.
 
-To use the application:
+## Local configuration (API key)
 
-```
-mvn -q package
-java -jar target/spotter.jar seed
-java -jar target/spotter.jar status
-java -jar target/spotter.jar analytics squat
-```
+1. Copy the template: `cp .env.example .env`
+2. Open `.env` and replace `YOUR_LOCAL_API_KEY_HERE` with your own key.
+3. The two models are set by `LLM_MODEL` (Haiku, for choosing and short checked answers) and `LLM_MODEL_REASONING` (Sonnet, for writing whole blocks). Cost rates are `LLM_INPUT_PER_MILLION` and `LLM_OUTPUT_PER_MILLION`.
 
-`seed` loads a sample lifter with training history, recovery readings and a food catalogue, so every screen and command has something to show. For the import paths there are three small synthetic files in `sample-data/`, with the commands that exercise them in `sample-data/README.md`:
+`.env` is git ignored and must stay that way. The database defaults to `spotter.db` and can be moved with `SPOTTER_DB_PATH`.
 
-```
-java -jar target/spotter.jar import sample-data/hevy-export-sample.csv
-java -jar target/spotter.jar import sample-data/whoop-export-sample.csv
-``` `analytics`, `attempts`, `review` and `recovery` work with no API key at all, because nothing in them involves a model.
+## Launch
 
-To start the dashboard:
+Graphical dashboard:
 
 ```
 mvn javafx:run
 ```
 
-## Configuring the model
-
-The AI features need an Anthropic API key. Without one, every command that calls a model says so and exits rather than failing obscurely, and `status` reports whether a key is configured.
+Command line:
 
 ```
-cp .env.example .env
+mvn -q package
+java -jar target/spotter.jar status
 ```
 
-Then open `.env` and set `LLM_API_KEY` to your own key. `.env` is gitignored and must stay that way. `.env.example` carries placeholders only and is the file that is committed.
-
-Never put a key in a source file, a report, a screenshot or a commit. A key that reaches any of those is disclosed and has to be revoked.
-
-The other values in `.env.example` have working defaults and are documented in place, including why the two model identifiers are pinned to the versions they are.
-
-With a key configured:
+Guided tour of every screen, started automatically:
 
 ```
-java -jar target/spotter.jar plan --weeks 4 --days 4 --trace
-java -jar target/spotter.jar substitute "Back Squat" --load 140
-java -jar target/spotter.jar meal --calories 900
+SPOTTER_TOUR=1 mvn javafx:run
 ```
 
-`--trace` prints every step the agent took, every tool it called, every proposal that was rejected and the reason, and what the run cost. It is the fastest way to see the architecture working.
+## Safe sample data (try it without any real data)
 
-Every command that calls a model also takes `--demo`, which uses a prepared reply instead of the API. That is how the features can be demonstrated without spending anything.
+```
+java -jar target/spotter.jar seed
+```
 
-## The command line
+`seed` loads a sample lifter with twenty sessions, recovery readings, foods and the standard exercises. The `sample-data/` folder has three small synthetic files for the import paths, with the commands that use them in `sample-data/README.md`: `hevy-export-sample.csv`, `whoop-export-sample.csv` and `programme-sample.csv`.
 
-| Command | What it does | Model |
+## Example usage (CLI)
+
+```
+spotter status
+spotter seed
+spotter import sample-data/hevy-export-sample.csv
+spotter import sample-data/whoop-export-sample.csv
+spotter analytics squat
+spotter recovery --weeks 4
+spotter checkin --soreness 3 --energy 4 --sleep 7
+spotter attempts squat --explain
+spotter testday squat
+spotter plan --weeks 4 --days 4 --trace
+spotter substitute "Back Squat" --load 140
+spotter adjust --fallback
+spotter meal --calories 900
+spotter review --revise
+spotter adopt --keep --start 2026-11-09 --entry "1/1 Back Squat 5x5@120"
+```
+
+Add `--trace` to any agent command to see every tool call, every refused proposal and the reason, and the tokens and cost of the run. Add `--demo` to use a prepared reply instead of the API, and `--json` for machine readable output.
+
+Nine of the fifteen commands never call a model.
+
+## Features and where they live
+
+| ID | Feature | Main classes |
 |---|---|---|
-| `status` | Configuration, database and whether a key is set | no |
-| `seed` | Load a sample lifter so nothing is empty | no |
-| `import` | Read a Hevy, Whoop or arbitrary CSV export | no |
-| `log` | Log a session by hand, as prescribed or typed out | no |
-| `analytics` | Estimated maxima, trends and an RPE chart | no |
-| `recovery` | Recovery readings and what was flagged | no |
-| `checkin` | Report soreness, energy and sleep for a day | no |
-| `attempts` | Meet attempts, and `--explain` for the reasoning | `--explain` only |
-| `testday` | A heavy single and its warmups | no |
-| `review` | Plan adherence, and `--revise` to rewrite the rest | `--revise` only |
-| `plan` | Generate a training block | yes |
-| `substitute` | Find a replacement movement | yes |
-| `adjust` | Ease off today's session, or `--fallback` for the rule engine's own version | `--fallback` is deterministic |
-| `meal` | Suggest a meal that fits the macros left | yes |
-| `adopt` | Adopt a programme the lifter already follows | prose only; typed and spreadsheet routes are deterministic |
+| F01 | Lifter Profile and Constraints | `LifterProfile`, `ProfilePanel`, `ProfileRepository` |
+| F02 | Workout Logging and Import | `DataSource`, `HevyCsvAdapter`, `GenericCsvAdapter`, `CsvImportService`, `ImportPanel` |
+| F03 | Recovery Input | `WhoopCsvAdapter`, `RecoveryDay`, `RecoveryRuleEngine`, `CheckInCommand` |
+| F04 | Strength Analytics | `StrengthAnalytics`, `RPEChart`, `AnalyticsPanel` |
+| F05 | Training Block Generation | `BlockGenerationAgent`, `CoachAgent`, `PlanValidator`, `ProgressionStrategy` |
+| F06 | Equipment Substitution | `SubstitutionAgent`, `Substitution`, `SwapExerciseCommand` |
+| F07 | Recovery Aware Session Adjustment | `AdjustmentAgent`, `RecoveryRuleEngine`, `ApplyAdjustmentCommand` |
+| F08 | Max Testing and Attempt Planning | `AttemptCalculator`, `AttemptRationaleAgent`, `TestDayPlan` |
+| F09 | Macro Targets and Adherence Tracking | `MacroTracker`, `MacroTarget`, `NutritionPanel` |
+| F10 | Meal Suggestion | `MealSuggestionAgent`, `FoodCatalog`, `FoodDBTool` |
+| F11 | Coaching Chat with Memory | `ChatAgent`, `MemoryManager`, `ConversationHistory`, `CoachPanel` |
+| F12 | Plan Adherence and Progression Review | `PlanAdherence`, `ProgressionAgent`, `ApplyProgressionCommand` |
+| F13 | Guided Onboarding | `OnboardingAgent`, `ProfileDraft`, `ProfileValidator` |
+| F14 | Adopt an Existing Programme | `AdoptCommand`, `ProgrammeParserAgent`, `ProgrammeImportService` |
 
-Nine of the fifteen commands never call a model. That is the point rather than a limitation: the figures a lifter trains off are calculated, not generated, and they still work when the network does not.
+Patterns: Facade (`CoachController`), Strategy (`LLMClient`, `ProgressionStrategy`), Template Method (`CoachAgent`), Adapter (`DataSource`), Factory Method (`DataSourceFactory`, `ProgressionStrategyFactory`), Decorator (`CachingLLMClient`, `RecordingLLMClient`), Observer (`EventBus`), Command (`PlanEditCommand`), with Builder and Repository as supporting patterns.
 
-Every command that answers a question also takes `--json`, which prints one object instead of prose for the Stage 3 harness. The shape is documented in `docs/stage2/feature-to-implementation.md`.
+Layers: `presentation` (CLI and JavaFX), `application` (Facade, event bus, plan commands), `domain`, `agent` and `infrastructure`, under `src/main/java/ca/yorku/eecs3311/spotter`.
 
-## Stage 2 deliverables
+## How the AI is used (and kept honest)
 
-| Deliverable | Where |
-|---|---|
-| Complete source code | `src/`, 173 main and 44 test files |
-| README and setup instructions | this file |
-| AI tools used | [`docs/stage2/ai-tools.md`](docs/stage2/ai-tools.md) |
-| LLM models used | [`docs/stage2/ai-tools.md`](docs/stage2/ai-tools.md), section 2 |
-| AI human collaboration log | [`docs/stage2/ai-collaboration-log.md`](docs/stage2/ai-collaboration-log.md) |
-| Feature to implementation mapping | [`docs/stage2/feature-to-implementation.md`](docs/stage2/feature-to-implementation.md) |
-| Important design changes | [`docs/stage2/design-changes.md`](docs/stage2/design-changes.md) |
+- Every agent proposal is parsed by `ResponseParser` and checked by `PlanValidator`. A refused proposal goes back to the model with the reason, and nothing unchecked is saved.
+- `--trace` shows each step the agent took, each tool it called, each rejection, and the tokens and cost at the end.
+- Only `ClaudeClient` imports LangChain4j. Everything else depends on the `LLMClient` interface, which is how the tests run without a key.
 
-## Stage 1 report
+## Project documents
 
-The whole Stage 1 report is one document: [`docs/Spotter-Stage1-Design-Report.md`](docs/Spotter-Stage1-Design-Report.md). It carries all nine deliverables in order: the overview and architecture, fourteen feature specifications, the class diagram in five views, eight design patterns with the SOLID analysis, the use case diagram, nineteen use case descriptions, twelve sequence diagrams, the traceability table, the feature realization by class and method, and four appendices.
+- [Stage 1 design report](docs/Spotter_Stage1_Report.md)
+- [Stage 2 implementation report](docs/Spotter_Stage2_Report.md) and [PDF](docs/Spotter_Stage2_Report.pdf)
+- [Feature to implementation mapping](docs/stage2/feature-to-implementation.md)
+- [Design changes](docs/stage2/design-changes.md)
+- [AI tools used](docs/stage2/ai-tools.md)
+- [AI human collaboration log](docs/stage2/ai-collaboration-log.md)
+- [Diagrams, as PNG and UMLet](docs/diagrams/README.md)
 
-Where the implementation departs from it, `docs/stage2/design-changes.md` says what changed and why, and `docs/stage2/feature-to-implementation.md` maps each feature from its designed classes to the classes that exist.
+## Demonstration videos
 
-## Architecture
+Three recordings cover every feature, indexed in section 7 of the Stage 2 report. Recording A is the deterministic command line ([watch](https://youtu.be/IFqLJAf8m-g)), Recording B is the agent from the command line ([watch](https://youtu.be/R0Z8aMzREhE)), and Recording C is the captioned GUI tour ([watch](https://youtu.be/QMOtI4h0Y5E)). Each link below jumps to that feature's segment.
 
-![Spotter system overview](docs/diagrams/png/architecture.png)
+| ID | Feature | Demo |
+|---|---|---|
+| F01 | Lifter Profile and Constraints | [GUI tour](https://youtu.be/QMOtI4h0Y5E?t=125) |
+| F02 | Workout Logging and Import | [CLI, deterministic](https://youtu.be/IFqLJAf8m-g?t=13) |
+| F03 | Recovery Input | [CLI, deterministic](https://youtu.be/IFqLJAf8m-g?t=106) |
+| F04 | Strength Analytics | [CLI, deterministic](https://youtu.be/IFqLJAf8m-g?t=161), [GUI tour](https://youtu.be/QMOtI4h0Y5E?t=50) |
+| F05 | Training Block Generation | [CLI, agent](https://youtu.be/R0Z8aMzREhE?t=19), [GUI tour](https://youtu.be/QMOtI4h0Y5E?t=38) |
+| F06 | Equipment Substitution | [CLI, agent](https://youtu.be/R0Z8aMzREhE?t=166), [GUI tour](https://youtu.be/QMOtI4h0Y5E?t=25) |
+| F07 | Recovery Aware Session Adjustment | [CLI, agent](https://youtu.be/R0Z8aMzREhE?t=206), [GUI tour](https://youtu.be/QMOtI4h0Y5E?t=25) |
+| F08 | Max Testing and Attempt Planning | [CLI, deterministic](https://youtu.be/IFqLJAf8m-g?t=181), [CLI, agent](https://youtu.be/R0Z8aMzREhE?t=271) |
+| F09 | Macro Targets and Adherence Tracking | [GUI tour](https://youtu.be/QMOtI4h0Y5E?t=71) |
+| F10 | Meal Suggestion | [CLI, agent](https://youtu.be/R0Z8aMzREhE?t=294), [GUI tour](https://youtu.be/QMOtI4h0Y5E?t=71) |
+| F11 | Coaching Chat with Memory | [GUI tour](https://youtu.be/QMOtI4h0Y5E?t=82) |
+| F12 | Plan Adherence and Progression Review | [CLI, agent](https://youtu.be/R0Z8aMzREhE?t=319) |
+| F13 | Guided Onboarding | [GUI tour](https://youtu.be/QMOtI4h0Y5E?t=125) |
+| F14 | Adopt an Existing Programme | [CLI, agent](https://youtu.be/R0Z8aMzREhE?t=417) |
 
-Five layers, each depending only on the layer beneath it or on an interface.
+## Safety
 
-```
-Presentation    DashboardApp and 8 panels, CoachCLI and 15 commands
-Application     CoachController (Facade), EventBus, PlanEditHistory
-Domain          entities, StrengthAnalytics, RPEChart, AttemptCalculator,
-                MacroTracker, RecoveryRuleEngine, ProgressionStrategy
-Agent           CoachAgent (Template Method) and 9 agents, ClaudeClient,
-                ToolManager and 7 tools, PromptBuilder, ResponseParser,
-                PlanValidator, MemoryManager
-Infrastructure  CSV adapters, catalogs, SQLite repositories
-```
-
-Agent calls take seconds, so the panels run them on a background thread through `FxTaskRunner` and deliver results with `Platform.runLater()`, keeping the JavaFX Application Thread free. The CLI calls the same code and blocks, having no interface thread to protect.
-
-## Source layout
-
-```
-pom.xml
-.env.example                      configuration template, placeholders only
-src/main/java/ca/yorku/eecs3311/spotter/
-  presentation/
-    cli/                          CoachCLI, 15 commands, JsonOutput
-    gui/                          DashboardApp, Panel, GuiContext, FxTaskRunner
-    gui/panels/                   8 panels and the shared card widgets
-    support/                      ModelAccess, DemoReplies, UsageReport
-  application/
-    CoachController.java          the Facade every screen and command goes through
-    event/                        EventBus, EventListener, SpotterEvent
-    plan/                         PlanEditCommand, PlanEditHistory, 3 commands
-  domain/                         entities and the deterministic calculations
-  agent/
-    CoachAgent.java               the Template Method; run() is final
-    agents/                       9 agents
-    tools/                        7 tools the agents may call
-    ClaudeClient.java             the only class importing LangChain4j
-    ScriptedLLMClient.java        what the tests use instead
-    PlanValidator.java            the gate every proposal passes
-  infrastructure/
-    csv/                          DataSource adapters and import services
-    persistence/                  Database, Repository<T>, SQLite repositories
-    catalog/                      exercise and food catalogues
-    config/                       SpotterConfig
-src/main/resources/gui/           the dashboard stylesheet
-src/test/java/                    JUnit 5 tests mirroring the main structure
-docs/
-  Spotter-Stage1-Design-Report.md the whole Stage 1 report
-  stage2/                         the five Stage 2 documents
-  diagrams/                       19 diagrams as PNG and UMLet .uxf
-tools/kuma/                       Python harness for Stage 3 (not yet added)
-```
-
-## Design patterns
-
-All eight patterns named in Stage 1 are implemented. `docs/stage2/feature-to-implementation.md` carries the full table with the designed classes beside the implemented ones.
-
-| Pattern | Where |
-|---|---|
-| Facade | `application/CoachController` |
-| Strategy | `agent/LLMClient` with three implementations; `domain/ProgressionStrategy` with four |
-| Template Method | `agent/CoachAgent`, whose `run()` is final, and nine concrete agents |
-| Adapter | `infrastructure/csv/DataSource` with the Hevy, Whoop and generic CSV adapters |
-| Factory Method | `DataSourceFactory`, `ProgressionStrategyFactory`, `CoachAgent.createToolset()` |
-| Decorator | `LLMClientDecorator`, `CachingLLMClient`, `RecordingLLMClient` |
-| Observer | `application/event/EventBus` with `Panel.changedBy()` |
-| Command | `application/plan/PlanEditCommand`, `PlanEditHistory` and three commands |
-
-Builder and Repository appear as supporting patterns, in `PromptBuilder`, `LifterProfile.Builder`, `RecoveryDay.Builder`, and in `Repository<T>` with five implementations.
-
-Two of these were built after the rest of the application worked, and both are tied to behaviour rather than added as structure. Command exists because the Today screen needs an Undo button. Observer exists because panels were refreshing on every visit and now refresh when something they display has changed. The reasoning for both is in `docs/stage2/design-changes.md`, entries 14 and 15.
-
-## Diagrams
-
-Every diagram is delivered in two formats, and they are the same picture: a UMLet `.uxf` file and the PNG UMLet exports from it. Each pair shares a name. There are nineteen: the system overview, five class views, the use case diagram and twelve sequence diagrams.
-
-The class diagram is one model, `docs/diagrams/sources/model.iuml`, filtered into five views, so the views cannot disagree with each other. UMLet has no PlantUML import, so the `.uxf` files are generated rather than redrawn. See [`docs/diagrams/README.md`](docs/diagrams/README.md) for the regeneration commands, and note the warning there: running a generator overwrites hand edits without asking.
-
-The class diagram describes the Stage 1 design and has not yet been regenerated against the implemented code. Until it is, `docs/stage2/feature-to-implementation.md` is the accurate description of what exists.
-
-## Technology
-
-| Concern | Choice |
-|---|---|
-| Language | Java 21 |
-| Build | Maven |
-| GUI | JavaFX 21 |
-| CLI | picocli, command name `spotter` |
-| Storage | SQLite through `sqlite-jdbc`, behind a `Repository<T>` interface |
-| LLM | Anthropic Claude through LangChain4j, wrapped in `ClaudeClient` |
-| JSON | Jackson, for parsing model output and for `--json` |
-| Data sources | CSV from any workout or recovery application behind a `DataSource` interface, plus direct logging and daily check ins |
-| Unit testing | JUnit 5, Mockito, AssertJ |
-| Agent behaviour testing | KUMA (Python SDK) driving the Java CLI through a small harness |
-
-## Why a small amount of Python
-
-The application is written entirely in Java. Python appears only in the Stage 3 test harness, where it cannot reasonably be replaced, which the course instructor confirmed is acceptable: use Java everywhere it is possible, and Python only where it is not.
-
-KUMA is a Python SDK and its protocol is a loop the caller owns:
-
-```python
-while (test_input := run.get_input()) is not None:
-    report = run.submit(execute_agent(test_input), logs=["trace.jsonl"])
-```
-
-`execute_agent` invokes the Java CLI as a subprocess and returns its output. The `--json` output added in Stage 2 is what it reads. No application logic lives in Python: the harness only starts the Java process, passes the test input, and hands the result and trace back to KUMA.
-
-## Roadmap beyond the course
-
-The course deliverable is the fourteen features in the report. The design keeps four extensions open on purpose, documented in section 1.8 of the Stage 1 report: live Hevy and Whoop sync behind the existing `DataSource` interface, a REST layer over `CoachController` for a web or mobile client, and stricter safety limits in `PlanValidator` before anyone other than the author uses it.
-
-One limitation is known and recorded rather than fixed. A competition lift variation such as a close grip bench press is mapped to the competition lift, so the validator holds it to competition bench loads and refuses loads that are correct for the variation. The fix is to map only the competition movement itself, which touches how the catalogue marks competition lifts and therefore the estimated maxima as well. `docs/stage2/design-changes.md` entry 13 has the detail.
+No API keys or personal data are in this repository. `.env`, local databases and recorded model traffic are git ignored.

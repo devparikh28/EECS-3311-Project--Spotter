@@ -50,7 +50,7 @@ Commits `a232c70` to `65e6b8a`, fifteen commits.
 
 **Reviewed and changed.** Most of this session was me correcting the report rather than the design. The architecture diagram was redrawn as stacked layer bands (`9c42be5`) because the first version implied dependencies between layers that the design does not have. The agent and tool counts were wrong and were corrected (`9434ba8`). A duplicated note about the optional meet date was removed (`f756b0c`). The repository was flattened to README, gitignore and docs (`54323c5`) because the generated artefacts had accumulated.
 
-**Landed.** `docs/Spotter-Stage1-Design-Report.md` and the diagram exports.
+**Landed.** `docs/Spotter_Stage1_Report.md` and the diagram exports.
 
 **Carried forward.** I recorded a warning to myself at the end of this session, in the Stage 2 plan: running a diagram generator overwrites hand edits without warning, so pick one workflow and stay in it. That warning turned out to matter, because the class diagram has since drifted from the code and is on the outstanding list.
 
