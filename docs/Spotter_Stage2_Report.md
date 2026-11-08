@@ -680,19 +680,19 @@ Every implemented feature has a demonstration. The recordings are grouped into t
 
 | Feature | GUI demo | CLI demo |
 |---|---|---|
-| F01 Lifter Profile and Constraints | [2:05](https://youtu.be/QMOtI4h0Y5E?t=125) | not shown |
-| F02 Workout Logging and Import | not shown | [0:13](https://youtu.be/IFqLJAf8m-g?t=13) |
-| F03 Recovery Input | not shown | [1:46](https://youtu.be/IFqLJAf8m-g?t=106) |
+| F01 Lifter Profile and Constraints | [2:05](https://youtu.be/QMOtI4h0Y5E?t=125) | |
+| F02 Workout Logging and Import | | [0:13](https://youtu.be/IFqLJAf8m-g?t=13) |
+| F03 Recovery Input | | [1:46](https://youtu.be/IFqLJAf8m-g?t=106) |
 | F04 Strength Analytics | [0:50](https://youtu.be/QMOtI4h0Y5E?t=50) | [2:41](https://youtu.be/IFqLJAf8m-g?t=161) |
 | F05 Training Block Generation | [0:38](https://youtu.be/QMOtI4h0Y5E?t=38) | [0:19](https://youtu.be/R0Z8aMzREhE?t=19) |
 | F06 Equipment Substitution | [0:25](https://youtu.be/QMOtI4h0Y5E?t=25) | [2:46](https://youtu.be/R0Z8aMzREhE?t=166) |
 | F07 Recovery Aware Adjustment | [0:25](https://youtu.be/QMOtI4h0Y5E?t=25) | [3:26](https://youtu.be/R0Z8aMzREhE?t=206) |
-| F08 Max Testing and Attempt Planning | not shown | [3:01 deterministic](https://youtu.be/IFqLJAf8m-g?t=181)<br>[4:31 agent](https://youtu.be/R0Z8aMzREhE?t=271) |
-| F09 Macro Targets and Adherence | [1:11](https://youtu.be/QMOtI4h0Y5E?t=71) | not shown |
+| F08 Max Testing and Attempt Planning | | [3:01 deterministic](https://youtu.be/IFqLJAf8m-g?t=181)<br>[4:31 agent](https://youtu.be/R0Z8aMzREhE?t=271) |
+| F09 Macro Targets and Adherence | [1:11](https://youtu.be/QMOtI4h0Y5E?t=71) | |
 | F10 Meal Suggestion | [1:11](https://youtu.be/QMOtI4h0Y5E?t=71) | [4:54](https://youtu.be/R0Z8aMzREhE?t=294) |
-| F11 Coaching Chat with Memory | [1:22](https://youtu.be/QMOtI4h0Y5E?t=82) | not shown |
-| F12 Plan Adherence and Progression Review | not shown | [5:19](https://youtu.be/R0Z8aMzREhE?t=319) |
-| F13 Guided Onboarding | [2:05](https://youtu.be/QMOtI4h0Y5E?t=125) | not shown |
-| F14 Adopt an Existing Programme | not shown | [6:57](https://youtu.be/R0Z8aMzREhE?t=417) |
+| F11 Coaching Chat with Memory | [1:22](https://youtu.be/QMOtI4h0Y5E?t=82) | |
+| F12 Plan Adherence and Progression Review | | [5:19](https://youtu.be/R0Z8aMzREhE?t=319) |
+| F13 Guided Onboarding | [2:05](https://youtu.be/QMOtI4h0Y5E?t=125) | |
+| F14 Adopt an Existing Programme | | [6:57](https://youtu.be/R0Z8aMzREhE?t=417) |
 
 The timestamps for the GUI demo are counted from the moment the tour starts. Collectively the recordings show both the graphical interface and the command line working, as required. No API key, credential or other secret appears in any recording.

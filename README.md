@@ -156,24 +156,24 @@ All diagrams are also available as UMLet `.uxf` files, see [docs/diagrams/README
 
 ## Demonstration videos
 
-There is one GUI demo and two CLI demos, indexed in section 7 of the Stage 2 report. GUI demo: the captioned tour of every screen ([watch](https://youtu.be/QMOtI4h0Y5E)). CLI demo, deterministic commands ([watch](https://youtu.be/IFqLJAf8m-g)). CLI demo, the agent with `--trace` ([watch](https://youtu.be/R0Z8aMzREhE)). Each link in the table jumps to that feature's segment. Where a feature has two CLI segments they are on separate lines. "Not shown" means that feature is covered by the other demo.
+There is one GUI demo and two CLI demos, indexed in section 7 of the Stage 2 report. GUI demo: the captioned tour of every screen ([watch](https://youtu.be/QMOtI4h0Y5E)). CLI demo, deterministic commands ([watch](https://youtu.be/IFqLJAf8m-g)). CLI demo, the agent with `--trace` ([watch](https://youtu.be/R0Z8aMzREhE)). Each link in the table jumps to that feature's segment. Where a feature has two CLI segments they are on separate lines.
 
 | ID | Feature | Report | GUI demo | CLI demo |
 |---|---|---|---|---|
-| F01 | Lifter Profile and Constraints | [Report](docs/Spotter_Stage2_Report.md#f01--lifter-profile-and-constraints) | [2:05](https://youtu.be/QMOtI4h0Y5E?t=125) | not shown |
-| F02 | Workout Logging and Import | [Report](docs/Spotter_Stage2_Report.md#f02--workout-logging-and-import) | not shown | [0:13](https://youtu.be/IFqLJAf8m-g?t=13) |
-| F03 | Recovery Input | [Report](docs/Spotter_Stage2_Report.md#f03--recovery-input) | not shown | [1:46](https://youtu.be/IFqLJAf8m-g?t=106) |
+| F01 | Lifter Profile and Constraints | [Report](docs/Spotter_Stage2_Report.md#f01--lifter-profile-and-constraints) | [2:05](https://youtu.be/QMOtI4h0Y5E?t=125) | |
+| F02 | Workout Logging and Import | [Report](docs/Spotter_Stage2_Report.md#f02--workout-logging-and-import) | | [0:13](https://youtu.be/IFqLJAf8m-g?t=13) |
+| F03 | Recovery Input | [Report](docs/Spotter_Stage2_Report.md#f03--recovery-input) | | [1:46](https://youtu.be/IFqLJAf8m-g?t=106) |
 | F04 | Strength Analytics | [Report](docs/Spotter_Stage2_Report.md#f04--strength-analytics) | [0:50](https://youtu.be/QMOtI4h0Y5E?t=50) | [2:41](https://youtu.be/IFqLJAf8m-g?t=161) |
 | F05 | Training Block Generation | [Report](docs/Spotter_Stage2_Report.md#f05--training-block-generation) | [0:38](https://youtu.be/QMOtI4h0Y5E?t=38) | [0:19](https://youtu.be/R0Z8aMzREhE?t=19) |
 | F06 | Equipment Substitution | [Report](docs/Spotter_Stage2_Report.md#f06--equipment-substitution) | [0:25](https://youtu.be/QMOtI4h0Y5E?t=25) | [2:46](https://youtu.be/R0Z8aMzREhE?t=166) |
 | F07 | Recovery Aware Adjustment | [Report](docs/Spotter_Stage2_Report.md#f07--recovery-aware-session-adjustment) | [0:25](https://youtu.be/QMOtI4h0Y5E?t=25) | [3:26](https://youtu.be/R0Z8aMzREhE?t=206) |
-| F08 | Max Testing and Attempt Planning | [Report](docs/Spotter_Stage2_Report.md#f08--max-testing-and-attempt-planning) | not shown | [3:01 deterministic](https://youtu.be/IFqLJAf8m-g?t=181)<br>[4:31 agent](https://youtu.be/R0Z8aMzREhE?t=271) |
-| F09 | Macro Targets and Adherence | [Report](docs/Spotter_Stage2_Report.md#f09--macro-targets-and-adherence-tracking) | [1:11](https://youtu.be/QMOtI4h0Y5E?t=71) | not shown |
+| F08 | Max Testing and Attempt Planning | [Report](docs/Spotter_Stage2_Report.md#f08--max-testing-and-attempt-planning) | | [3:01 deterministic](https://youtu.be/IFqLJAf8m-g?t=181)<br>[4:31 agent](https://youtu.be/R0Z8aMzREhE?t=271) |
+| F09 | Macro Targets and Adherence | [Report](docs/Spotter_Stage2_Report.md#f09--macro-targets-and-adherence-tracking) | [1:11](https://youtu.be/QMOtI4h0Y5E?t=71) | |
 | F10 | Meal Suggestion | [Report](docs/Spotter_Stage2_Report.md#f10--meal-suggestion) | [1:11](https://youtu.be/QMOtI4h0Y5E?t=71) | [4:54](https://youtu.be/R0Z8aMzREhE?t=294) |
-| F11 | Coaching Chat with Memory | [Report](docs/Spotter_Stage2_Report.md#f11--coaching-chat-with-memory) | [1:22](https://youtu.be/QMOtI4h0Y5E?t=82) | not shown |
-| F12 | Plan Adherence and Progression Review | [Report](docs/Spotter_Stage2_Report.md#f12--plan-adherence-and-progression-review) | not shown | [5:19](https://youtu.be/R0Z8aMzREhE?t=319) |
-| F13 | Guided Onboarding | [Report](docs/Spotter_Stage2_Report.md#f13--guided-onboarding) | [2:05](https://youtu.be/QMOtI4h0Y5E?t=125) | not shown |
-| F14 | Adopt an Existing Programme | [Report](docs/Spotter_Stage2_Report.md#f14--adopt-an-existing-programme) | not shown | [6:57](https://youtu.be/R0Z8aMzREhE?t=417) |
+| F11 | Coaching Chat with Memory | [Report](docs/Spotter_Stage2_Report.md#f11--coaching-chat-with-memory) | [1:22](https://youtu.be/QMOtI4h0Y5E?t=82) | |
+| F12 | Plan Adherence and Progression Review | [Report](docs/Spotter_Stage2_Report.md#f12--plan-adherence-and-progression-review) | | [5:19](https://youtu.be/R0Z8aMzREhE?t=319) |
+| F13 | Guided Onboarding | [Report](docs/Spotter_Stage2_Report.md#f13--guided-onboarding) | [2:05](https://youtu.be/QMOtI4h0Y5E?t=125) | |
+| F14 | Adopt an Existing Programme | [Report](docs/Spotter_Stage2_Report.md#f14--adopt-an-existing-programme) | | [6:57](https://youtu.be/R0Z8aMzREhE?t=417) |
 
 ## Safety
 
