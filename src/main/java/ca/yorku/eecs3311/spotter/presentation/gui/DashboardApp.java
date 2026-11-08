@@ -112,6 +112,7 @@ public final class DashboardApp
     private final VBox drawer = new VBox(8);
     private Panel showing;
     private GuidedTour tour;
+    private ScrollPane scroller;
     private Runnable themeIcon = () -> { };
     private boolean themeFlipped;
 
@@ -427,6 +428,7 @@ public final class DashboardApp
         scroll.setFitToWidth(true);
         scroll.getStyleClass()
                 .add("content-scroll");
+        scroller = scroll;
         return scroll;
     }
 
@@ -544,6 +546,7 @@ public final class DashboardApp
         content.getChildren().clear();
         content.getChildren().add(panel.node());
         showing = panel;
+        scroller.setVvalue(0);
 
         boolean first = drawn.add(panel);
         boolean unwatched =
