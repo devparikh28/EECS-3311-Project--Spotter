@@ -10,6 +10,7 @@ import ca.yorku.eecs3311.spotter.domain
         .AnalyticsSummary;
 import ca.yorku.eecs3311.spotter.domain
         .AttemptCalculator;
+import ca.yorku.eecs3311.spotter.domain.Exercise;
 import ca.yorku.eecs3311.spotter.domain.Lift;
 import ca.yorku.eecs3311.spotter.domain
         .MeetAttempts;
@@ -127,6 +128,14 @@ public final class CoachController
         this.database.migrate();
         this.catalog =
             new SqliteExerciseCatalog(database);
+        // The standard exercises must exist before
+        // anything is imported. A name the importer
+        // meets first would otherwise become an
+        // exercise nobody knows is a squat.
+        for (Exercise standard
+                : SampleData.exercises()) {
+            this.catalog.add(standard);
+        }
         this.foods =
             new SqliteFoodCatalog(database);
         this.profiles =

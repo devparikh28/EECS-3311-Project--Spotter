@@ -279,7 +279,12 @@ public final class SqliteExerciseCatalog
         Optional<Exercise> existing =
                 byName(exercise.name());
         if (existing.isPresent()) {
-            return existing.get();
+            Exercise found = existing.get();
+            if (isBare(found)
+                    && !isBare(exercise)) {
+                return fill(found, exercise);
+            }
+            return found;
         }
         String sql = "INSERT INTO exercise"
                 + " (name, movement_pattern,"
@@ -313,6 +318,55 @@ public final class SqliteExerciseCatalog
             throw new PersistenceException(
                 "Could not add "
                 + exercise.name(), e);
+        }
+    }
+
+    /**
+     * An exercise with nothing known about it.
+     *
+     * An importer meeting a name on a database that
+     * has no catalogue yet has to create something,
+     * and what it can create is a name alone. Such
+     * a row is not a squat to the analytics, so it
+     * is filled in when the real entry arrives.
+     */
+    private static boolean isBare(
+            Exercise exercise) {
+        return exercise.movementPattern()
+                    .isEmpty()
+            && exercise.competitionLift()
+                    .isEmpty()
+            && exercise.requiredEquipment()
+                    .isEmpty();
+    }
+
+    private Exercise fill(Exercise found,
+                          Exercise known) {
+        String sql = "UPDATE exercise SET"
+                + " movement_pattern = ?,"
+                + " competition_lift = ?"
+                + " WHERE id = ?";
+        try (PreparedStatement s =
+                database.connection()
+                    .prepareStatement(sql)) {
+            s.setString(1, known
+                    .movementPattern()
+                    .orElse(null));
+            s.setString(2, known
+                    .competitionLift()
+                    .map(Enum::name)
+                    .orElse(null));
+            s.setInt(3, found.id());
+            s.executeUpdate();
+            saveEquipment(found.id(), known);
+            saveMuscles(found.id(), known);
+            invalidate();
+            return byId(found.id())
+                    .orElseThrow();
+        } catch (SQLException e) {
+            throw new PersistenceException(
+                "Could not complete "
+                + found.name(), e);
         }
     }
 

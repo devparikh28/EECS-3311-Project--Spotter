@@ -702,3 +702,23 @@ be run at any time without changing data. GuidedTour
 holds the timing and the card and knows nothing about
 screens. The shell supplies the steps, because
 opening a screen is the shell's job.
+
+## 24. An import must not invent exercises
+
+On a database that had never been seeded, importing a
+workout export created each exercise as a bare name,
+because the importer had to create something and the
+standard catalogue was only loaded by the seed command.
+Analytics and the Plan screen then saw no squat, bench
+or deadlift, and reported that there was no training
+history to plan from.
+
+The standard catalogue is now loaded whenever the
+controller starts, and a bare row left by an earlier
+import is completed when the real entry arrives, so an
+existing database repairs itself. FreshDatabaseImportTest
+covers it. It was found while recording the
+demonstration, which is where running the application
+for an audience keeps finding the same kind of fault:
+a path the tests never took because they always seeded
+first.
