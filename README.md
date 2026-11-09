@@ -8,11 +8,11 @@ The principle the design rests on is that the model proposes and deterministic c
 
 ## Project stages
 
-| Stage | Description | Status |
-|---|---|---|
-| Stage 1 | Design report: [docs/Spotter_Stage1_Report.md](docs/Spotter_Stage1_Report.md) | Complete, submitted |
-| Stage 2 | Implementation: [docs/Spotter_Stage2_Report.md](docs/Spotter_Stage2_Report.md) ([PDF](stage2-report.pdf)) | Complete. 14 of 14 features, 8 of 8 patterns, 510 tests |
-| Stage 3 | Testing (KUMA agent testing) | Not started. The `--json` output the harness drives is in place |
+| Stage | Description | Report | Status |
+|---|---|---|---|
+| Stage 1 | Design: features, class diagram, use cases, sequence diagrams | [Stage 1 report](docs/Spotter_Stage1_Report.md) | Complete, submitted |
+| Stage 2 | Implementation of all 14 features and 8 design patterns, 510 tests | [Stage 2 report](docs/Spotter_Stage2_Report.md), [PDF](stage2-report.pdf) | Complete |
+| Stage 3 | Testing with KUMA agent testing | Not yet written | Not started. The `--json` output the harness drives is in place |
 
 **Student:** Dev Parikh, 219957794
 
