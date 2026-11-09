@@ -4,7 +4,7 @@
 
 **Dev Parikh, 219957794**
 EECS 3311 Software Design, Fall 2026
-Repository: https://github.com/devparikh28/EECS-3311-Project--Spotter
+Repository: https://github.com/devparikh28/EECS-3311-PROJECT---SPOTTER
 Submitted 10 November 2026
 
 ---
@@ -106,7 +106,7 @@ Every Stage 1 feature is accounted for below. No features were added beyond the 
 
 **Error and alternative behaviour.** The adapter reads a real 7318 row Hevy export and skips 31 rows, reporting why for each. One unreadable row does not lose the other 7287. A mapping that names a column the file does not have is refused before anything is read, because the alternative is importing nothing and reporting success, which is the worst outcome available. Re importing the same file is detected and skipped rather than duplicating the history.
 
-Four wrong assumptions in the Stage 1 design were corrected by meeting a real export, in commit `f40b2ef`.
+Four wrong assumptions in the Stage 1 design were corrected by meeting a real export, in commit `dd73edb`.
 
 `spotter log` records training without any export: one movement typed in, with the closest catalogue names offered when the spelling is wrong, or `--as-prescribed`, which records today's planned session as performed.
 
@@ -628,13 +628,13 @@ One hundred and twenty one commits in total, of which eighty seven fall inside t
 | 2 | 27 October to 2 November 2026 | 41 | 40 |
 | 3 | 3 to 9 November 2026 | 39 | 22 |
 
-Base URL for all links: `https://github.com/devparikh28/EECS-3311-Project--Spotter/commit/`
+Base URL for all links: `https://github.com/devparikh28/EECS-3311-PROJECT---SPOTTER/commit/`
 
-**Period 1**, the skeleton: Maven build and local key configuration `992c272`, configuration loading with safe failure `a9ce28d`, JUnit tests for configuration `b377efc`, SQLite schema and the repository interface `ad7ac8b`, picocli interface and the status command `480b6bb`, domain enums and value objects `35b994f`, core training entities `c00c712`.
+**Period 1**, the skeleton: Maven build and local key configuration `1b2cf81`, configuration loading with safe failure `162a0be`, JUnit tests for configuration `2c9ac7e`, SQLite schema and the repository interface `1260fd1`, picocli interface and the status command `8705805`, domain enums and value objects `e583b5b`, core training entities `16db05b`.
 
-**Period 2**, the domain, the infrastructure and the agents: RPE chart and strength analytics `ec6ff13`, attempt and test day planning `aa03a1c`, recovery evaluation and the deterministic fallback `2a9550d`, reading real Hevy exports and fixing what real data exposed `f40b2ef`, the agent core `83c44e4`, the Claude client and the decorators `a46f4b2`, the first real coaching agent `5c12814`, the dashboard shell `fa8ff6b`, the chat agent `a9f53a3`, plan adherence `b6ec235`, and the five fixes that came out of the first live run, `9849c0d`, `8b3776a`, `b707614`, `883b485`, `b5e09b2`.
+**Period 2**, the domain, the infrastructure and the agents: RPE chart and strength analytics `0c70311`, attempt and test day planning `8ab4e80`, recovery evaluation and the deterministic fallback `95c997f`, reading real Hevy exports and fixing what real data exposed `dd73edb`, the agent core `3e15fdf`, the Claude client and the decorators `18000a4`, the first real coaching agent `8efc6b0`, the dashboard shell `02a5f49`, the chat agent `86d43c6`, plan adherence `2c31026`, and the five fixes that came out of the first live run, `3ebec0f`, `2e8ae26`, `7f4bcdd`, `069d842`, `e641653`.
 
-**Period 3**, the remaining features and the patterns: closing the three gaps the Stage 1 check found `483cd9a`, adopting an existing programme `2770efc`, reviewing and revising a block `b021194`, reading anybody's export `19258e6`, the typed and spreadsheet routes for F14 `8d4c412`, the Command pattern `619c87c`, the Observer pattern `2105fca`, and the JSON output `1465c4b`. From 5 to 8 November the interface work: import, profile editing and the light theme `fe47956`, the Ask coach drawer and reports `2c60956`, the top bar `db12165` and `9a2f5dd`, a separate worker for chat `23bd1d8`, the guided tour `d8ce426`, and the fixes found while recording the demonstrations: Today on a rest day `e84d9ec`, screens opening at the top `95ee7ec`, the recovery empty state `dde6908`, the exercise catalogue loaded on start `70d6229`, and the cost line on every trace `8936a4e`.
+**Period 3**, the remaining features and the patterns: closing the three gaps the Stage 1 check found `604076e`, adopting an existing programme `4957fa0`, reviewing and revising a block `0c78fc0`, reading anybody's export `6f6b421`, the typed and spreadsheet routes for F14 `8b18e6e`, the Command pattern `aceab2f`, the Observer pattern `5b35c28`, and the JSON output `d8fe005`. From 5 to 8 November the interface work: import, profile editing and the light theme `8af1dea`, the Ask coach drawer and reports `8e1f7e2`, the top bar `325e954` and `543d249`, a separate worker for chat `491606b`, the guided tour `567d097`, and the fixes found while recording the demonstrations: Today on a rest day `03f4bbb`, screens opening at the top `f8abda0`, the recovery empty state `a873a17`, the exercise catalogue loaded on start `04663ff`, and the cost line on every trace `4f0d68a`.
 
 ### 6.2 Checks performed
 
@@ -653,13 +653,13 @@ Base URL for all links: `https://github.com/devparikh28/EECS-3311-Project--Spott
 
 | Defect | How it was found | Fix |
 |---|---|---|
-| Hevy adapter broke on a real export | Importing an actual 7318 row file | Four wrong assumptions corrected, `f40b2ef` |
-| Re importing the same file crashed | Importing the same export twice | Duplicate detection, `22a77ed` |
-| Agent returning an empty reply after exhausting its tool rounds, reported as the model's fault | Running block generation for real | One further call with no tools offered, `b707614` |
-| Long replies silently truncated | A four week block came back cut off | Model cached per name and reply length, not name alone, `b5e09b2` |
+| Hevy adapter broke on a real export | Importing an actual 7318 row file | Four wrong assumptions corrected, `dd73edb` |
+| Re importing the same file crashed | Importing the same export twice | Duplicate detection, `f4f6e0e` |
+| Agent returning an empty reply after exhausting its tool rounds, reported as the model's fault | Running block generation for real | One further call with no tools offered, `7f4bcdd` |
+| Long replies silently truncated | A four week block came back cut off | Model cached per name and reply length, not name alone, `e641653` |
 | A correct load of 66.0 kg refused against a range printing as 66.0 | Reading a refusal that looked wrong | Boundary tolerance in `Range`, change 6 |
 | Two repository tests passing while saving an orphaned macro target | Reviewing AI written tests | Tests corrected and a third added asserting the refusal |
-| Importing into an empty database left every exercise unknown, so analytics and Plan reported no training history | Recording the demonstration from a clean database | The standard exercise catalogue is loaded on start and a bare exercise is completed when the real one arrives, `70d6229`. Change 24 |
+| Importing into an empty database left every exercise unknown, so analytics and Plan reported no training history | Recording the demonstration from a clean database | The standard exercise catalogue is loaded on start and a bare exercise is completed when the real one arrives, `04663ff`. Change 24 |
 | A two week block prescribing Romanian deadlifts at 0.0 kg | Watching a real run while recording the demonstration videos | A movement requiring equipment is refused at zero load, with the equipment named; bodyweight movements still pass at zero. Change 19 |
 
 The first live session found six problems in under two hours, three in the project's own code and three in assumptions about the model. A seventh and an eighth were found later, in the same way, by running the application for an audience while recording the demonstrations. Every one of the eight came from running the thing rather than from writing another test, which is the main lesson of the implementation period.

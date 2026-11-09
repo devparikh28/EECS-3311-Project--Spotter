@@ -2,7 +2,7 @@
 
 Dev Parikh, 219957794. EECS 3311 Software Design, Stage 2.
 
-Repository: https://github.com/devparikh28/EECS-3311-Project--Spotter
+Repository: https://github.com/devparikh28/EECS-3311-PROJECT---SPOTTER
 
 ## What this document is
 
@@ -24,7 +24,7 @@ The opposite also happened, in session eight. Two repository tests saved a macro
 
 ## Session 1, 28 September 2026
 
-Commits `afdfb8a` to `92e6c75`, nineteen commits.
+Commits `817e956` to `f680c19`, nineteen commits.
 
 **Task.** Produce the Stage 1 design: features, class diagram, patterns, use cases and sequence diagrams.
 
@@ -32,9 +32,9 @@ Commits `afdfb8a` to `92e6c75`, nineteen commits.
 
 **Produced.** The initial feature set, the five layer architecture, the pattern selection and the first diagrams.
 
-**Reviewed and changed.** Four substantive redirections in this session, each visible as its own commit. The stack was switched to Java 21, JavaFX and LangChain4j (`27de79d`) rather than what was first proposed. The meet date was made optional and a training goal added (`90c5733`), because a design that assumed every user was preparing for a competition excluded most lifters. The training split was made explicit and stable (`7a22f5a`). And the design was extended to work with any tracking application and with none at all (`7e106c4`), which is what later became the generic CSV import path rather than a Hevy only one.
+**Reviewed and changed.** Four substantive redirections in this session, each visible as its own commit. The stack was switched to Java 21, JavaFX and LangChain4j (`a21a252`) rather than what was first proposed. The meet date was made optional and a training goal added (`fe76eae`), because a design that assumed every user was preparing for a competition excluded most lifters. The training split was made explicit and stable (`d82c9ca`). And the design was extended to work with any tracking application and with none at all (`68ae2c1`), which is what later became the generic CSV import path rather than a Hevy only one.
 
-Three features were added by me after reading the first draft: F12 plan adherence and progression (`00b6d39`), then F13 guided onboarding and F14 adopt an existing programme (`b67ccea`). The first draft had eleven features and stopped at generating plans for lifters who already had training history, which left a new lifter with nothing and a lifter with an existing programme unable to bring it.
+Three features were added by me after reading the first draft: F12 plan adherence and progression (`182cebb`), then F13 guided onboarding and F14 adopt an existing programme (`971ed28`). The first draft had eleven features and stopped at generating plans for lifters who already had training history, which left a new lifter with nothing and a lifter with an existing programme unable to bring it.
 
 **Landed.** The fourteen feature design, eight patterns, and the diagrams, as submitted for Stage 1.
 
@@ -42,13 +42,13 @@ Three features were added by me after reading the first draft: F12 plan adherenc
 
 ## Session 2, 30 September 2026
 
-Commits `a232c70` to `65e6b8a`, fifteen commits.
+Commits `1f6e68e` to `0e15ec8`, fifteen commits.
 
 **Task.** Turn the Stage 1 material into one submittable report.
 
 **Produced.** The consolidated report, the title block, the appendices and PNG plus UXF exports of every diagram.
 
-**Reviewed and changed.** Most of this session was me correcting the report rather than the design. The architecture diagram was redrawn as stacked layer bands (`9c42be5`) because the first version implied dependencies between layers that the design does not have. The agent and tool counts were wrong and were corrected (`9434ba8`). A duplicated note about the optional meet date was removed (`f756b0c`). The repository was flattened to README, gitignore and docs (`54323c5`) because the generated artefacts had accumulated.
+**Reviewed and changed.** Most of this session was me correcting the report rather than the design. The architecture diagram was redrawn as stacked layer bands (`f7efaa4`) because the first version implied dependencies between layers that the design does not have. The agent and tool counts were wrong and were corrected (`ceed30b`). A duplicated note about the optional meet date was removed (`4cbfddb`). The repository was flattened to README, gitignore and docs (`f88dc47`) because the generated artefacts had accumulated.
 
 **Landed.** `docs/Spotter_Stage1_Report.md` and the diagram exports.
 
@@ -58,7 +58,7 @@ Commits `a232c70` to `65e6b8a`, fifteen commits.
 
 ## Session 3, 21 and 22 October 2026
 
-Commits `992c272` to `480b6bb`, five commits.
+Commits `1b2cf81` to `8705805`, five commits.
 
 **Task.** Slice 0 of the build plan: the skeleton.
 
@@ -68,15 +68,15 @@ Commits `992c272` to `480b6bb`, five commits.
 
 **Reviewed and changed.** One decision was mine and is recorded as design change 11. Configuration loading was first written to read a file from a fixed location. I had it take `--env` on every command instead, because the tests needed to point at a temporary database and a fixed path would have meant the test suite writing into the working directory. That decision is why `JsonOutputTest` can run fifteen commands against a temporary database today without touching anything real.
 
-Configuration loading was also made to fail safely rather than throwing (`a9ce28d`), so that a missing key produces a command that explains what is missing rather than a stack trace.
+Configuration loading was also made to fail safely rather than throwing (`162a0be`), so that a missing key produces a command that explains what is missing rather than a stack trace.
 
-**Landed.** The Maven build, the schema, `Repository<T>`, `SpotterConfig`, the picocli interface and `StatusCommand`, with tests for configuration loading (`b377efc`).
+**Landed.** The Maven build, the schema, `Repository<T>`, `SpotterConfig`, the picocli interface and `StatusCommand`, with tests for configuration loading (`2c9ac7e`).
 
 ---
 
 ## Session 4, 25 and 29 October 2026
 
-Commits `35b994f` to `22a77ed`, sixteen commits.
+Commits `e583b5b` to `f4f6e0e`, sixteen commits.
 
 **Task.** Slices 1 and 2: the domain, then the infrastructure that feeds it.
 
@@ -84,9 +84,9 @@ Commits `35b994f` to `22a77ed`, sixteen commits.
 
 **Produced.** `StrengthAnalytics`, `RPEChart`, `AttemptCalculator`, `MacroTracker`, `RecoveryRuleEngine`, the training block structure, and then the Hevy and Whoop adapters.
 
-**Reviewed and changed.** This is the session where real data overruled the design, twice, and both commits say so in their own messages. `f40b2ef` is titled "Read real Hevy exports, and fix what real data exposed": the adapter was written against the format as documented and broke on an actual export. `22a77ed` fixed a crash on re importing the same file, which only appeared because I imported the same export twice rather than once.
+**Reviewed and changed.** This is the session where real data overruled the design, twice, and both commits say so in their own messages. `dd73edb` is titled "Read real Hevy exports, and fix what real data exposed": the adapter was written against the format as documented and broke on an actual export. `f4f6e0e` fixed a crash on re importing the same file, which only appeared because I imported the same export twice rather than once.
 
-I also rejected the first version of the recovery rules. It evaluated readings and produced an adjustment directly. I had it split so that `RecoveryRuleEngine` decides whether a day is flagged and a separate deterministic fallback decides what to do about it (`2a9550d`), because the decision to reduce training has to belong to the rule engine rather than to the model, and keeping them in one method made that impossible to enforce later. The Today screen still disables its Ease off button when nothing is flagged for exactly this reason.
+I also rejected the first version of the recovery rules. It evaluated readings and produced an adjustment directly. I had it split so that `RecoveryRuleEngine` decides whether a day is flagged and a separate deterministic fallback decides what to do about it (`95c997f`), because the decision to reduce training has to belong to the rule engine rather than to the model, and keeping them in one method made that impossible to enforce later. The Today screen still disables its Ease off button when nothing is flagged for exactly this reason.
 
 **Landed.** The domain layer with its tests, the three adapters, `DataSourceFactory`, the exercise catalogue, workout storage and `ImportCommand`.
 
@@ -94,7 +94,7 @@ I also rejected the first version of the recovery rules. It evaluated readings a
 
 ## Session 5, 29 October 2026
 
-Commits `83c44e4` to `816ee1e`, four commits.
+Commits `3e15fdf` to `8687a15`, four commits.
 
 **Task.** Slice 3: the agent loop, proven against a scripted client with no API calls at all.
 
@@ -114,7 +114,7 @@ The second, and the more important one: validation was first called from the com
 
 ## Session 6, 2 November 2026
 
-Commits `5c12814` to `b6ec235`, twenty seven commits. The longest session.
+Commits `8efc6b0` to `2c31026`, twenty seven commits. The longest session.
 
 **Task.** Slices 4, 5 and 6: the first real agent, then the graphical interface, then the remaining agents.
 
@@ -138,7 +138,7 @@ Both were good calls and neither was mine. What I did do was make them explicit 
 
 ## Session 7, 2 November 2026
 
-Commits `580d323` to `b5e09b2`, six commits. The first session against the real API.
+Commits `d007d15` to `e641653`, six commits. The first session against the real API.
 
 **Task.** Make the agents work against the live model rather than against prepared replies.
 
@@ -146,15 +146,15 @@ Commits `580d323` to `b5e09b2`, six commits. The first session against the real 
 
 **What went wrong, in order.** This session is the most useful one in this log, because almost everything in it was a correction.
 
-The configured model identifiers were retired models. `claude-3-5-haiku-20241022` was retired in February 2026 and `claude-3-5-sonnet-20241022` in October 2025. The model had suggested identifiers from its own training rather than checking. I made it look up the current ones and fix the configuration (`9849c0d`), and that is design change 10.
+The configured model identifiers were retired models. `claude-3-5-haiku-20241022` was retired in February 2026 and `claude-3-5-sonnet-20241022` in October 2025. The model had suggested identifiers from its own training rather than checking. I made it look up the current ones and fix the configuration (`3ebec0f`), and that is design change 10.
 
-Replacing them with current models then produced an unparseable reply, because the client library version in use cannot read the thinking content block the newer models emit. Fixed by pinning model versions the client can actually read, with the reason written into `.env.example` so the next person does not undo it (`8b3776a`).
+Replacing them with current models then produced an unparseable reply, because the client library version in use cannot read the thinking content block the newer models emit. Fixed by pinning model versions the client can actually read, with the reason written into `.env.example` so the next person does not undo it (`2e8ae26`).
 
 Then a real mistake on the model's part, which I want recorded because it is the one that cost me the most time. It told me it had edited `.env` to the pinned models when it had not made the edit at all. I ran the command again and hit the identical error. When I pointed this out it apologised and made the edit for real. The lesson I took from it is the one the course instruction is making: the output has to be inspected, including the claim that something was done.
 
-Three genuine bugs in our own code were found by running it for real. An agent that ran out of tool rounds returned an empty string and reported it as an unreadable reply from the model, blaming the model for our own limit; fixed by having it make one more call with no tools offered (`b707614`). The client cached models by name but fixed the token limit at build time, so a four week block generation silently got the default limit and was truncated; fixed by caching per name and limit (`b5e09b2`, design change 5). And a load of 66.0 kg was refused against a range printing as 66.0 to 76.7, because the true bound was 66.04; fixed with a tolerance at the range boundary (design change 6).
+Three genuine bugs in our own code were found by running it for real. An agent that ran out of tool rounds returned an empty string and reported it as an unreadable reply from the model, blaming the model for our own limit; fixed by having it make one more call with no tools offered (`7f4bcdd`). The client cached models by name but fixed the token limit at build time, so a four week block generation silently got the default limit and was truncated; fixed by caching per name and limit (`e641653`, design change 5). And a load of 66.0 kg was refused against a range printing as 66.0 to 76.7, because the true bound was 66.04; fixed with a tolerance at the range boundary (design change 6).
 
-One change came from watching the model fail rather than from a bug. It kept prescribing loads outside the allowed range because it was guessing at what the range was. I had a `LoadRangeTool` added so it can ask instead (`b5e09b2`, design change 3). It then generated a four week block, was refused for four close grip bench loads, called `allowed_load`, corrected itself and passed.
+One change came from watching the model fail rather than from a bug. It kept prescribing loads outside the allowed range because it was guessing at what the range was. I had a `LoadRangeTool` added so it can ask instead (`e641653`, design change 3). It then generated a four week block, was refused for four close grip bench loads, called `allowed_load`, corrected itself and passed.
 
 **Landed.** Working live agents, at a measured cost of roughly twenty four cents for nine calls. Six design changes.
 
@@ -162,7 +162,7 @@ One change came from watching the model fail rather than from a bug. It kept pre
 
 ## Session 8, 3 November 2026
 
-Commits `ef21f96` to `19258e6`, eight commits.
+Commits `ef87e39` to `6f6b421`, eight commits.
 
 **Task.** Write the design changes log and the feature to implementation mapping, then close whatever the mapping exposed.
 
@@ -170,11 +170,11 @@ Commits `ef21f96` to `19258e6`, eight commits.
 
 **Reviewed and corrected.** This session contains the correction I am most glad I made.
 
-The first mapping said the design had eleven features plus three added in Stage 2. That was wrong, and I said so: Stage 1 had fourteen features. The model had assumed the three features I added late in session one were Stage 2 additions rather than part of the submitted design. I then told it to check against what was actually pushed to GitHub rather than against its own notes. It read the submitted Stage 1 report, confirmed fourteen features and eight patterns including Decorator, and corrected the mapping (`fec05d9`, `52b9cb5`).
+The first mapping said the design had eleven features plus three added in Stage 2. That was wrong, and I said so: Stage 1 had fourteen features. The model had assumed the three features I added late in session one were Stage 2 additions rather than part of the submitted design. I then told it to check against what was actually pushed to GitHub rather than against its own notes. It read the submitted Stage 1 report, confirmed fourteen features and eight patterns including Decorator, and corrected the mapping (`ca2c2db`, `b4485e8`).
 
-Reading the real feature specifications then exposed three gaps that the mapping had described as complete, which is exactly what a mapping is for. Those were closed in `483cd9a`.
+Reading the real feature specifications then exposed three gaps that the mapping had described as complete, which is exactly what a mapping is for. Those were closed in `604076e`.
 
-I also reversed a decision. F14, adopting an existing programme, had been dropped, and I asked why. The reason given was that it was the hardest feature and the schedule was tight. I judged that there was enough time, said every feature should be included, and then set the governing instruction for the rest of the project: everything from Stage 1 gets built and nothing is left out. F14 landed the same day (`2770efc`), F12's revision half landed the same day (`b021194`), and F02's missing halves the same day (`19258e6`).
+I also reversed a decision. F14, adopting an existing programme, had been dropped, and I asked why. The reason given was that it was the hardest feature and the schedule was tight. I judged that there was enough time, said every feature should be included, and then set the governing instruction for the rest of the project: everything from Stage 1 gets built and nothing is left out. F14 landed the same day (`4957fa0`), F12's revision half landed the same day (`0c78fc0`), and F02's missing halves the same day (`6f6b421`).
 
 **Landed.** Both documents, the three closed gaps, and three features completed.
 
@@ -182,7 +182,7 @@ I also reversed a decision. F14, adopting an existing programme, had been droppe
 
 ## Session 9, 4 November 2026
 
-Commits `8d4c412` to `1465c4b`, four commits.
+Commits `8b18e6e` to `d8fe005`, four commits.
 
 **Task.** Finish everything still unbuilt from Stage 1.
 

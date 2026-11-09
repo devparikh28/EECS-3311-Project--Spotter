@@ -80,7 +80,7 @@ and accumulating duplicate equipment.
 Reads a real 7318 row Hevy export, skipping 31
 rows and reporting why. Four wrong assumptions in
 the Stage 1 design were corrected by meeting that
-file, recorded in commit `f40b2ef`.
+file, recorded in commit `dd73edb`.
 
 `GenericCsvAdapter` reads an export from an
 application Spotter does not know, through a

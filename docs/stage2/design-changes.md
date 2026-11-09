@@ -56,7 +56,7 @@ project.
 
 ## 1. A second validator rather than a larger one
 
-**Commit** `8b5affc`
+**Commit** `f9e109e`
 
 Stage 1 described `PlanValidator` as the gate, in
 the singular, and the first three agents fitted
@@ -78,7 +78,7 @@ rather than because it is right.
 
 ## 2. A draft, not a profile
 
-**Commit** `8b5affc`
+**Commit** `f9e109e`
 
 Onboarding was designed to read a paragraph and
 produce a `LifterProfile`. The problem only
@@ -98,7 +98,7 @@ supplied was driving their training.
 
 ## 3. Letting the model ask instead of guessing
 
-**Commit** `b5e09b2`
+**Commit** `e641653`
 
 Stage 1 said the model proposes and deterministic
 code disposes, and the validator was the only
@@ -120,7 +120,7 @@ gate which only refuses is a slow teacher.
 
 ## 4. Limits set against a test catalogue
 
-**Commits** `b707614`, `883b485`
+**Commits** `7f4bcdd`, `069d842`
 
 `MAX_TOOL_ROUNDS` was four and `MAX_RETRIES` was
 one. Both were chosen while the only catalogue in
@@ -149,7 +149,7 @@ calls now state the expected count as
 
 ## 5. The reply length bug
 
-**Commit** `b5e09b2`
+**Commit** `e641653`
 
 `ClaudeClient` cached a model per tier, and the
 library fixes the maximum reply length when the
@@ -170,7 +170,7 @@ trusted, and the trace was what made it visible.
 
 ## 6. Slack at the range boundary
 
-**Commit** `b5e09b2`
+**Commit** `e641653`
 
 `Range.contains` was exact. A computed bound of
 66.04 kg printed as 66.0, the model proposed
@@ -183,7 +183,7 @@ plate anyone owns.
 
 ## 7. Limitations that name exercises
 
-**Commit** `0d362b5`
+**Commit** `ba0ea6a`
 
 `Limitation` has carried both `avoidPatterns` and
 `avoidExercises` since Stage 1, but the schema
@@ -195,7 +195,7 @@ profile repository, fixed by adding
 
 ## 8. Conversations are not stored
 
-**Commit** `e6109f9`
+**Commit** `d3f523e`
 
 Stage 1 listed conversation history alongside the
 other persisted entities. On reflection it does
@@ -215,7 +215,7 @@ eventually a request too large to send.
 
 ## 9. The memory gate
 
-**Commit** `e6109f9`
+**Commit** `d3f523e`
 
 Stage 1 described a `MemoryManager` without
 saying what it was for. Building it answered the
@@ -230,7 +230,7 @@ stored.
 
 ## 10. Model identifiers
 
-**Commits** `9849c0d`, `8b3776a`
+**Commits** `3ebec0f`, `2e8ae26`
 
 The identifiers written into the configuration
 defaults during Stage 1 were
@@ -265,7 +265,7 @@ better spent elsewhere.
 
 ## 11. Configuration file on every command
 
-**Commit** `04dd527` and throughout
+**Commit** `97a76e5` and throughout
 
 Every command takes `--env`. The database path
 lives in that file, so the GUI and the CLI read
@@ -277,7 +277,7 @@ why an import did not appear.
 
 ## 12. Validation moved into the agents
 
-**Commits** `31f4e98`, `28b71b7`, `606712b`
+**Commits** `3d9b198`, `262782f`, `850c3d1`
 
 Stage 1 put every check on `PlanValidator`:
 `validateSubstitution`, `validateProgression` and
