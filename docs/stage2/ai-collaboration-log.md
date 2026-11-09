@@ -2,7 +2,7 @@
 
 Dev Parikh, 219957794. EECS 3311 Software Design, Stage 2.
 
-Repository: https://github.com/devparikh28/EECS-3311-PROJECT---SPOTTER
+Repository: https://github.com/devparikh28/EECS-3311-Project--Spotter
 
 ## What this document is
 

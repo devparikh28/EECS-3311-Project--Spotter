@@ -4,7 +4,7 @@
 
 **Dev Parikh, 219957794**
 EECS 3311 Software Design, Fall 2026
-Repository: https://github.com/devparikh28/EECS-3311-PROJECT---SPOTTER
+Repository: https://github.com/devparikh28/EECS-3311-Project--Spotter
 Submitted 10 November 2026
 
 ---
@@ -628,7 +628,7 @@ One hundred and twenty one commits in total, of which eighty seven fall inside t
 | 2 | 27 October to 2 November 2026 | 41 | 40 |
 | 3 | 3 to 9 November 2026 | 39 | 22 |
 
-Base URL for all links: `https://github.com/devparikh28/EECS-3311-PROJECT---SPOTTER/commit/`
+Base URL for all links: `https://github.com/devparikh28/EECS-3311-Project--Spotter/commit/`
 
 **Period 1**, the skeleton: Maven build and local key configuration `1b2cf81`, configuration loading with safe failure `162a0be`, JUnit tests for configuration `2c9ac7e`, SQLite schema and the repository interface `1260fd1`, picocli interface and the status command `8705805`, domain enums and value objects `e583b5b`, core training entities `16db05b`.
 
