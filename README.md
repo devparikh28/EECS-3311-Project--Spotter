@@ -11,7 +11,7 @@ The principle the design rests on is that the model proposes and deterministic c
 | Stage | Description | Status |
 |---|---|---|
 | Stage 1 | Design report: [docs/Spotter_Stage1_Report.md](docs/Spotter_Stage1_Report.md) | Complete, submitted |
-| Stage 2 | Implementation: [docs/Spotter_Stage2_Report.md](docs/Spotter_Stage2_Report.md) ([PDF](docs/Spotter_Stage2_Report.pdf)) | Complete. 14 of 14 features, 8 of 8 patterns, 510 tests |
+| Stage 2 | Implementation: [docs/Spotter_Stage2_Report.md](docs/Spotter_Stage2_Report.md) ([PDF](stage2-report.pdf)) | Complete. 14 of 14 features, 8 of 8 patterns, 510 tests |
 | Stage 3 | Testing (KUMA agent testing) | Not started. The `--json` output the harness drives is in place |
 
 **Student:** Dev Parikh, 219957794
@@ -130,7 +130,7 @@ Layers: `presentation` (CLI and JavaFX), `application` (Facade, event bus, plan 
 ## Project documents
 
 - [Stage 1 design report](docs/Spotter_Stage1_Report.md)
-- [Stage 2 implementation report](docs/Spotter_Stage2_Report.md) and [PDF](docs/Spotter_Stage2_Report.pdf)
+- [Stage 2 implementation report](docs/Spotter_Stage2_Report.md) and [PDF](stage2-report.pdf)
 - [Feature to implementation mapping](docs/stage2/feature-to-implementation.md)
 - [Design changes](docs/stage2/design-changes.md)
 - [AI tools used](docs/stage2/ai-tools.md)
