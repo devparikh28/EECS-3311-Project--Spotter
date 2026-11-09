@@ -200,12 +200,46 @@ Observer changed existing behaviour rather than adding structure beside it. Pane
 
 ---
 
+## Session 10, 5 and 6 November 2026
+
+Commits `c2689d8` to `491606b`, thirteen commits.
+
+**Task.** Write the Stage 2 report, fix what the first recording take exposed, and make the window worth showing.
+
+**Asked for.** The report and its defect table, a rule that stops a loaded movement being prescribed at no load, safe sample data for the import paths, and then a dashboard rebuilt around what a lifter opens the application for.
+
+**Produced.** The report, the validator rule with two tests, `sample-data/`, and a new window: a top bar instead of the sidebar, a floating Ask coach button, an Import screen, an editable profile form, a light theme, PDF and CSV report export, and a coach chat that runs on its own worker with a timer.
+
+**Reviewed and changed.** The zero load defect came from watching the first recording of Recording B on camera. A two week block came back with three movements at 0.0 kg because the model left the load out and the parser read missing as zero. A blanket rule against zero would be wrong, because a push up at no load is correct, so the rule refuses a movement that needs equipment and has no load, and names the equipment so the agent can correct itself.
+
+**Landed.** Design changes 19 to 22, the defect recorded in the report, and a window with eight screens.
+
+---
+
+## Session 11, 8 and 9 November 2026
+
+Commits `567d097` to `770bfe6`.
+
+**Task.** Make the recordings understandable without sound, then finish the submission.
+
+**Asked for.** On screen captions for every recording, a guided tour for the window, the cost of each agent run shown at the end of its trace, and a clean repository.
+
+**Produced.** A guided tour that runs from the ? button or from `SPOTTER_TOUR=1`, a cost line on six agent commands, and a rebuilt report PDF.
+
+**Reviewed and changed.** Watching the re recorded takes found four real problems. Importing a Hevy export into an empty database left every exercise without a competition lift, so the analytics were empty; the catalogue now loads on start. Today was empty on a rest day, so it now shows the next session. Recovery said nothing when the latest reading was older than the window, so it now says when the latest reading was. Reports and Profile opened scrolled down, so each screen opens at the top. I also lost my own database while swapping files for the recordings and rebuilt it by hand. The console usage export showed the project had cost about 2.9 dollars and not 0.82, because the earlier figure covered only 2 November, so the report was corrected. Seven commits carried a Claude co author line, so I removed it, which changed every commit hash, and I remapped the commit links in the report to the new hashes before pushing to a new repository.
+
+**Landed.** Three unlisted recordings with timestamped links, design changes 23 to 25, and a report and README in the same layout as the course example.
+
+---
+
 ## What I would do differently
 
-Three things.
+Four things.
 
 I should have kept this log as the work happened rather than reconstructing it from ninety four commits. The Stage 2 plan I wrote on 30 September says exactly that, in those words, and I did not follow it. The reconstruction held up: the commit messages are detailed and the design changes were recorded at the time, so going back through the earlier sessions I could confirm every decision in them but one, where the assistant had written up the memory design as my call and it was in fact its proposal that I accepted. That entry is corrected. But it took a session to write, and one misattribution out of six is a reminder that this is not a document anyone should be reconstructing.
 
 I should have run against the real API earlier. Session seven found six real problems in under two hours, three of them in our own code and three in assumptions about the model. Every one of them would have been cheaper to find in session five than in session seven.
 
 And I should have checked the submitted Stage 1 report against the implementation sooner. Doing it in session eight found three features described as complete that were not, and found that four statuses in the mapping were more generous than the code deserved. A week earlier that would have been a schedule correction rather than a scramble.
+
+And I should have kept each recording on its own copy of the database from the start. I overwrote my own while swapping files between takes and had to rebuild my profile and block by hand.

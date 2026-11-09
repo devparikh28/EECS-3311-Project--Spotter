@@ -9,6 +9,18 @@ Submitted 10 November 2026
 
 ---
 
+## Contents
+
+1. [Project overview and implementation status](#1-project-overview-and-implementation-status)
+2. [Feature to implementation mapping](#2-feature-to-implementation-mapping)
+3. [Implemented design patterns](#3-implemented-design-patterns)
+4. [Changes and rationale](#4-changes-and-rationale)
+5. [AI tools and collaboration log](#5-ai-tools-and-collaboration-log)
+6. [Development and verification summary](#6-development-and-verification-summary)
+7. [Demonstration index](#7-demonstration-index)
+
+---
+
 ## 1. Project overview and implementation status
 
 ### What the application is

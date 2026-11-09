@@ -20,9 +20,7 @@ No other AI tool was used. No code generation service, no autocomplete model, an
 
 Billed through a Claude subscription rather than per token, so there is no token count or per task figure to report for this part. The subscription cost for the period is the only meaningful number and is a flat monthly charge rather than anything attributable to this project.
 
-<!-- FILL IN (optional): subscription tier and monthly cost. Delete
-     this comment and the sentence below if you would rather not state it. -->
-Subscription tier and monthly cost: `TO FILL IN`.
+Subscription tier and monthly cost: Claude Pro, 31.64 Canadian dollars a month.
 
 ## 2. AI the software calls when it runs
 
