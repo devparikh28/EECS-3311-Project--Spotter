@@ -588,7 +588,7 @@ Both identifiers are set in `.env` and documented in `.env.example`; neither is 
 | What | Calls | Input tokens | Output tokens | Cost |
 |---|---|---|---|---|
 | First live run of the agents, including every call that failed or was refused | 9 | 18,443 | 12,460 | ~$0.24, measured by the application |
-| Whole project, every live call ever made | not shown by the console | 56,326 | 45,807 | **$0.82** |
+| Whole project, every live call ever made | | 56,326 | 45,807 | **$0.82** |
 
 The second row is the account total from the Anthropic console, and it is the project's total because the key was never used for anything else. All of it falls on 2 November 2026, the day the agents were first run against the real API.
 
