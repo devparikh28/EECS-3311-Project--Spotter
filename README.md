@@ -11,7 +11,7 @@ The principle the design rests on is that the model proposes and deterministic c
 | Stage | Description | Report | Status |
 |---|---|---|---|
 | Stage 1 | Design: features, class diagram, use cases, sequence diagrams | [Stage 1 report](docs/Spotter_Stage1_Report.md) | Complete, submitted |
-| Stage 2 | Implementation of all 14 features and 8 design patterns, 510 tests | [Stage 2 report](docs/Spotter_Stage2_Report.md), [PDF](stage2-report.pdf) | Complete |
+| Stage 2 | Implementation of all 14 features, 4 new features and 8 design patterns, 510 tests | [Stage 2 report](docs/Spotter_Stage2_Report.md), [PDF](stage2-report.pdf) | Complete |
 | Stage 3 | Testing with KUMA agent testing | Not yet written | Not started. The `--json` output the harness drives is in place |
 
 **Student:** Dev Parikh, 219957794
@@ -116,6 +116,10 @@ Nine of the fifteen commands never call a model.
 | F12 | Plan Adherence and Progression Review | `PlanAdherence`, `ProgressionAgent`, `ApplyProgressionCommand` | [Report](docs/Spotter_Stage2_Report.md#f12--plan-adherence-and-progression-review) |
 | F13 | Guided Onboarding | `OnboardingAgent`, `ProfileDraft`, `ProfileValidator` | [Report](docs/Spotter_Stage2_Report.md#f13--guided-onboarding) |
 | F14 | Adopt an Existing Programme | `AdoptCommand`, `ProgrammeParserAgent`, `ProgrammeImportService` | [Report](docs/Spotter_Stage2_Report.md#f14--adopt-an-existing-programme) |
+| N01 | Training Report Export (new) | `ReportBuilder`, `ReportWriter`, `PdfReportWriter`, `CsvReportWriter`, `ReportPanel` | [Report](docs/Spotter_Stage2_Report.md#n01--training-report-export) |
+| N02 | Ask Coach Drawer (new) | `DashboardApp`, `CoachPanel`, `ChatAgent` | [Report](docs/Spotter_Stage2_Report.md#n02--ask-coach-drawer) |
+| N03 | Light and Dark Themes (new) | `ThemePreference`, `spotter.css` | [Report](docs/Spotter_Stage2_Report.md#n03--light-and-dark-themes) |
+| N04 | Guided Tour (new) | `GuidedTour`, `DashboardApp.buildTour` | [Report](docs/Spotter_Stage2_Report.md#n04--guided-tour) |
 
 Patterns: Facade (`CoachController`), Strategy (`LLMClient`, `ProgressionStrategy`), Template Method (`CoachAgent`), Adapter (`DataSource`), Factory Method (`DataSourceFactory`, `ProgressionStrategyFactory`), Decorator (`CachingLLMClient`, `RecordingLLMClient`), Observer (`EventBus`), Command (`PlanEditCommand`), with Builder and Repository as supporting patterns.
 
@@ -174,6 +178,10 @@ There is one GUI demo and two CLI demos, indexed in section 7 of the Stage 2 rep
 | F12 | Plan Adherence and Progression Review | [Report](docs/Spotter_Stage2_Report.md#f12--plan-adherence-and-progression-review) | | [5:19](https://youtu.be/R0Z8aMzREhE?t=319) |
 | F13 | Guided Onboarding | [Report](docs/Spotter_Stage2_Report.md#f13--guided-onboarding) | [2:05](https://youtu.be/QMOtI4h0Y5E?t=125) | |
 | F14 | Adopt an Existing Programme | [Report](docs/Spotter_Stage2_Report.md#f14--adopt-an-existing-programme) | | [6:57](https://youtu.be/R0Z8aMzREhE?t=417) |
+| N01 | Training Report Export (new) | [Report](docs/Spotter_Stage2_Report.md#n01--training-report-export) | [1:42](https://youtu.be/QMOtI4h0Y5E?t=102) | |
+| N02 | Ask Coach Drawer (new) | [Report](docs/Spotter_Stage2_Report.md#n02--ask-coach-drawer) | [1:31](https://youtu.be/QMOtI4h0Y5E?t=91) | |
+| N03 | Light and Dark Themes (new) | [Report](docs/Spotter_Stage2_Report.md#n03--light-and-dark-themes) | [2:16](https://youtu.be/QMOtI4h0Y5E?t=136) | |
+| N04 | Guided Tour (new) | [Report](docs/Spotter_Stage2_Report.md#n04--guided-tour) | [0:00](https://youtu.be/QMOtI4h0Y5E?t=0) | |
 
 ## Safety
 

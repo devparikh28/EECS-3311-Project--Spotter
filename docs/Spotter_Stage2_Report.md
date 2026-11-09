@@ -49,7 +49,7 @@ All fourteen features specified in Stage 1 are implemented and reachable in the 
 
 | Measure | Value |
 |---|---|
-| Features implemented | 14 of 14 |
+| Features implemented | 14 of 14 from Stage 1, plus 4 new features (N01 to N04) |
 | Distinct design patterns | 8, plus Builder and Repository as supporting patterns |
 | Main source files | 183 |
 | Test source files | 47 |
@@ -362,6 +362,66 @@ Eleven of the twelve pieces this feature needs were built for other features, wh
 **What this feature cost to build.** Stage 1 called it the hardest feature in the design and the Stage 2 plan named it the first to drop. The free text route turned out to be the cheap one, because `CoachAgent` already supplied the retry, `ResponseParser` already resolved exercise names and built weeks from JSON, `BlockRepository` already stored a block and `BlockOrigin.ADOPTED` already existed. What had to be written was a prompt, a gate and a command. That saving is the whole argument for Template Method, arriving two months after the decision to use it.
 
 ---
+
+### New features
+
+The four features below were not in Stage 1. They are listed here so that every implemented feature is accounted for, mapped and demonstrated. Section 4 gives the original need, the reason and the impact of each.
+
+### N01 — Training Report Export
+
+| Field | Entry |
+|---|---|
+| Stage 1 reference | New |
+| Status | Implemented |
+| Classification | Deterministic |
+| Implemented classes | `application/report/ReportBuilder`, `application/report/TrainingReport` with its nested `Section`, `infrastructure/report/ReportWriter`, `PdfReportWriter`, `CsvReportWriter`, `presentation/gui/panels/ReportPanel` |
+| Key methods | `ReportBuilder.build(LocalDate)`, `ReportWriter.write(TrainingReport, Path)`, `extension()`, `ReportPanel.export(ReportWriter)` |
+| Design patterns | Strategy: `ReportWriter` with one implementation per format |
+| Video | GUI demo, segment Reports |
+
+**How the classes collaborate.** The lifter chooses PDF or CSV on the Reports screen. `ReportPanel` calls `ReportBuilder.build`, which reads the profile, analytics, current block, recovery and nutrition through the same repositories the other screens use and returns one `TrainingReport` made of sections. `ReportPanel.export` passes that report to the chosen `ReportWriter`, which formats it and writes the file. Adding a third format means adding a writer; the builder and the screen do not change. No model is involved, so it works with no API key.
+
+### N02 — Ask Coach Drawer
+
+| Field | Entry |
+|---|---|
+| Stage 1 reference | New surface for F11 |
+| Status | Implemented |
+| Classification | AI based, the same agent as F11 |
+| Implemented classes | `presentation/gui/DashboardApp` with `withDrawer` and `setDrawer`, `presentation/gui/panels/CoachPanel`, `agent/agents/ChatAgent` |
+| Key methods | `DashboardApp.setDrawer(boolean)`, `CoachController` chat calls through the Facade |
+| Design patterns | Facade, as for F11 |
+| Video | GUI demo, segment Ask coach |
+
+**How the classes collaborate.** The floating button calls `setDrawer(true)`, which slides the same `CoachPanel` over whichever screen is open. The panel sends the question to `ChatAgent` through `CoachController` exactly as the Coach tab does, so the coach has the same memory and the same tools. The lifter does not lose their place on the current screen.
+
+### N03 — Light and Dark Themes
+
+| Field | Entry |
+|---|---|
+| Stage 1 reference | New |
+| Status | Implemented |
+| Classification | Deterministic |
+| Implemented classes | `presentation/gui/ThemePreference`, the `.root.light` rules in `src/main/resources/gui/spotter.css` |
+| Key methods | `ThemePreference.toggle(Parent)`, `apply(Parent)`, `isLight()` |
+| Design patterns | N/A |
+| Video | GUI demo, segment Light and dark |
+
+**How the classes collaborate.** The icon at the top right calls `ThemePreference.toggle` on the root node. The class stores the choice and adds or removes the `light` style class, and the stylesheet restyles every screen from that one class, so no panel knows which theme is active.
+
+### N04 — Guided Tour
+
+| Field | Entry |
+|---|---|
+| Stage 1 reference | New |
+| Status | Implemented |
+| Classification | Deterministic |
+| Implemented classes | `presentation/gui/GuidedTour` with its nested `Step`, `DashboardApp.buildTour` |
+| Key methods | `GuidedTour.start()`, `stop()`, `next()`, `Step.seconds()` |
+| Design patterns | N/A |
+| Video | GUI demo, whole recording |
+
+**How the classes collaborate.** The ? button, or `SPOTTER_TOUR=1`, calls `GuidedTour.start`. `DashboardApp.buildTour` supplies fourteen steps, each a caption and an action that opens a screen. `GuidedTour` runs the action, shows the caption, and advances when a timer sized to the caption length finishes. It only looks: it never saves, imports or calls the model, so running it changes no data.
 
 ### Supporting work: machine readable output
 
@@ -684,7 +744,7 @@ The competition lift variation defect, change 13. F09 having no command line rou
 
 ## 7. Demonstration index
 
-Every implemented feature has a demonstration. The recordings are grouped into three, each with clearly labelled segments; every feature below gives the recording and the timestamp of its segment.
+Every implemented feature, including the four new ones, has a demonstration. The recordings are grouped into three, each with clearly labelled segments; every feature below gives the recording and the timestamp of its segment.
 
 **CLI demo, deterministic commands** (https://youtu.be/IFqLJAf8m-g). Shows that the figures a lifter trains off are calculated rather than generated, and work with no API key configured.
 
@@ -708,5 +768,9 @@ Every implemented feature has a demonstration. The recordings are grouped into t
 | F12 Plan Adherence and Progression Review | | [5:19](https://youtu.be/R0Z8aMzREhE?t=319) |
 | F13 Guided Onboarding | [2:05](https://youtu.be/QMOtI4h0Y5E?t=125) | |
 | F14 Adopt an Existing Programme | | [6:57](https://youtu.be/R0Z8aMzREhE?t=417) |
+| N01 Training Report Export (new) | [1:42](https://youtu.be/QMOtI4h0Y5E?t=102) |  |
+| N02 Ask Coach Drawer (new) | [1:31](https://youtu.be/QMOtI4h0Y5E?t=91) |  |
+| N03 Light and Dark Themes (new) | [2:16](https://youtu.be/QMOtI4h0Y5E?t=136) |  |
+| N04 Guided Tour (new) | [0:00](https://youtu.be/QMOtI4h0Y5E?t=0) |  |
 
 The timestamps for the GUI demo are counted from the moment the tour starts. Collectively the recordings show both the graphical interface and the command line working, as required. No API key, credential or other secret appears in any recording.
