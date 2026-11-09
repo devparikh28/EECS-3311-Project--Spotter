@@ -94,7 +94,7 @@ Every Stage 1 feature is accounted for below. No features were added beyond the 
 | Implemented classes | `domain/LifterProfile` with its nested `Builder`, `domain/Limitation`, `domain/DietaryConstraints`, `domain/Equipment`, `domain/ExperienceLevel`, `domain/TrainingGoal`, `domain/SplitPreference`, `domain/WeightUnit`, `infrastructure/persistence/ProfileRepository`, `SqliteProfileRepository`, `presentation/gui/panels/ProfilePanel` |
 | Key methods | `LifterProfile.canPerform(Exercise)`, `hasEquipment(Equipment)`, `weeksUntilMeet(LocalDate)`, `LifterProfile.Builder.build()`, `ProfileRepository.save(LifterProfile)`, `ProfileRepository.current()` |
 | Design patterns | Builder, Repository |
-| Video | GUI demo, segment F01 |
+| Video | [GUI demo 2:05](https://youtu.be/QMOtI4h0Y5E?t=125) |
 
 **How the classes collaborate.** `ProfilePanel` collects the lifter's bodyweight, goal, experience, training days, equipment and limitations and assembles them through `LifterProfile.Builder`, which validates as it goes rather than producing a half built profile. `SqliteProfileRepository.save` writes the profile across four tables, because equipment and limitations are lists and a limitation carries lists of its own; saving rewrites the children rather than reconciling them. The profile is then read by almost everything else: `canPerform` is what stops the substitution agent proposing a movement the lifter has no equipment for, and `weeksUntilMeet` is what lets block generation size a block to a competition date.
 
@@ -112,7 +112,7 @@ Every Stage 1 feature is accounted for below. No features were added beyond the 
 | Implemented classes | `infrastructure/csv/DataSource`, `HevyCsvAdapter`, `GenericCsvAdapter`, `ColumnMapping`, `CsvFileReader`, `CsvImportService`, `DataSourceFactory`, `infrastructure/persistence/ImportProfileRepository`, `SqliteImportProfileRepository`, `WorkoutRepository`, `SqliteWorkoutRepository`, `presentation/cli/ImportCommand`, `LogCommand` |
 | Key methods | `CsvImportService.importFile(Path)`, `importMapped(Path, ColumnMapping)`, `DataSourceFactory.detect(Path)`, `create(SourceKind)`, `createMapped(ColumnMapping)`, `ColumnMapping.suggestFor(List)`, `validate(List)`, `columnFor(String)`, `DataSource.read(Path)`, `skipped()` |
 | Design patterns | Adapter, Factory Method, Repository |
-| Video | CLI demo (deterministic), segment F02 |
+| Video | [CLI demo, deterministic 0:13](https://youtu.be/IFqLJAf8m-g?t=13) |
 
 **How the classes collaborate.** `ImportCommand` hands the file to `CsvImportService`, which asks `DataSourceFactory.detect` what the file is. The factory reads the header through `CsvFileReader` and returns the matching `DataSource` implementation: `HevyCsvAdapter` for a Hevy export, or `GenericCsvAdapter` carrying a `ColumnMapping` for an export from an application Spotter does not know. The adapter converts rows into `WorkoutSession` and `SetEntry` objects, resolving exercise names through `ExerciseCatalog`, and reports the rows it could not parse through `skipped()` rather than throwing. `CsvImportService` removes duplicates and returns an `ImportReport`.
 
@@ -134,7 +134,7 @@ Four wrong assumptions in the Stage 1 design were corrected by meeting a real ex
 | Implemented classes | `infrastructure/csv/WhoopCsvAdapter`, `domain/RecoveryDay` with its nested `Builder`, `domain/RecoverySource`, `domain/RecoveryRuleEngine`, `domain/RecoveryFlag`, `infrastructure/persistence/RecoveryRepository`, `SqliteRecoveryRepository`, `presentation/cli/RecoveryCommand`, `CheckInCommand`, `presentation/gui/panels/RecoveryPanel` |
 | Key methods | `WhoopCsvAdapter.read(Path)`, `RecoveryDay.on(LocalDate, RecoverySource)`, `RecoveryRepository.findSince(LocalDate)`, `RecoveryRuleEngine.evaluate(RecoveryDay)` |
 | Design patterns | Adapter, Builder, Repository |
-| Video | CLI demo (deterministic), segment F03 |
+| Video | [CLI demo, deterministic 1:46](https://youtu.be/IFqLJAf8m-g?t=106) |
 
 **How the classes collaborate.** `WhoopCsvAdapter` parses a physiological cycles export, 216 rows in the file tested, keeping the longest sleep cycle per date because the export contains naps. Each row becomes a `RecoveryDay` through its builder. `CheckInCommand` produces the same object from three typed numbers with `RecoverySource.MANUAL_CHECK_IN`, then calls `RecoveryRuleEngine.evaluate` and prints the verdict immediately.
 
@@ -152,7 +152,7 @@ Four wrong assumptions in the Stage 1 design were corrected by meeting a real ex
 | Implemented classes | `domain/StrengthAnalytics`, `domain/RPEChart`, `domain/AnalyticsSummary`, `domain/Point`, `domain/Range`, `presentation/cli/AnalyticsCommand`, `presentation/gui/panels/AnalyticsPanel` |
 | Key methods | `StrengthAnalytics.computeE1RM(SetEntry)`, `canEstimate(SetEntry)`, `e1rmSeries(Lift, List)`, `weeklyTonnage(Lift, List)`, `bestSet(Lift, List)`, `currentE1RMs(List)`, `trend(Lift, List)`, `RPEChart.percentOf1RM(int, double)` |
 | Design patterns | None specific; this is the deterministic core the agents read through `AnalyticsTool` |
-| Video | CLI demo (deterministic) segment F04, GUI demo segment F04 for the chart |
+| Video | [CLI demo, deterministic 2:41](https://youtu.be/IFqLJAf8m-g?t=161); [GUI demo 0:50](https://youtu.be/QMOtI4h0Y5E?t=50) |
 
 **How the classes collaborate.** `StrengthAnalytics.computeE1RM` applies `RPEChart.percentOf1RM` to a logged set to estimate a one rep maximum, aggregates estimates by week into a `List<Point>`, and returns everything the screen plots inside an `AnalyticsSummary`.
 
@@ -172,7 +172,7 @@ No model is involved anywhere in this feature, and `spotter analytics squat` run
 | Implemented classes | `agent/agents/BlockGenerationAgent`, `agent/CoachAgent`, `PromptBuilder`, `ResponseParser`, `PlanValidator`, `ToolManager`, `agent/tools/AnalyticsTool`, `ExerciseDBTool`, `LoadRangeTool`, `domain/ProgressionStrategy`, `AbstractProgression` and four implementations, `ProgressionStrategyFactory`, `domain/TrainingBlock`, `Week`, `Session`, `ExercisePrescription`, `infrastructure/persistence/BlockRepository`, `SqliteBlockRepository`, `presentation/cli/PlanCommand`, `presentation/gui/panels/PlanPanel` |
 | Key methods | `CoachAgent.run()` (final), `BlockGenerationAgent.createToolset()`, `systemPrompt()`, `parse(String)`, `validate(TrainingBlock)`, `ResponseParser.toBlock(JsonNode, LocalDate)`, `PlanValidator.validateBlock(...)`, `ProgressionStrategyFactory.forGoal(TrainingGoal, ExperienceLevel)`, `ProgressionStrategy.loadRange(...)` |
 | Design patterns | Template Method, Strategy, Factory Method |
-| Video | CLI demo (agent), segment F05; GUI demo for the Plan screen |
+| Video | [CLI demo, agent 0:19](https://youtu.be/R0Z8aMzREhE?t=19); [GUI demo 0:38](https://youtu.be/QMOtI4h0Y5E?t=38) |
 
 **How the classes collaborate.** `PlanCommand` or `PlanPanel` builds a `BlockGenerationAgent` and calls the inherited `run()`. `CoachAgent.run()` is final and drives the whole sequence: it calls `gatherContext()` for the lifter's profile and current maxima, `createToolset()` for the tools this agent may use, and `PromptBuilder.build` for the request. The model may call `AnalyticsTool` for history, `ExerciseDBTool` for movements the lifter can perform, and `LoadRangeTool` to ask what load the progression allows, for up to six rounds. `ResponseParser.toBlock` turns the JSON reply into a `TrainingBlock` of `Week`, `Session` and `ExercisePrescription`, resolving every exercise name through the catalogue. `PlanValidator.validateBlock` then checks each prescribed load against the `Range` that the `ProgressionStrategy` selected by `ProgressionStrategyFactory.forGoal` permits.
 
@@ -192,7 +192,7 @@ No model is involved anywhere in this feature, and `spotter analytics squat` run
 | Implemented classes | `agent/agents/SubstitutionAgent`, `domain/Substitution`, `domain/SubstitutionReason`, `agent/tools/ExerciseDBTool`, `infrastructure/catalog/ExerciseCatalog`, `presentation/cli/SubstituteCommand`, `application/plan/SwapExerciseCommand`, substitution controls in `presentation/gui/panels/TodayPanel` |
 | Key methods | `SubstitutionAgent.validate(Substitution)`, `ResponseParser.toSubstitution(...)`, `Substitution.trainsSomethingSimilar()`, `loadRatio()`, `apply()`, `ExerciseCatalog.performable(Set)`, `SwapExerciseCommand.describe()` |
 | Design patterns | Template Method, Command |
-| Video | CLI demo (agent) segment F06, GUI demo for the Today screen |
+| Video | [CLI demo, agent 2:46](https://youtu.be/R0Z8aMzREhE?t=166); [GUI demo 0:25](https://youtu.be/QMOtI4h0Y5E?t=25) |
 
 **How the classes collaborate.** `ExerciseDBTool` filters the catalogue down to movements the lifter can actually perform given their equipment and limitations, so the model is choosing from a list rather than from memory. The model picks one and gives a short rationale. `ResponseParser.toSubstitution` resolves the name back to a catalogue `Exercise`, and four checks then stand between the answer and the lifter: the movement exists, the lifter can perform it, it trains what the original trained, and the load is between 40 and 110 percent of the original. Accepting applies a `SwapExerciseCommand`, which is undoable.
 
@@ -210,7 +210,7 @@ No model is involved anywhere in this feature, and `spotter analytics squat` run
 | Implemented classes | `domain/RecoveryRuleEngine`, `domain/RecoveryFlag`, `agent/agents/AdjustmentAgent`, `agent/tools/RecoveryLookupTool`, `presentation/cli/AdjustCommand`, `application/plan/ApplyAdjustmentCommand`, adjustment controls in `presentation/gui/panels/TodayPanel` |
 | Key methods | `RecoveryRuleEngine.evaluate(RecoveryDay)`, `fallbackAdjustment(Session)`, `AdjustmentAgent.validate(Session)`, `fallback()`, `ResponseParser.toAdjustedSession(...)`, `ApplyAdjustmentCommand.apply(TrainingBlock)` |
 | Design patterns | Template Method, Command |
-| Video | CLI demo (agent) segment F07, GUI demo for the Today screen |
+| Video | [CLI demo, agent 3:26](https://youtu.be/R0Z8aMzREhE?t=206); [GUI demo 0:25](https://youtu.be/QMOtI4h0Y5E?t=25) |
 
 **How the classes collaborate.** The rule engine decides *whether* to act and the agent decides *where* the reduction falls. `RecoveryRuleEngine.evaluate` returns a `RecoveryFlag` only when a reading crosses one of four thresholds. Only then may `AdjustmentAgent` run, and it must produce a session that is easier without being gutted: between 50 and 95 percent of the planned tonnage, nothing added, nothing increased.
 
@@ -228,7 +228,7 @@ No model is involved anywhere in this feature, and `spotter analytics squat` run
 | Implemented classes | `domain/AttemptCalculator`, `domain/MeetAttempts`, `domain/TestDayPlan`, `agent/agents/AttemptRationaleAgent`, `PlanValidator.validateRationale`, `presentation/cli/AttemptsCommand`, `TestDayCommand` |
 | Key methods | `AttemptCalculator.calculateMeetAttempts(Lift, double)`, `projectTestDay(Lift, double)`, `roundToPlate(double)`, `PlanValidator.validateRationale(String, MeetAttempts)`, `ResponseParser.toRationale(...)` |
 | Design patterns | Template Method |
-| Video | CLI demo (deterministic) segment F08 for the calculation, CLI demo (agent) segment F08 for the explanation |
+| Video | [CLI demo, deterministic 3:01](https://youtu.be/IFqLJAf8m-g?t=181); [CLI demo, agent 4:31](https://youtu.be/R0Z8aMzREhE?t=271) |
 
 **How the classes collaborate.** `AttemptCalculator` produces an opener at 91 percent, a second at 96 and a third at 101 of the estimated maximum, each rounded to the nearest 2.5 kg plate. That is the whole feature as far as the numbers go, and `spotter attempts squat` prints them with no key configured. With `--explain`, `AttemptRationaleAgent` writes a sentence about them, and `PlanValidator.validateRationale` requires every figure appearing in that sentence to be one the calculator produced, within a tolerance of five percent.
 
@@ -247,7 +247,7 @@ This is the narrowest and clearest division in the project: the model is allowed
 | Implemented classes | `domain/MacroTracker`, `domain/MacroTarget`, `domain/MacroTotals`, `domain/DailyIntake`, `domain/FoodEntry`, `domain/FoodItem`, `infrastructure/persistence/NutritionRepository`, `SqliteNutritionRepository`, `presentation/gui/panels/NutritionPanel` |
 | Key methods | `MacroTracker.recordIntake(LocalDate, FoodEntry)`, `consumedOn(LocalDate)`, `getRemaining(LocalDate)`, `weeklyAdherence(LocalDate)`, `NutritionRepository.log(LocalDate, FoodEntry)`, `targetFor(int)`, `saveTarget(int, MacroTarget)`, `MacroTotals.minus(MacroTotals)` |
 | Design patterns | Repository |
-| Video | GUI demo, segment F09 |
+| Video | [GUI demo 1:11](https://youtu.be/QMOtI4h0Y5E?t=71) |
 
 **How the classes collaborate.** `NutritionPanel` saves a `MacroTarget` against the lifter's profile and logs each `FoodEntry` into the day's `DailyIntake`. `MacroTracker` computes what has been consumed and what remains by subtracting totals, and `weeklyAdherence` averages the days that were actually logged rather than treating an unlogged day as a zero, which would punish the lifter for not typing rather than for not eating.
 
@@ -267,7 +267,7 @@ This is the narrowest and clearest division in the project: the model is allowed
 | Implemented classes | `agent/agents/MealSuggestionAgent`, `domain/MealSuggestion` with its nested `Portion`, `infrastructure/catalog/FoodCatalog`, `SqliteFoodCatalog`, `infrastructure/sample/SampleFoods`, `agent/tools/FoodDBTool`, `PlanValidator.validateMeal`, `presentation/cli/MealCommand`, meal controls in `NutritionPanel` |
 | Key methods | `ResponseParser.toMeal(JsonNode)`, `PlanValidator.validateMeal(MealSuggestion, DietaryConstraints, MacroTotals)`, `FoodCatalog.permittedBy(DietaryConstraints)`, `MealSuggestion.totals()`, `permittedBy(DietaryConstraints)`, `firstNotPermitted(DietaryConstraints)` |
 | Design patterns | Template Method |
-| Video | CLI demo (agent) segment F10, GUI demo for the Nutrition screen |
+| Video | [CLI demo, agent 4:54](https://youtu.be/R0Z8aMzREhE?t=294); [GUI demo 1:11](https://youtu.be/QMOtI4h0Y5E?t=71) |
 
 **How the classes collaborate.** `FoodDBTool` offers the model only foods the lifter's dietary constraints permit. The model returns a list of foods and portion sizes. Crucially, `MealSuggestion` does **not** store the totals the model claimed: `totals()` recomputes them from the catalogue entries and the portion weights, so a stated figure cannot drift from the foods it describes. `PlanValidator.validateMeal` then checks the portions are plausible, between 10 and 600 grams, that there are no more than six foods, and that the meal is a sensible share of what remains for the day.
 
@@ -285,7 +285,7 @@ This is the narrowest and clearest division in the project: the model is allowed
 | Implemented classes | `agent/agents/ChatAgent`, `agent/MemoryManager`, `agent/ConversationHistory` with its nested `Turn` and `Speaker`, `domain/MemoryNote`, `domain/ChatReply`, `infrastructure/persistence/MemoryRepository`, `SqliteMemoryRepository`, `agent/tools/PlanLookupTool`, `AnalyticsTool`, `RecoveryLookupTool`, `AdherenceTool`, `presentation/gui/panels/CoachPanel` |
 | Key methods | `MemoryManager.remember(String)`, `wouldRefuse(String)`, `recall(int)`, `forgetEverything()`, `ConversationHistory.said(String)`, `replied(String)`, `transcript()`, `ResponseParser.toChatReply(JsonNode)` |
 | Design patterns | Template Method, Repository |
-| Video | GUI demo, segment F11 |
+| Video | [GUI demo 1:22](https://youtu.be/QMOtI4h0Y5E?t=82) |
 
 **How the classes collaborate.** `ChatAgent` answers with four lookups available to it, so a question about the current plan, recent training, recovery or adherence is answered from the database rather than from the model's impression of the conversation. `ConversationHistory` holds the current exchange in memory, capped at twenty turns. `MemoryManager` persists only facts the lifter states, one per `MemoryNote`, capped at forty.
 
@@ -305,7 +305,7 @@ Eleven of the twelve pieces this feature needs were built for other features, wh
 | Implemented classes | `domain/PlanAdherence` with its nested `SessionOutcome`, `agent/tools/AdherenceTool`, `agent/agents/ProgressionAgent`, `PlanValidator.validateProgression`, `application/plan/ApplyProgressionCommand`, `PlanEditHistory`, `presentation/cli/ReviewCommand` |
 | Key methods | `PlanAdherence.of(TrainingBlock, List, LocalDate)`, `tonnageRate()`, `sessionRate()`, `liftsShortOfPlan()`, `PlanValidator.validateProgression(TrainingBlock, TrainingBlock, PlanAdherence)`, `ApplyProgressionCommand.apply(TrainingBlock)` |
 | Design patterns | Command, Template Method |
-| Video | CLI demo (agent), segment F12 |
+| Video | [CLI demo, agent 5:19](https://youtu.be/R0Z8aMzREhE?t=319) |
 
 **How the classes collaborate.** `PlanAdherence.of` compares the block against what was actually logged and produces session outcomes, tonnage rates and the list of lifts that fell short. `spotter review` prints that with no model involved. With `--revise`, `ProgressionAgent` rewrites the remaining weeks with `AdherenceTool` available to it, and `validateProgression` gates the result. With `--keep`, the revision is applied through `ApplyProgressionCommand`.
 
@@ -327,7 +327,7 @@ Eleven of the twelve pieces this feature needs were built for other features, wh
 | Implemented classes | `agent/agents/OnboardingAgent`, `domain/ProfileDraft`, `agent/ProfileValidator`, `domain/StartingStrength`, `presentation/support/PreparedProfile`, `presentation/gui/panels/ProfilePanel` |
 | Key methods | `OnboardingAgent.parse(String)`, `ProfileDraft.isComplete()`, `missingRequired()`, `toProfile()`, `ProfileValidator.validate(ProfileDraft)`, `onlyNeedsMoreAnswers(ProfileDraft)`, `StartingStrength.needsCalibration(List, Lift)` |
 | Design patterns | Template Method, Builder |
-| Video | GUI demo, segment F13 |
+| Video | [GUI demo 2:05](https://youtu.be/QMOtI4h0Y5E?t=125) |
 
 **How the classes collaborate.** The lifter writes a paragraph about themselves. `OnboardingAgent` reads it into a `ProfileDraft`, which is an immutable fluent builder rather than a profile, so an unanswered question stays unanswered instead of being filled with a default. `ProfileValidator` checks the draft, and `onlyNeedsMoreAnswers` distinguishes a draft that is wrong from one that is merely incomplete. `ProfilePanel` shows what was understood alongside what is still missing, and nothing is saved until the lifter confirms.
 
@@ -349,7 +349,7 @@ Eleven of the twelve pieces this feature needs were built for other features, wh
 | Implemented classes | `infrastructure/csv/ProgrammeImportService`, `agent/agents/ProgrammeParserAgent`, `PlanValidator.validateAdoptedBlock`, `ResponseParser.toBlock`, `domain/BlockOrigin`, `presentation/cli/AdoptCommand` |
 | Key methods | `ProgrammeImportService.fromManualEntry(List, LocalDate)`, `fromCsv(Path, ColumnMapping, LocalDate)`, `problems()`, `PlanValidator.validateAdoptedBlock(TrainingBlock, LifterProfile, Map)` |
 | Design patterns | Template Method, Adapter, Factory Method |
-| Video | CLI demo (agent), segment F14 |
+| Video | [CLI demo, agent 6:57](https://youtu.be/R0Z8aMzREhE?t=417) |
 
 **How the classes collaborate.** There are three ways in and only one involves a model. A programme typed line by line, as `1/2 Back Squat 5x5@140 rpe8`, is parsed by a regular expression in `fromManualEntry`. A programme exported as a spreadsheet is read by `fromCsv` reusing `ColumnMapping` from F02 pointed at different fields. A programme pasted as prose goes to `ProgrammeParserAgent`. All three then pass through `validateAdoptedBlock`, so a programme is held to the same standard however it arrived, and all three produce a block marked `BlockOrigin.ADOPTED`.
 
@@ -377,7 +377,7 @@ The four features below were not in Stage 1. They are listed here so that every 
 | Implemented classes | `application/report/ReportBuilder`, `application/report/TrainingReport` with its nested `Section`, `infrastructure/report/ReportWriter`, `PdfReportWriter`, `CsvReportWriter`, `presentation/gui/panels/ReportPanel` |
 | Key methods | `ReportBuilder.build(LocalDate)`, `ReportWriter.write(TrainingReport, Path)`, `extension()`, `ReportPanel.export(ReportWriter)` |
 | Design patterns | Strategy: `ReportWriter` with one implementation per format |
-| Video | GUI demo, segment Reports |
+| Video | [GUI demo 1:42](https://youtu.be/QMOtI4h0Y5E?t=102) |
 
 **How the classes collaborate.** The lifter chooses PDF or CSV on the Reports screen. `ReportPanel` calls `ReportBuilder.build`, which reads the profile, analytics, current block, recovery and nutrition through the same repositories the other screens use and returns one `TrainingReport` made of sections. `ReportPanel.export` passes that report to the chosen `ReportWriter`, which formats it and writes the file. Adding a third format means adding a writer; the builder and the screen do not change. No model is involved, so it works with no API key.
 
@@ -391,7 +391,7 @@ The four features below were not in Stage 1. They are listed here so that every 
 | Implemented classes | `presentation/gui/DashboardApp` with `withDrawer` and `setDrawer`, `presentation/gui/panels/CoachPanel`, `agent/agents/ChatAgent` |
 | Key methods | `DashboardApp.setDrawer(boolean)`, `CoachController` chat calls through the Facade |
 | Design patterns | Facade, as for F11 |
-| Video | GUI demo, segment Ask coach |
+| Video | [GUI demo 1:31](https://youtu.be/QMOtI4h0Y5E?t=91) |
 
 **How the classes collaborate.** The floating button calls `setDrawer(true)`, which slides the same `CoachPanel` over whichever screen is open. The panel sends the question to `ChatAgent` through `CoachController` exactly as the Coach tab does, so the coach has the same memory and the same tools. The lifter does not lose their place on the current screen.
 
@@ -405,7 +405,7 @@ The four features below were not in Stage 1. They are listed here so that every 
 | Implemented classes | `presentation/gui/ThemePreference`, the `.root.light` rules in `src/main/resources/gui/spotter.css` |
 | Key methods | `ThemePreference.toggle(Parent)`, `apply(Parent)`, `isLight()` |
 | Design patterns | N/A |
-| Video | GUI demo, segment Light and dark |
+| Video | [GUI demo 2:16](https://youtu.be/QMOtI4h0Y5E?t=136) |
 
 **How the classes collaborate.** The icon at the top right calls `ThemePreference.toggle` on the root node. The class stores the choice and adds or removes the `light` style class, and the stylesheet restyles every screen from that one class, so no panel knows which theme is active.
 
@@ -419,7 +419,7 @@ The four features below were not in Stage 1. They are listed here so that every 
 | Implemented classes | `presentation/gui/GuidedTour` with its nested `Step`, `DashboardApp.buildTour` |
 | Key methods | `GuidedTour.start()`, `stop()`, `next()`, `Step.seconds()` |
 | Design patterns | N/A |
-| Video | GUI demo, whole recording |
+| Video | [GUI demo 0:00](https://youtu.be/QMOtI4h0Y5E?t=0) |
 
 **How the classes collaborate.** The ? button, or `SPOTTER_TOUR=1`, calls `GuidedTour.start`. `DashboardApp.buildTour` supplies fourteen steps, each a caption and an action that opens a screen. `GuidedTour` runs the action, shows the caption, and advances when a timer sized to the caption length finishes. It only looks: it never saves, imports or calls the model, so running it changes no data.
 
