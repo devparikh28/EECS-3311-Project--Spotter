@@ -20,7 +20,9 @@ No other AI tool was used. No code generation service, no autocomplete model, an
 
 Billed through a Claude subscription rather than per token, so there is no token count or per task figure to report for this part. The subscription cost for the period is the only meaningful number and is a flat monthly charge rather than anything attributable to this project.
 
-The plan used was **Claude Pro**, at 31.64 Canadian dollars a month, billed as a flat subscription rather than per token. No part of that charge is attributable to this project: the same subscription covered all of the author's use of Claude over the period, and nothing about the fee varies with how much work was done here. The figure that does vary with this project, and the one worth reporting, is the API spend in section 2.3.
+<!-- FILL IN (optional): subscription tier and monthly cost. Delete
+     this comment and the sentence below if you would rather not state it. -->
+Subscription tier and monthly cost: `TO FILL IN`.
 
 ## 2. AI the software calls when it runs
 
@@ -50,17 +52,19 @@ What it cost:
 | What | Calls | Input tokens | Output tokens | Cost |
 |---|---|---|---|---|
 | First live run of the agents, including every call that failed or was refused | 9 | not recorded | not recorded | roughly 24 cents, measured |
-| Whole project, every live call ever made | not shown by the console | 56,326 | 45,807 | $0.82 |
+| 2 November 2026, the first day against the real API (console) | | 56,326 | 45,807 | $0.82 |
+| 4 to 8 November, fixes, retesting and the demonstration recordings (console) | | 220,406 | 104,741 | about $2.0 at list rates |
+| Whole project, every live call (console, 2 to 8 November) | | 276,732 | 150,548 | **about $2.9** |
 
-Those are the account totals from the Anthropic console, and they are the project's totals because this key was never used for anything else. All of it falls on one day, 2 November 2026, which is the day the agents were first run against the real API. The console shows no usage before it and none since.
+The rows marked console come from the account usage export, and they are the project's total because the key was never used for anything else. The export gives tokens by day and model but no call counts and no dollar amounts, so the call count is left blank and the cost of the later days is calculated at list rates: 3 and 15 dollars per million input and output tokens for Sonnet, 1 and 5 for Haiku. The first console row is 2 November 2026, the day the agents were first run against the real API. The second covers 4, 5, 6 and 8 November.
 
 The first row was measured by the application itself, through the reporting described above. The second row has to come from the Anthropic console rather than from the repository, because responses are not persisted. `RecordingLLMClient` exists precisely to capture them and was not switched on during the live sessions. That was a mistake: it would have cost nothing to enable and would have made this table exact rather than a reading taken from an account page.
 
 One caveat, and it works in the reader's favour. The figure counts every call, including the ones that failed against retired model identifiers and the ones whose proposals the validator refused. That is the honest number, because a refused proposal costs exactly what an accepted one costs, and this project refuses a lot of them by design.
 
-The two rows are consistent with each other. The nine call session was measured by the application at roughly 24 cents, and the console puts every live call ever made at 82 cents, which is about the right multiple for the handful of sessions that followed.
+The two rows are consistent with each other. The nine call session was measured by the application at roughly 24 cents, and the console puts the whole of 2 November, the first day against the real API, at 82 cents, which is about the right multiple for the handful of sessions that day.
 
-The totals also check out against the published rates, which is worth doing because the application's own cost reporting depends on them. At the reasoning model's rates of 3 and 15 dollars per million, 56,326 input tokens and 45,807 output tokens come to 86 cents. The console says 82. The small difference is the calls that went to the fast model at 1 and 5, which is also what you would expect from the tiering: the ordinary agents are cheap and short, and the output heavy work is block generation and programme parsing, both on the reasoning tier.
+The 2 November totals also check out against the published rates, which is worth doing because the application's own cost reporting depends on them. At the reasoning model's rates of 3 and 15 dollars per million, 56,326 input tokens and 45,807 output tokens come to 86 cents. The console says 82. The small difference is the calls that went to the fast model at 1 and 5, which is also what you would expect from the tiering: the ordinary agents are cheap and short, and the output heavy work is block generation and programme parsing, both on the reasoning tier.
 
 ### Why the cost is as low as it is
 

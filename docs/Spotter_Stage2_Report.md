@@ -42,7 +42,7 @@ All fourteen features specified in Stage 1 are implemented and reachable in the 
 | Main source files | 183 |
 | Test source files | 47 |
 | Automated tests | 510, all passing |
-| Measured API cost, whole project | $0.82 |
+| Measured API cost, whole project | about $2.9 |
 
 ### Interfaces
 
@@ -588,15 +588,17 @@ Both identifiers are set in `.env` and documented in `.env.example`; neither is 
 | What | Calls | Input tokens | Output tokens | Cost |
 |---|---|---|---|---|
 | First live run of the agents, including every call that failed or was refused | 9 | 18,443 | 12,460 | ~$0.24, measured by the application |
-| Whole project, every live call ever made | | 56,326 | 45,807 | **$0.82** |
+| 2 November 2026, the first day against the real API (console) | | 56,326 | 45,807 | $0.82 |
+| 4 to 8 November, fixes, retesting and the demonstration recordings (console) | | 220,406 | 104,741 | about $2.0 at list rates |
+| Whole project, every live call (console, 2 to 8 November) | | 276,732 | 150,548 | **about $2.9** |
 
-The second row is the account total from the Anthropic console, and it is the project's total because the key was never used for anything else. All of it falls on 2 November 2026, the day the agents were first run against the real API.
+The rows marked console come from the account usage export, and they are the project's total because the key was never used for anything else. The export gives tokens by day and model but no call counts and no dollar amounts, so the call count is left blank and the cost of the later days is calculated at list rates: 3 and 15 dollars per million input and output tokens for Sonnet, 1 and 5 for Haiku. The first console row is 2 November 2026, the day the agents were first run against the real API. The second covers 4, 5, 6 and 8 November.
 
-The figures check out against the published rates, which matters because the application's own cost reporting uses them. At the reasoning model's rates of 3 and 15 dollars per million, 56,326 input and 45,807 output tokens come to 86 cents against a console figure of 82. The four cent gap is the calls that went to the fast tier at 1 and 5, which is what the model tiering predicts.
+The 2 November figures check out against the published rates, which matters because the application's own cost reporting uses them. At the reasoning model's rates of 3 and 15 dollars per million, 56,326 input and 45,807 output tokens come to 86 cents against a console figure of 82. The four cent gap is the calls that went to the fast tier at 1 and 5, which is what the model tiering predicts.
 
 The total counts the calls that failed against retired model identifiers and the proposals the validator refused. That is the honest number: a refused proposal costs what an accepted one costs, and this project refuses plenty by design.
 
-**The demonstration recordings.** The agent CLI demo was made against the live model in November, and every model step prints its own cost at the end of its trace. The steps that print one came to about 20 cents: the two week block 9 cents, the recovery adjustment 3 cents, the revision of a block 5 cents, the meal suggestion 1 cent, and the rest under a cent each. These calls are in addition to the 2 November account total above.
+**The demonstration recordings.** The agent CLI demo was made against the live model in November, and every model step prints its own cost at the end of its trace. The steps that print one came to about 20 cents: the two week block 9 cents, the recovery adjustment 3 cents, the revision of a block 5 cents, the meal suggestion 1 cent, and the rest under a cent each. These calls are part of the 4 to 8 November row above.
 
 **Why the cost is as low as it is.** Most of what Spotter does involves no model. Nine of fifteen commands never call one. Where a model is involved it proposes and deterministic code disposes, and all 510 tests run against `ScriptedLLMClient` with no network.
 
