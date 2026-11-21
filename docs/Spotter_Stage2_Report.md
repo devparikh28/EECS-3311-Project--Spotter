@@ -18,6 +18,7 @@ Submitted 10 November 2026
 5. [AI tools and collaboration log](#5-ai-tools-and-collaboration-log)
 6. [Development and verification summary](#6-development-and-verification-summary)
 7. [Demonstration index](#7-demonstration-index)
+8. [Screenshots of each feature running](#8-screenshots-of-each-feature-running)
 
 ---
 
@@ -58,7 +59,7 @@ All fourteen features specified in Stage 1 are implemented and reachable in the 
 
 ### Interfaces
 
-Both interfaces required by Stage 1 are present. The JavaFX dashboard has ten screens: Dashboard, Today, Plan, Analytics, Recovery, Nutrition, Coach and Reports as tabs, with Import and Profile beside them. It also has a quick coach drawer on every screen, light and dark themes, PDF and CSV report export, and a captioned guided tour of every screen. The picocli command line has fifteen commands under the name `spotter`. Nine of the fifteen never call a model, which is a design outcome rather than a shortfall: the figures a lifter trains off keep working when the network does not.
+Both interfaces required by Stage 1 are present. The JavaFX dashboard has ten screens: Dashboard, Today, Plan, Analytics, Recovery, Nutrition, Coach and Reports as tabs, with Import and Profile beside them. It also has a quick coach drawer on every screen, light and dark themes, PDF and CSV report export, and a captioned guided tour of every screen. The picocli command line has sixteen commands under the name `spotter`. Nine of the sixteen never call a model, which is a design outcome rather than a shortfall: the figures a lifter trains off keep working when the network does not.
 
 ### Limitations and incomplete functionality, stated honestly
 
@@ -427,6 +428,10 @@ The four features below were not in Stage 1. They are listed here so that every 
 
 Not a Stage 1 feature, and listed here for completeness rather than counted as one. The eight commands that answer a question take `--json` and print a single object with the same four keys: `command`, `ok`, `value` and `trace`. A refusal prints `ok` false with a reason and keeps the exit code the prose path used. Implemented in `presentation/cli/JsonOutput` and covered by fifteen tests in `JsonOutputTest`, which run all eight commands against a temporary database. This exists for the Stage 3 KUMA harness.
 
+### Supporting work: standalone agent command
+
+Also not counted as a feature. `spotter ask` runs the F11 coach from the command line and accepts the task from a file (`--input task.txt`), from standard input (`--input -` or a pipe) or as an argument. It builds the same `ChatAgent`, `PromptBuilder`, `ConversationHistory` and `MemoryManager` as the Coach tab, so the validation rules and the memory behave identically in both interfaces. It takes `--demo`, `--trace`, `--json` and `--env`, and uses exit codes 3 (no task), 4 (refused or model unreachable) and 5 (input unreadable). Implemented in `presentation/cli/AskCommand`, registered in `CoachCLI`, and covered by eight tests in `AskCommandTest`. This gives F11 a command line route and is the input method the Stage 3 harness will use. The options and a working example are in the README.
+
 ---
 
 ## 3. Implemented design patterns
@@ -672,7 +677,7 @@ The total counts the calls that failed against retired model identifiers and the
 
 **The demonstration recordings.** The agent CLI demo was made against the live model in November, and every model step prints its own cost at the end of its trace. The steps that print one came to about 20 cents: the two week block 9 cents, the recovery adjustment 3 cents, the revision of a block 5 cents, the meal suggestion 1 cent, and the rest under a cent each. These calls are part of the 4 to 8 November row above.
 
-**Why the cost is as low as it is.** Most of what Spotter does involves no model. Nine of fifteen commands never call one. Where a model is involved it proposes and deterministic code disposes, and all 510 tests run against `ScriptedLLMClient` with no network.
+**Why the cost is as low as it is.** Most of what Spotter does involves no model. Nine of sixteen commands never call one. Where a model is involved it proposes and deterministic code disposes, and all 510 tests run against `ScriptedLLMClient` with no network.
 
 ### 5.4 Representative collaboration log
 
@@ -774,3 +779,143 @@ Every implemented feature, including the four new ones, has a demonstration. The
 | N04 Guided Tour (new) | [0:00](https://youtu.be/QMOtI4h0Y5E?t=0) |  |
 
 The timestamps for the GUI demo are counted from the moment the tour starts. Collectively the recordings show both the graphical interface and the command line working, as required. No API key, credential or other secret appears in any recording.
+
+---
+
+## 8. Screenshots of each feature running
+
+The screenshots below are frames taken from the three recordings listed in section 7. Each caption names the feature. The graphical screenshots come from the guided tour of the GUI demo, and the command line screenshots come from the two CLI demos. Where the agent is involved, the screenshot is taken with `--trace`, so the tool calls, the validation result and the cost are visible. No API key or configuration appears in any of them.
+
+### 8.1 Graphical interface
+
+![Welcome screen shown when the guided tour starts (N04, F13).](screenshots/gui_welcome.png)
+
+*Welcome screen shown when the guided tour starts (N04, F13).*
+
+![Dashboard with the current block, readiness and tonnage.](screenshots/gui_dashboard.png)
+
+*Dashboard with the current block, readiness and tonnage.*
+
+![Today screen with the planned session and the substitution and adjustment actions (F06, F07).](screenshots/gui_today.png)
+
+*Today screen with the planned session and the substitution and adjustment actions (F06, F07).*
+
+![Plan screen showing a generated training block (F05).](screenshots/gui_plan.png)
+
+*Plan screen showing a generated training block (F05).*
+
+![Analytics screen with estimated one rep max and weekly volume (F04).](screenshots/gui_analytics.png)
+
+*Analytics screen with estimated one rep max and weekly volume (F04).*
+
+![Recovery screen with flagged days and manual check in (F03).](screenshots/gui_recovery.png)
+
+*Recovery screen with flagged days and manual check in (F03).*
+
+![Nutrition screen with macro targets, adherence and meal suggestion (F09, F10).](screenshots/gui_nutrition.png)
+
+*Nutrition screen with macro targets, adherence and meal suggestion (F09, F10).*
+
+![Coach tab, the coaching chat with memory (F11).](screenshots/gui_coach.png)
+
+*Coach tab, the coaching chat with memory (F11).*
+
+![Ask coach drawer opened from any screen (N02).](screenshots/gui_askcoach.png)
+
+*Ask coach drawer opened from any screen (N02).*
+
+![Reports screen exporting the training report as PDF and CSV (N01).](screenshots/gui_reports.png)
+
+*Reports screen exporting the training report as PDF and CSV (N01).*
+
+![Import screen for Hevy and Whoop exports and programmes (F02, F14).](screenshots/gui_import.png)
+
+*Import screen for Hevy and Whoop exports and programmes (F02, F14).*
+
+![Profile screen with constraints and equipment (F01, F13).](screenshots/gui_profile.png)
+
+*Profile screen with constraints and equipment (F01, F13).*
+
+![Dark theme (N03).](screenshots/gui_theme.png)
+
+*Dark theme (N03).*
+
+### 8.2 Command line
+
+The deterministic commands run with no model. The agent commands run the configured model through the agent loop and show the trace.
+
+![F02: `spotter import` converts a Hevy export and stores 7 sessions.](screenshots/cli_f02_import.png)
+
+*F02: `spotter import` converts a Hevy export and stores 7 sessions.*
+
+![F02: `--show-skipped` reports the two unreadable rows by line number.](screenshots/cli_f02_skipped_rows.png)
+
+*F02: `--show-skipped` reports the two unreadable rows by line number.*
+
+![F03: `spotter recovery` lists the flagged days.](screenshots/cli_f03_recovery.png)
+
+*F03: `spotter recovery` lists the flagged days.*
+
+![F03: `spotter checkin` records three typed numbers and the rule engine flags the day.](screenshots/cli_f03_checkin.png)
+
+*F03: `spotter checkin` records three typed numbers and the rule engine flags the day.*
+
+![F04: `spotter analytics squat` prints estimated one rep max, trend and weekly volume.](screenshots/cli_f04_analytics.png)
+
+*F04: `spotter analytics squat` prints estimated one rep max, trend and weekly volume.*
+
+![F05: the agent generates a block with `--trace`; the model calls and cost are shown and the block is accepted only after validation.](screenshots/cli_f05_plan_agent.png)
+
+*F05: the agent generates a block with `--trace`; the model calls and cost are shown and the block is accepted only after validation.*
+
+![F05: the later weeks of the same block.](screenshots/cli_f05_plan_weeks.png)
+
+*F05: the later weeks of the same block.*
+
+![F06: the agent substitutes an exercise from the three the lifter can perform, then validation passes.](screenshots/cli_f06_substitute_agent.png)
+
+*F06: the agent substitutes an exercise from the three the lifter can perform, then validation passes.*
+
+![F07: the agent reduces a session after poor recovery. A proposal that raised a load is rejected and retried until it validates.](screenshots/cli_f07_adjust_agent.png)
+
+*F07: the agent reduces a session after poor recovery. A proposal that raised a load is rejected and retried until it validates.*
+
+![F07: `--fallback` gives the rule engine's own reduction with no model.](screenshots/cli_f07_adjust_fallback.png)
+
+*F07: `--fallback` gives the rule engine's own reduction with no model.*
+
+![F08: `spotter attempts squat` calculates opener, second and third attempts with no model.](screenshots/cli_f08_attempts.png)
+
+*F08: `spotter attempts squat` calculates opener, second and third attempts with no model.*
+
+![F08: `spotter testday squat` calculates the warm ups and a top single for a lifter with no meet date.](screenshots/cli_f08_testday.png)
+
+*F08: `spotter testday squat` calculates the warm ups and a top single for a lifter with no meet date.*
+
+![F08: `--explain` adds the coach's rationale, and every figure in it is checked against the calculated attempts.](screenshots/cli_f08_attempts_agent.png)
+
+*F08: `--explain` adds the coach's rationale, and every figure in it is checked against the calculated attempts.*
+
+![F10: the agent suggests a meal from the catalogue within the calories and protein left today.](screenshots/cli_f10_meal_agent.png)
+
+*F10: the agent suggests a meal from the catalogue within the calories and protein left today.*
+
+![F12: `spotter review` measures adherence and the heaviest loads reached, with no model.](screenshots/cli_f12_review.png)
+
+*F12: `spotter review` measures adherence and the heaviest loads reached, with no model.*
+
+![F12: `--revise` lets the agent rewrite the remaining weeks, with each reduction checked.](screenshots/cli_f12_review_agent.png)
+
+*F12: `--revise` lets the agent rewrite the remaining weeks, with each reduction checked.*
+
+![F14: `spotter adopt --entry` adopts a programme typed by hand, route 1.](screenshots/cli_f14_adopt_typed.png)
+
+*F14: `spotter adopt --entry` adopts a programme typed by hand, route 1.*
+
+![F14: `spotter adopt` from a file.](screenshots/cli_f14_adopt_file.png)
+
+*F14: `spotter adopt` from a file.*
+
+### 8.3 Standalone `ask` command
+
+The `ask` command takes the same agent from a file or standard input. Its usage and exit codes are in the README, and the tests for each input route are in `AskCommandTest`.

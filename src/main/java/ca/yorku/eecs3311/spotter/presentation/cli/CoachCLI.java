@@ -43,7 +43,8 @@ import picocli.CommandLine.Command;
         AdjustCommand.class,
         MealCommand.class,
         AdoptCommand.class,
-        ReviewCommand.class
+        ReviewCommand.class,
+        AskCommand.class
     })
 public final class CoachCLI
         implements Callable<Integer> {

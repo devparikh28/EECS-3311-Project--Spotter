@@ -92,11 +92,12 @@ spotter adjust --fallback
 spotter meal --calories 900
 spotter review --revise
 spotter adopt --keep --start 2026-11-09 --entry "1/1 Back Squat 5x5@120"
+spotter ask --input task.txt
 ```
 
 Add `--trace` to any agent command to see every tool call, every refused proposal and the reason, and the tokens and cost of the run. Add `--demo` to use a prepared reply instead of the API, and `--json` for machine readable output.
 
-Nine of the fifteen commands never call a model.
+Nine of the sixteen commands never call a model.
 
 ## Features and where they live
 
@@ -124,6 +125,38 @@ Nine of the fifteen commands never call a model.
 Patterns: Facade (`CoachController`), Strategy (`LLMClient`, `ProgressionStrategy`), Template Method (`CoachAgent`), Adapter (`DataSource`), Factory Method (`DataSourceFactory`, `ProgressionStrategyFactory`), Decorator (`CachingLLMClient`, `RecordingLLMClient`), Observer (`EventBus`), Command (`PlanEditCommand`), with Builder and Repository as supporting patterns.
 
 Layers: `presentation` (CLI and JavaFX), `application` (Facade, event bus, plan commands), `domain`, `agent` and `infrastructure`, under `src/main/java/ca/yorku/eecs3311/spotter`.
+
+## Standalone command line agent (`ask`)
+
+The `ask` command is the entry point for running the agent without the GUI. It takes a task as text from a file, from standard input, or as an argument, runs the coach against the stored profile, plan, recovery and food data, and prints the checked reply. The same agent, validation and memory code serves the GUI Coach tab and this command.
+
+```
+java -jar target/spotter.jar ask --input task.txt
+java -jar target/spotter.jar ask "How should I warm up for squats?"
+echo "Is my bench press trending up?" | java -jar target/spotter.jar ask
+java -jar target/spotter.jar ask --input - < task.txt
+```
+
+| Option | Meaning |
+| --- | --- |
+| `QUESTION` | The task as an argument. Optional when another source is used. |
+| `-i`, `--input FILE` | Read the task from a file. `-` reads standard input. |
+| (piped input) | If nothing else is given and standard input is piped, it is read. |
+| `--demo` | Use a prepared reply instead of the API, so it runs with no key. |
+| `--trace` | Print each agent step, tool call, refused proposal, tokens and cost. |
+| `--json` | Print one JSON object with `question`, `reply` and `remembered`. |
+| `--env FILE` | Configuration file, default `.env`. Holds `LLM_API_KEY`, `LLM_MODEL` and `LLM_MODEL_REASONING`. |
+
+The source order is the input file, then the argument, then piped standard input. Exit codes are 0 for success, 3 when no task was given, 4 when the agent refused or the model was unreachable, and 5 when the input file could not be read.
+
+A working example that needs no key:
+
+```
+echo "How should I warm up for squats?" > task.txt
+java -jar target/spotter.jar ask --input task.txt --demo --trace
+```
+
+For Stage 3, a harness can call `java -jar target/spotter.jar ask --input task.txt --json` and read the single JSON object from standard output.
 
 ## How the AI is used (and kept honest)
 
