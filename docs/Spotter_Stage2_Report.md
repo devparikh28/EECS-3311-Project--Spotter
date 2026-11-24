@@ -786,152 +786,218 @@ The timestamps for the GUI demo are counted from the moment the tour starts. Col
 
 ## 8. Screenshots of each feature running
 
-The screenshots below are frames taken from the three recordings listed in section 7. Each caption names the feature. The graphical screenshots come from the guided tour of the GUI demo, and the command line screenshots come from the two CLI demos. Where the agent is involved, the screenshot is taken with `--trace`, so the tool calls, the validation result and the cost are visible. No API key or configuration appears in any of them.
+Every screenshot has a numbered title that names the interface, what is shown, and the feature it demonstrates. The graphical screenshots come from the guided tour in the GUI demo, the command line screenshots come from the two CLI demos, and the last three come from the agent demo that runs one task in both interfaces. Where the agent is involved, the command line screenshot was taken with the trace turned on, so the tool calls, the validation result and the cost are visible. No API key or configuration appears in any of them.
 
 ### 8.1 Graphical interface
 
-![Welcome screen shown when the guided tour starts (N04, F13).](screenshots/gui_welcome.png)
+**Figure 8.1.1: Welcome screen of the guided tour** (N04 Guided Tour, F13 Guided Onboarding)
 
-*Welcome screen shown when the guided tour starts (N04, F13).*
+![Welcome screen of the guided tour](screenshots/gui_welcome.png)
 
-![Dashboard with the current block, readiness and tonnage.](screenshots/gui_dashboard.png)
+The first caption of the guided tour, shown when the application starts.
 
-*Dashboard with the current block, readiness and tonnage.*
+**Figure 8.1.2: Dashboard with the current block and estimated maxima** (F04 Strength Analytics)
 
-![Today screen with the planned session and the substitution and adjustment actions (F06, F07).](screenshots/gui_today.png)
+![Dashboard with the current block and estimated maxima](screenshots/gui_dashboard.png)
 
-*Today screen with the planned session and the substitution and adjustment actions (F06, F07).*
+Estimated one rep maxima for squat, bench and deadlift, readiness, and the current block status.
 
-![Plan screen showing a generated training block (F05).](screenshots/gui_plan.png)
+**Figure 8.1.3: Today screen with the planned session** (F06 Equipment Substitution, F07 Recovery Aware Adjustment)
 
-*Plan screen showing a generated training block (F05).*
+![Today screen with the planned session](screenshots/gui_today.png)
 
-![Analytics screen with estimated one rep max and weekly volume (F04).](screenshots/gui_analytics.png)
+The session planned for today, with the actions that substitute an exercise or adjust the session after poor recovery.
 
-*Analytics screen with estimated one rep max and weekly volume (F04).*
+**Figure 8.1.4: Plan screen with a generated training block** (F05 Training Block Generation)
 
-![Recovery screen with flagged days and manual check in (F03).](screenshots/gui_recovery.png)
+![Plan screen with a generated training block](screenshots/gui_plan.png)
 
-*Recovery screen with flagged days and manual check in (F03).*
+The training block laid out by week and day, with the loads that passed validation.
 
-![Nutrition screen with macro targets, adherence and meal suggestion (F09, F10).](screenshots/gui_nutrition.png)
+**Figure 8.1.5: Analytics screen with estimated maximum and weekly volume** (F04 Strength Analytics, F08 Max Testing and Attempt Planning)
 
-*Nutrition screen with macro targets, adherence and meal suggestion (F09, F10).*
+![Analytics screen with estimated maximum and weekly volume](screenshots/gui_analytics.png)
 
-![Coach tab, the coaching chat with memory (F11).](screenshots/gui_coach.png)
+The estimated one rep max over time and the weekly volume, calculated from the logged sessions.
 
-*Coach tab, the coaching chat with memory (F11).*
+**Figure 8.1.6: Recovery screen with flagged days and manual check in** (F03 Recovery Input)
 
-![Ask coach drawer opened from any screen (N02).](screenshots/gui_askcoach.png)
+![Recovery screen with flagged days and manual check in](screenshots/gui_recovery.png)
 
-*Ask coach drawer opened from any screen (N02).*
+Recovery readings, the days the rule engine flagged, and the form for a manual check in.
 
-![Reports screen exporting the training report as PDF and CSV (N01).](screenshots/gui_reports.png)
+**Figure 8.1.7: Nutrition screen with macro targets and meal suggestion** (F09 Macro Targets and Adherence Tracking, F10 Meal Suggestion)
 
-*Reports screen exporting the training report as PDF and CSV (N01).*
+![Nutrition screen with macro targets and meal suggestion](screenshots/gui_nutrition.png)
 
-![Import screen for Hevy and Whoop exports and programmes (F02, F14).](screenshots/gui_import.png)
+Daily macro targets against what has been logged, and the meal suggested from the food catalogue.
 
-*Import screen for Hevy and Whoop exports and programmes (F02, F14).*
+**Figure 8.1.8: Coach tab, the coaching chat** (F11 Coaching Chat with Memory)
 
-![Profile screen with constraints and equipment (F01, F13).](screenshots/gui_profile.png)
+![Coach tab, the coaching chat](screenshots/gui_coach.png)
 
-*Profile screen with constraints and equipment (F01, F13).*
+The conversation panel, the tools the coach looked up, and what it remembers.
 
-![Dark theme (N03).](screenshots/gui_theme.png)
+**Figure 8.1.9: Ask coach drawer opened from any screen** (N02 Ask Coach Drawer)
 
-*Dark theme (N03).*
+![Ask coach drawer opened from any screen](screenshots/gui_askcoach.png)
+
+The quick coach drawer, which is available on every screen.
+
+**Figure 8.1.10: Reports screen with PDF and CSV export** (N01 Training Report Export)
+
+![Reports screen with PDF and CSV export](screenshots/gui_reports.png)
+
+Exporting the training report as a PDF or CSV file.
+
+**Figure 8.1.11: Import screen for workout exports and programmes** (F02 Workout Logging and Import, F14 Adopt an Existing Programme)
+
+![Import screen for workout exports and programmes](screenshots/gui_import.png)
+
+Importing a Hevy or Whoop export, or adopting an existing programme.
+
+**Figure 8.1.12: Profile screen with constraints and equipment** (F01 Lifter Profile and Constraints, F13 Guided Onboarding)
+
+![Profile screen with constraints and equipment](screenshots/gui_profile.png)
+
+The lifter profile, injuries and constraints, and the equipment the lifter has.
+
+**Figure 8.1.13: Dark theme** (N03 Light and Dark Themes)
+
+![Dark theme](screenshots/gui_theme.png)
+
+The same screen in the dark theme, chosen with the theme button.
 
 ### 8.2 Command line
 
-The deterministic commands run with no model. The agent commands run the configured model through the agent loop and show the trace.
+The commands that need no model are labelled as calculated. The others run the configured model through the agent loop and show the trace.
 
-![F02: `spotter import` converts a Hevy export and stores 7 sessions.](screenshots/cli_f02_import.png)
+**Figure 8.2.1: Importing a workout export** (F02 Workout Logging and Import)
 
-*F02: `spotter import` converts a Hevy export and stores 7 sessions.*
+![Importing a workout export](screenshots/cli_f02_import.png)
 
-![F02: `--show-skipped` reports the two unreadable rows by line number.](screenshots/cli_f02_skipped_rows.png)
+`spotter import` detects the format, converts the rows and stores 7 sessions. No model is involved.
 
-*F02: `--show-skipped` reports the two unreadable rows by line number.*
+**Figure 8.2.2: Unreadable rows reported by line number** (F02 Workout Logging and Import)
 
-![F03: `spotter recovery` lists the flagged days.](screenshots/cli_f03_recovery.png)
+![Unreadable rows reported by line number](screenshots/cli_f02_skipped_rows.png)
 
-*F03: `spotter recovery` lists the flagged days.*
+`--show-skipped` lists the two rows that could not be read and why, while the other rows import.
 
-![F03: `spotter checkin` records three typed numbers and the rule engine flags the day.](screenshots/cli_f03_checkin.png)
+**Figure 8.2.3: Recovery review with flagged days** (F03 Recovery Input)
 
-*F03: `spotter checkin` records three typed numbers and the rule engine flags the day.*
+![Recovery review with flagged days](screenshots/cli_f03_recovery.png)
 
-![F04: `spotter analytics squat` prints estimated one rep max, trend and weekly volume.](screenshots/cli_f04_analytics.png)
+`spotter recovery` lists the days flagged by the rule engine and the reason for each.
 
-*F04: `spotter analytics squat` prints estimated one rep max, trend and weekly volume.*
+**Figure 8.2.4: Manual recovery check in** (F03 Recovery Input)
 
-![F05: the agent generates a block with `--trace`; the model calls and cost are shown and the block is accepted only after validation.](screenshots/cli_f05_plan_agent.png)
+![Manual recovery check in](screenshots/cli_f03_checkin.png)
 
-*F05: the agent generates a block with `--trace`; the model calls and cost are shown and the block is accepted only after validation.*
+`spotter checkin` records soreness, energy and sleep, and the rule engine flags the day.
 
-![F05: the later weeks of the same block.](screenshots/cli_f05_plan_weeks.png)
+**Figure 8.2.5: Strength analytics for the squat** (F04 Strength Analytics)
 
-*F05: the later weeks of the same block.*
+![Strength analytics for the squat](screenshots/cli_f04_analytics.png)
 
-![F06: the agent substitutes an exercise from the three the lifter can perform, then validation passes.](screenshots/cli_f06_substitute_agent.png)
+`spotter analytics squat` prints the estimated one rep max, the trend and the weekly volume.
 
-*F06: the agent substitutes an exercise from the three the lifter can perform, then validation passes.*
+**Figure 8.2.6: Block generation by the agent, with trace** (F05 Training Block Generation)
 
-![F07: the agent reduces a session after poor recovery. A proposal that raised a load is rejected and retried until it validates.](screenshots/cli_f07_adjust_agent.png)
+![Block generation by the agent, with trace](screenshots/cli_f05_plan_agent.png)
 
-*F07: the agent reduces a session after poor recovery. A proposal that raised a load is rejected and retried until it validates.*
+The agent calls tools, each proposal is validated, and the block is accepted only after it passes. The model calls and cost are shown.
 
-![F07: `--fallback` gives the rule engine's own reduction with no model.](screenshots/cli_f07_adjust_fallback.png)
+**Figure 8.2.7: Later weeks of the generated block** (F05 Training Block Generation)
 
-*F07: `--fallback` gives the rule engine's own reduction with no model.*
+![Later weeks of the generated block](screenshots/cli_f05_plan_weeks.png)
 
-![F08: `spotter attempts squat` calculates opener, second and third attempts with no model.](screenshots/cli_f08_attempts.png)
+The remaining weeks of the same block, with loads that follow the progression.
 
-*F08: `spotter attempts squat` calculates opener, second and third attempts with no model.*
+**Figure 8.2.8: Exercise substitution by the agent, with trace** (F06 Equipment Substitution)
 
-![F08: `spotter testday squat` calculates the warm ups and a top single for a lifter with no meet date.](screenshots/cli_f08_testday.png)
+![Exercise substitution by the agent, with trace](screenshots/cli_f06_substitute_agent.png)
 
-*F08: `spotter testday squat` calculates the warm ups and a top single for a lifter with no meet date.*
+The agent chooses a replacement from the movements the lifter can perform, and validation passes.
 
-![F08: `--explain` adds the coach's rationale, and every figure in it is checked against the calculated attempts.](screenshots/cli_f08_attempts_agent.png)
+**Figure 8.2.9: Session adjustment by the agent, with trace** (F07 Recovery Aware Adjustment)
 
-*F08: `--explain` adds the coach's rationale, and every figure in it is checked against the calculated attempts.*
+![Session adjustment by the agent, with trace](screenshots/cli_f07_adjust_agent.png)
 
-![F10: the agent suggests a meal from the catalogue within the calories and protein left today.](screenshots/cli_f10_meal_agent.png)
+A proposal that raised a load is refused and retried until it validates, then the reduced session is shown.
 
-*F10: the agent suggests a meal from the catalogue within the calories and protein left today.*
+**Figure 8.2.10: Session adjustment with no model** (F07 Recovery Aware Adjustment)
 
-![F12: `spotter review` measures adherence and the heaviest loads reached, with no model.](screenshots/cli_f12_review.png)
+![Session adjustment with no model](screenshots/cli_f07_adjust_fallback.png)
 
-*F12: `spotter review` measures adherence and the heaviest loads reached, with no model.*
+`--fallback` gives the rule engine's own reduction, which is what runs when the model is unreachable.
 
-![F12: `--revise` lets the agent rewrite the remaining weeks, with each reduction checked.](screenshots/cli_f12_review_agent.png)
+**Figure 8.2.11: Attempt planning, calculated** (F08 Max Testing and Attempt Planning)
 
-*F12: `--revise` lets the agent rewrite the remaining weeks, with each reduction checked.*
+![Attempt planning, calculated](screenshots/cli_f08_attempts.png)
 
-![F14: `spotter adopt --entry` adopts a programme typed by hand, route 1.](screenshots/cli_f14_adopt_typed.png)
+`spotter attempts squat` calculates the opener, second and third attempts with no model.
 
-*F14: `spotter adopt --entry` adopts a programme typed by hand, route 1.*
+**Figure 8.2.12: Test day plan for a lifter with no meet date** (F08 Max Testing and Attempt Planning)
 
-![F14: `spotter adopt` from a file.](screenshots/cli_f14_adopt_file.png)
+![Test day plan for a lifter with no meet date](screenshots/cli_f08_testday.png)
 
-*F14: `spotter adopt` from a file.*
+`spotter testday squat` calculates the warm ups and a top single.
+
+**Figure 8.2.13: Attempt rationale from the agent** (F08 Max Testing and Attempt Planning)
+
+![Attempt rationale from the agent](screenshots/cli_f08_attempts_agent.png)
+
+`--explain` adds the coach's rationale, and every figure in it is checked against the calculated attempts.
+
+**Figure 8.2.14: Meal suggestion by the agent, with trace** (F10 Meal Suggestion)
+
+![Meal suggestion by the agent, with trace](screenshots/cli_f10_meal_agent.png)
+
+A meal from the catalogue within the calories and protein left today, with the totals recomputed by the code.
+
+**Figure 8.2.15: Plan adherence review, calculated** (F12 Plan Adherence and Progression Review)
+
+![Plan adherence review, calculated](screenshots/cli_f12_review.png)
+
+`spotter review` measures adherence and the heaviest loads reached, with no model.
+
+**Figure 8.2.16: Plan revision by the agent, with trace** (F12 Plan Adherence and Progression Review)
+
+![Plan revision by the agent, with trace](screenshots/cli_f12_review_agent.png)
+
+`--revise` lets the agent rewrite the remaining weeks, with each reduction checked.
+
+**Figure 8.2.17: Adopting a programme typed by hand** (F14 Adopt an Existing Programme)
+
+![Adopting a programme typed by hand](screenshots/cli_f14_adopt_typed.png)
+
+`spotter adopt --entry` builds a block from lines typed on the command line, route 1.
+
+**Figure 8.2.18: Adopting a programme from a file** (F14 Adopt an Existing Programme)
+
+![Adopting a programme from a file](screenshots/cli_f14_adopt_file.png)
+
+`spotter adopt` reads the programme from a file.
 
 ### 8.3 The agent running in both interfaces
 
-The same task, "Is my squat trending up, and what should I do next week?", was given to the agent in the graphical interface and in the command line. In both, the agent looked up the strength analytics, the training plan and the recovery readings before answering, and the answer was checked before it was shown.
+The same task, "Is my squat trending up, and what should I do next week?", was given to the agent in the graphical interface and in the command line. In both, the agent looked up the strength analytics, the training plan and the recovery readings before answering, and the answer was checked before it was shown. This is the video linked in section 7 as the agent demo.
 
-![Coach tab answering the task in the GUI. The panel "What it looked up" lists strength_analytics, training_plan and recovery_readings.](screenshots/gui_coach_answer.png)
+**Figure 8.3.1: The agent answering the task in the GUI** (F11 Coaching Chat with Memory)
 
-*The task in the Coach tab (F11). "What it looked up" lists the tools the agent called.*
+![The agent answering the task in the GUI](screenshots/gui_coach_answer.png)
 
-![The standalone ask command reading the task from a file, with the trace.](screenshots/cli_ask_trace.png)
+The Coach tab. The panel "What it looked up" lists strength_analytics, training_plan and recovery_readings.
 
-*The same task from the command line, `spotter ask --input task.txt --trace`. The trace shows each tool call, that validation passed, and the tokens and cost.*
+**Figure 8.3.2: The same task from a file with the standalone ask command, with trace** (F11 Coaching Chat with Memory, standalone command line agent)
 
-![The standalone ask command reading the task from standard input.](screenshots/cli_ask_stdin.png)
+![The ask command reading the task from a file, with trace](screenshots/cli_ask_trace.png)
 
-*The same task piped on standard input, `cat task.txt | spotter ask`.*
+`spotter ask --input task.txt --trace`. The trace shows each tool call, that validation passed, and the tokens and cost.
 
-The usage, options and exit codes of `ask` are in the README, and the tests for each input route are in `AskCommandTest`.
+**Figure 8.3.3: The same task piped on standard input** (F11 Coaching Chat with Memory, standalone command line agent)
+
+![The ask command reading the task from standard input](screenshots/cli_ask_stdin.png)
+
+`cat task.txt | spotter ask`. The usage, options and exit codes of `ask` are in the README, and the tests for each input route are in `AskCommandTest`.
