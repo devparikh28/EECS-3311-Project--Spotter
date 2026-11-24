@@ -286,7 +286,7 @@ This is the narrowest and clearest division in the project: the model is allowed
 | Implemented classes | `agent/agents/ChatAgent`, `agent/MemoryManager`, `agent/ConversationHistory` with its nested `Turn` and `Speaker`, `domain/MemoryNote`, `domain/ChatReply`, `infrastructure/persistence/MemoryRepository`, `SqliteMemoryRepository`, `agent/tools/PlanLookupTool`, `AnalyticsTool`, `RecoveryLookupTool`, `AdherenceTool`, `presentation/gui/panels/CoachPanel` |
 | Key methods | `MemoryManager.remember(String)`, `wouldRefuse(String)`, `recall(int)`, `forgetEverything()`, `ConversationHistory.said(String)`, `replied(String)`, `transcript()`, `ResponseParser.toChatReply(JsonNode)` |
 | Design patterns | Template Method, Repository |
-| Video | [GUI demo 1:22](https://youtu.be/QMOtI4h0Y5E?t=82) |
+| Video | [GUI demo 1:22](https://youtu.be/QMOtI4h0Y5E?t=82), [Agent demo, GUI 0:17](https://youtu.be/Hv_Bw4R9vPw?t=17), [Agent demo, CLI 0:54](https://youtu.be/Hv_Bw4R9vPw?t=54) |
 
 **How the classes collaborate.** `ChatAgent` answers with four lookups available to it, so a question about the current plan, recent training, recovery or adherence is answered from the database rather than from the model's impression of the conversation. `ConversationHistory` holds the current exchange in memory, capped at twenty turns. `MemoryManager` persists only facts the lifter states, one per `MemoryNote`, capped at forty.
 
@@ -749,7 +749,7 @@ The competition lift variation defect, change 13. F09 having no command line rou
 
 ## 7. Demonstration index
 
-Every implemented feature, including the four new ones, has a demonstration. The recordings are grouped into three, each with clearly labelled segments; every feature below gives the recording and the timestamp of its segment.
+Every implemented feature, including the four new ones, has a demonstration. The recordings are grouped into four, each with clearly labelled segments; every feature below gives the recording and the timestamp of its segment.
 
 **CLI demo, deterministic commands** (https://youtu.be/IFqLJAf8m-g). Shows that the figures a lifter trains off are calculated rather than generated, and work with no API key configured.
 
@@ -769,7 +769,7 @@ Every implemented feature, including the four new ones, has a demonstration. The
 | F08 Max Testing and Attempt Planning | | [3:01 deterministic](https://youtu.be/IFqLJAf8m-g?t=181)<br>[4:31 agent](https://youtu.be/R0Z8aMzREhE?t=271) |
 | F09 Macro Targets and Adherence | [1:11](https://youtu.be/QMOtI4h0Y5E?t=71) | |
 | F10 Meal Suggestion | [1:11](https://youtu.be/QMOtI4h0Y5E?t=71) | [4:54](https://youtu.be/R0Z8aMzREhE?t=294) |
-| F11 Coaching Chat with Memory | [1:22](https://youtu.be/QMOtI4h0Y5E?t=82) | |
+| F11 Coaching Chat with Memory | [1:22 tour](https://youtu.be/QMOtI4h0Y5E?t=82)<br>[0:17 live agent](https://youtu.be/Hv_Bw4R9vPw?t=17) | [0:54 ask command](https://youtu.be/Hv_Bw4R9vPw?t=54) |
 | F12 Plan Adherence and Progression Review | | [5:19](https://youtu.be/R0Z8aMzREhE?t=319) |
 | F13 Guided Onboarding | [2:05](https://youtu.be/QMOtI4h0Y5E?t=125) | |
 | F14 Adopt an Existing Programme | | [6:57](https://youtu.be/R0Z8aMzREhE?t=417) |
@@ -777,6 +777,8 @@ Every implemented feature, including the four new ones, has a demonstration. The
 | N02 Ask Coach Drawer (new) | [1:31](https://youtu.be/QMOtI4h0Y5E?t=91) |  |
 | N03 Light and Dark Themes (new) | [2:16](https://youtu.be/QMOtI4h0Y5E?t=136) |  |
 | N04 Guided Tour (new) | [0:00](https://youtu.be/QMOtI4h0Y5E?t=0) |  |
+
+**Agent demo, the same task in the GUI and the CLI** (https://youtu.be/Hv_Bw4R9vPw). The agent is given one task, "Is my squat trending up, and what should I do next week?". In the Coach tab of the GUI it looks up the strength analytics, the plan and the recovery readings and answers (0:17). The same task is then read from a file by the standalone `ask` command with the trace on (0:54), and piped on standard input (1:22). This is the demonstration of the agent in both interfaces.
 
 The timestamps for the GUI demo are counted from the moment the tour starts. Collectively the recordings show both the graphical interface and the command line working, as required. No API key, credential or other secret appears in any recording.
 
@@ -916,6 +918,20 @@ The deterministic commands run with no model. The agent commands run the configu
 
 *F14: `spotter adopt` from a file.*
 
-### 8.3 Standalone `ask` command
+### 8.3 The agent running in both interfaces
 
-The `ask` command takes the same agent from a file or standard input. Its usage and exit codes are in the README, and the tests for each input route are in `AskCommandTest`.
+The same task, "Is my squat trending up, and what should I do next week?", was given to the agent in the graphical interface and in the command line. In both, the agent looked up the strength analytics, the training plan and the recovery readings before answering, and the answer was checked before it was shown.
+
+![Coach tab answering the task in the GUI. The panel "What it looked up" lists strength_analytics, training_plan and recovery_readings.](screenshots/gui_coach_answer.png)
+
+*The task in the Coach tab (F11). "What it looked up" lists the tools the agent called.*
+
+![The standalone ask command reading the task from a file, with the trace.](screenshots/cli_ask_trace.png)
+
+*The same task from the command line, `spotter ask --input task.txt --trace`. The trace shows each tool call, that validation passed, and the tokens and cost.*
+
+![The standalone ask command reading the task from standard input.](screenshots/cli_ask_stdin.png)
+
+*The same task piped on standard input, `cat task.txt | spotter ask`.*
+
+The usage, options and exit codes of `ask` are in the README, and the tests for each input route are in `AskCommandTest`.
