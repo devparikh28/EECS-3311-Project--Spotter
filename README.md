@@ -193,7 +193,16 @@ All diagrams are also available as UMLet `.uxf` files, see [docs/diagrams/README
 
 ## Demonstration videos
 
-There is one GUI demo and two CLI demos, plus a short agent demo that runs the same task in the GUI and then in the CLI, indexed in section 7 of the Stage 2 report. GUI demo: the captioned tour of every screen ([watch](https://youtu.be/QMOtI4h0Y5E)). CLI demo, deterministic commands ([watch](https://youtu.be/IFqLJAf8m-g)). CLI demo, the agent with `--trace` ([watch](https://youtu.be/R0Z8aMzREhE)). Agent demo, the same task in the GUI and then in the CLI with the standalone `ask` command ([watch](https://youtu.be/Hv_Bw4R9vPw)). Each link in the table jumps to that feature's segment. Where a feature has two CLI segments they are on separate lines.
+There are four demonstration videos, indexed by feature in section 7 of the Stage 2 report.
+
+| Video | What it shows | Link |
+|---|---|---|
+| GUI demo | A captioned guided tour of every screen. The tour only looks and changes no data. | [Watch](https://youtu.be/QMOtI4h0Y5E) |
+| CLI demo, deterministic commands | The commands that calculate with no model and work without an API key. | [Watch](https://youtu.be/IFqLJAf8m-g) |
+| CLI demo, the agent | The agent commands with `--trace`: tool calls, refused proposals, retries, tokens and cost. | [Watch](https://youtu.be/R0Z8aMzREhE) |
+| Agent demo, GUI and CLI | The same task given to the agent in the GUI Coach tab and then in the CLI with the standalone `ask` command, from a file and from standard input. | [Watch](https://youtu.be/Hv_Bw4R9vPw) |
+
+Each link in the table below jumps to that feature's segment. Where a feature has two CLI segments they are on separate lines.
 
 | ID | Feature | Report | GUI demo | CLI demo |
 |---|---|---|---|---|
